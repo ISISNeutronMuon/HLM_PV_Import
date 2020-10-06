@@ -1,7 +1,23 @@
+"""
+Contains functions for working with the IOC and HeRecovery database.
+Environment variables: DB_IOC_USER, DB_IOC_PASS, DB_HE_USER, DB_HE_PASS
+"""
 import os
 import mysql.connector
 
 import utilities
+
+# the IOC DB containing the list of PVs
+IOC_HOST = "localhost"
+IOC_DB = "iocdb"
+IOC_USER = os.environ['DB_IOC_USER']
+IOC_PASS = os.environ['DB_IOC_PASS']
+
+# the HLM GAM DB
+HE_HOST = "localhost"
+HE_DB = "helium"
+HE_USER = os.environ['DB_HE_USER']
+HE_PASS = os.environ['DB_HE_PASS']
 
 
 def get_pv_records(f_arg=None, *args):
@@ -23,14 +39,11 @@ def get_pv_records(f_arg=None, *args):
         Invalid arguments (not a valid column) will be ignored.
     """
 
-    db_user = os.environ['DB_IOC_USER']
-    db_pass = os.environ['DB_IOC_PASS']
-
     try:
-        connection = mysql.connector.connect(host='localhost',
-                                             database='iocdb',
-                                             user=db_user,
-                                             password=db_pass)
+        connection = mysql.connector.connect(host=IOC_HOST,
+                                             database=IOC_DB,
+                                             user=IOC_USER,
+                                             password=IOC_PASS)
         if connection.is_connected():
             cursor = connection.cursor()
 
@@ -50,8 +63,9 @@ def get_pv_records(f_arg=None, *args):
             cursor.execute(query)
             records = cursor.fetchall()
 
-            if len(records[0]) == 1:  # If records is made of single-element tuples, convert to strings
-                records = utilities.single_elem_tuples_to_strings(records)
+            # If records is made of single-element tuples, convert to strings
+            if len(records[0]) == 1:
+                records = utilities.single_tuples_to_strings(records)
 
             return records
 
@@ -61,3 +75,45 @@ def get_pv_records(f_arg=None, *args):
         if connection.is_connected():
             cursor.close()
             connection.close()
+
+
+# def add_coordinator(name, value):
+#     """
+#     OB_OBJECTTYPE_ID (int): ID of the type of this object. Set to 1 (coordinator).
+#     OB_NAME (str): Name of object
+#     OB_ADDRESS (str): The XBee Address (or IP for LAN Gascount. Mod.)
+#     OB_COMMENT (str): Comments regarding this object
+#     OB_POSINFORMATION (str): Physical position of the device
+#     OB_IP (str): The IP address of the device
+#     OB_COMPORT (str): Device COM Port
+#     OB_NW_ID (int): ID of the network this object is on
+#     """
+#     try:
+#         connection = mysql.connector.connect(host=HE_HOST,
+#                                              database=HE_DB,
+#                                              user=HE_USER,
+#                                              password=HE_PASS)
+#         if connection.is_connected():
+#             cursor = connection.cursor()
+#
+#             insert_statement = ("INSERT INTO gam_object "
+#                                 "(OB_OBJECTTYPE_ID, OB_NAME, OB_ADDRESS, OB_COMMENT, OB_POSINFORMATION, OB_IP, "
+#                                 "OB_COMPORT, OB_NW_ID) "
+#                                 "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
+#
+#             device_data = ('1', 'test_name', 'test_addr', 'commen', 'posinfo', 'ip1929932', 'COMTEST', '2')
+#
+#             cursor.execute(insert_statement, device_data)
+#
+#             connection.commit()
+#
+#             device_no = cursor.lastrowid
+#             print(f"Added device no. {device_no} to DB")
+#
+#     except mysql.connector.Error as e:
+#         print("Error while connecting to MySQL", e)
+#     finally:
+#         if connection.is_connected():
+#             cursor.close()
+#             connection.close()
+

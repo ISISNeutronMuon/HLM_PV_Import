@@ -24,7 +24,6 @@ def get_pv_value(name, timeout=TIMEOUT):
     """
 
     res = get_chan(name, timeout)
-
     value = res.data[0]
 
     if isinstance(value, bytes):
@@ -50,4 +49,3 @@ def get_chan(name, timeout):
         log_error(pv_name=name, err=e)
         raise
     return res
-

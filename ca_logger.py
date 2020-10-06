@@ -1,5 +1,5 @@
 """
-Useful and slightly more explicit exceptions that can be thrown. In general catch the super class of these.
+Contains utilities for logging errors that may occur when accessing and reading PVs.
 """
 import os
 import time
@@ -14,7 +14,8 @@ def log_error(pv_name, err):
     Can be used for error logging.
 
     Args:
-        message: the message to log
+        pv_name: the name of the pv
+        err: the error message to log
     """
 
     try:

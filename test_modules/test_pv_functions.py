@@ -21,9 +21,9 @@ class TestPvFunctions(unittest.TestCase):
             'TE:NDWXXXX:XX:XXX:123CCC:XXXX:XXXXX'
         ]
         mock_return_records = [
-            (bytearray(b'TE:NDWXXXX:XX:XXX:123AAA:XXXX:XXXXX'),),
-            (bytearray(b'TE:NDWXXXX:XX:XXX:123BBB:XXXX:XXXXX'),),
-            (bytearray(b'TE:NDWXXXX:XX:XXX:123CCC:XXXX:XXXXX'),),
+            'TE:NDWXXXX:XX:XXX:123AAA:XXXX:XXXXX',
+            'TE:NDWXXXX:XX:XXX:123BBB:XXXX:XXXXX',
+            'TE:NDWXXXX:XX:XXX:123CCC:XXXX:XXXXX',
         ]
         mock_get_records.return_value = mock_return_records
 
@@ -42,9 +42,9 @@ class TestPvFunctions(unittest.TestCase):
         }
 
         mock_return_records = [
-            (bytearray(b'TE:NDWXXXX:XX:XXX:123AAA:XXXX:XXXXX'),),
-            (bytearray(b'TE:NDWXXXX:XX:XXX:123BBB:XXXX:XXXXX'),),
-            (bytearray(b'TE:NDWXXXX:XX:XXX:123CCC:XXXX:XXXXX'),),
+            'TE:NDWXXXX:XX:XXX:123AAA:XXXX:XXXXX',
+            'TE:NDWXXXX:XX:XXX:123BBB:XXXX:XXXXX',
+            'TE:NDWXXXX:XX:XXX:123CCC:XXXX:XXXXX',
         ]
         mock_get_records.return_value = mock_return_records
 
@@ -63,3 +63,40 @@ class TestPvFunctions(unittest.TestCase):
 
         # Assert
         assert_that(result, is_(expected_value))
+
+    @patch('ca_wrapper.get_pv_value')  # Mock decorators are applied bottom-up
+    @patch('db_functions.get_pv_records')
+    def test_GIVEN_pv_records_WHEN_get_pv_objects_THEN_correct_objects_returned(self, mock_get_records, mock_get_val):
+        # Arrange
+        expected_value = [
+            ['name_1', 'val_1', 'type_1', 'desc_1', 'ioc_1'],
+            ['name_2', 'val_2', 'type_2', 'desc_2', 'ioc_2'],
+            ['name_3', 'val_3', 'type_3', 'desc_3', 'ioc_3'],
+        ]
+
+        mock_return_records = [
+            ('name_1', 'type_1', 'desc_1', 'ioc_1'),
+            ('name_2', 'type_2', 'desc_2', 'ioc_2'),
+            ('name_3', 'type_3', 'desc_3', 'ioc_3'),
+        ]
+        mock_get_records.return_value = mock_return_records
+
+        def mock_responses(responses, default_response=None):
+            return lambda _input: responses[_input] if _input in responses else default_response
+        mock_get_val.side_effect = mock_responses(
+            {
+                'name_1': 'val_1',
+                'name_2': 'val_2',
+                'name_3': 'val_3'
+            }
+        )
+
+        # Act
+        result = self.pv_func.get_pv_objects()
+
+        # Assert
+        result_list = []  # move object values to a list of lists to compare with expected values
+        for pv in result:
+            result_list.append([pv.name, pv.value, pv.record_type, pv.desc, pv.ioc_name])
+
+        assert_that(result_list, is_(expected_value))
