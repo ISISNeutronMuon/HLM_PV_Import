@@ -1,7 +1,7 @@
 import db_functions
-import ca_wrapper as ca_wrapper
+import ca_wrapper
 import utilities
-from object_classes import PVRecord
+from object_classes import PvRecord
 
 PV_PREFIX = 'TE:NDW2123'
 PV_DOMAIN = 'HA:HLM'
@@ -64,10 +64,12 @@ def get_pv_names_and_values(short_names=False):
     return pv_dict
 
 
-def get_pv_objects():
+def get_pv_objects(short_names=False):
     """
-    Gets a list of :class:`PVRecord` objects containing the value and record data for each PV currently in the IOC.
+    Gets a list of :class:`PvRecord` objects containing the value and record data for each PV currently in the IOC.
 
+    Args:
+        short_names (boolean, optional): Display PV names without prefix and domain, Defaults to False.
     Returns:
         The list of PV objects.
     """
@@ -75,9 +77,14 @@ def get_pv_objects():
     records = db_functions.get_pv_records()
 
     for pv in records:
+        if short_names:
+            pv_name = utilities.pv_name_without_domain(pv[0], PV_DOMAIN)
+        else:
+            pv_name = pv[0]
+
         # 0: pvname, 1: record_type, 2: record_desc, 3: iocname
-        obj = PVRecord(
-            pv[0],                                             # pvname
+        obj = PvRecord(
+            pv_name,                                           # pvname
             ca_wrapper.get_pv_value(pv[0]),                    # value
             pv[1],                                             # record_type
             pv[2],                                             # record_desc
