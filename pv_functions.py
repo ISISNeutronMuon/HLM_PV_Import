@@ -1,10 +1,8 @@
-import db_functions
+from db_functions import get_pv_records
 import ca_wrapper
 import utilities
+from utilities import PV_PREFIX, PV_DOMAIN
 from object_classes import PvRecord
-
-PV_PREFIX = 'TE:NDW2123'
-PV_DOMAIN = 'HA:HLM'
 
 
 def get_pv_names(short_names=False):
@@ -16,7 +14,7 @@ def get_pv_names(short_names=False):
     Returns:
         The list of PV names.
     """
-    records = db_functions.get_pv_records('pvname')
+    records = get_pv_records('pvname')
 
     if short_names:
         for index, name in enumerate(records):
@@ -33,7 +31,7 @@ def get_pv_values():
         The list of PV values.
     """
     values = []
-    records = db_functions.get_pv_records('pvname')
+    records = get_pv_records('pvname')
 
     for pv in records:
         val = ca_wrapper.get_pv_value(pv)
@@ -51,7 +49,7 @@ def get_pv_names_and_values(short_names=False):
         The dict of PV names and values.
     """
     pv_dict = {}
-    records = db_functions.get_pv_records('pvname')
+    records = get_pv_records('pvname')
 
     for name in records:
         value = ca_wrapper.get_pv_value(name)
@@ -74,7 +72,7 @@ def get_pv_objects(short_names=False):
         The list of PV objects.
     """
     obj_list = []
-    records = db_functions.get_pv_records()
+    records = get_pv_records()
 
     for pv in records:
         if short_names:

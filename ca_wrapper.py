@@ -3,7 +3,7 @@ Wrap caproto to give utilities methods for access in one place
 """
 import caproto
 from caproto.sync.client import read
-from ca_logger import log_error
+from ca_logger import log_ca_error
 
 TIMEOUT = 3  # Default timeout for PV get
 
@@ -46,6 +46,6 @@ def get_chan(name, timeout):
     try:
         res = read(pv_name=name, timeout=timeout)
     except caproto.sync.client.CaprotoTimeoutError as e:
-        log_error(pv_name=name, err=e)
+        log_ca_error(pv_name=name, err=f'{e}', print_err=True)
         raise
     return res
