@@ -96,3 +96,46 @@ class TestUtilities(unittest.TestCase):
 
         # Assert
         assert_that(result, is_(expected_value))
+
+    def test_GIVEN_short_pv_name_WHEN_get_full_name_THEN_return_correct_name(self):
+        # Arrange
+        name = 'MOTHER_DEWAR:HE_LEVEL'
+        expected = f'{self.utilities.PV_PREFIX}:{self.utilities.PV_DOMAIN}:{name}'
+
+        # Act
+        result = self.utilities.get_full_pv_name(name)
+
+        # Assert
+        assert_that(result, is_(expected))
+
+    def test_GIVEN_full_pv_name_WHEN_get_full_name_THEN_return_correct_name(self):
+        # Arrange
+        expected = f'{self.utilities.PV_PREFIX}:{self.utilities.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'
+
+        # Act
+        result = self.utilities.get_full_pv_name(expected)
+
+        # Assert
+        assert_that(result, is_(expected))
+
+    def test_GIVEN_pv_name_with_domain_WHEN_get_full_name_THEN_return_correct_name(self):
+        # Arrange
+        name = f'{self.utilities.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'
+        expected = f'{self.utilities.PV_PREFIX}:{self.utilities.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'
+
+        # Act
+        result = self.utilities.get_full_pv_name(name)
+
+        # Assert
+        assert_that(result, is_(expected))
+
+    def test_GIVEN_pv_name_with_prefix_WHEN_get_full_name_THEN_return_correct_name(self):
+        # Arrange
+        name = f'{self.utilities.PV_PREFIX}:MOTHER_DEWAR:HE_LEVEL'
+        expected = f'{self.utilities.PV_PREFIX}:{self.utilities.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'
+
+        # Act
+        result = self.utilities.get_full_pv_name(name)
+
+        # Assert
+        assert_that(result, is_(expected))

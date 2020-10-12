@@ -1,0 +1,12 @@
+{
+	"pvs": {
+		"MOTHER_DEWAR:HE_LEVEL": {
+			"record_id": "64",
+			"logging": "60"
+		},
+		"test": {
+			"record_id": "test",
+			"logging": "42"
+		}
+	}
+}
