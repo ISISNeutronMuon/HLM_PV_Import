@@ -4,11 +4,11 @@ Various utility functions
 import os
 import json
 import sys
-from ca_logger import log_pv_config_error
+from err_logger import log_pv_config_error
 
 PV_CONFIG = 'pv_config.json'
 PV_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), PV_CONFIG)
-PV_CONFIG_DICT = 'pvs'
+PV_CONFIG_ROOT = 'pvs'
 
 PV_PREFIX = 'TE:NDW2123'
 PV_DOMAIN = 'HA:HLM'
@@ -45,7 +45,7 @@ def get_types_list(values):
     return types
 
 
-def pv_name_without_domain(name, domain):
+def pv_name_without_prefix_and_domain(name, domain):
     """
     Given a PV name, remove the prefix and domain and return only the PV name.
 
@@ -79,9 +79,9 @@ def get_pv_config(pv_name, attr_key=None):
 
         try:
             if attr_key:
-                return_val = data[PV_CONFIG_DICT][f'{pv_name}'][f'{attr_key}']
+                return_val = data[PV_CONFIG_ROOT][f'{pv_name}'][f'{attr_key}']
             else:
-                return_val = data[PV_CONFIG_DICT][f'{pv_name}']
+                return_val = data[PV_CONFIG_ROOT][f'{pv_name}']
         except KeyError as e:
             log_pv_config_error(pv_name=f'{e}', config_file=PV_CONFIG, print_err=True)
 
@@ -100,16 +100,19 @@ def get_all_pv_configs():
         data = json.load(json_file)
 
         try:
-            return_val = data[PV_CONFIG_DICT]
+            return_val = data[PV_CONFIG_ROOT]
         except KeyError as e:
             log_pv_config_error(pv_name=f'{e}', config_file=PV_CONFIG, print_err=True)
 
     return return_val
 
 
-def get_config_pv_names():
+def get_config_pv_names(full_names=False):
     """
     Get a list of all configurations PV names.
+
+    Args:
+        full_names (boolean, optional): Get the PV name with domain and prefix, Defaults to False.
 
     Returns:
         (list): The list of PV names in the configuration file.
@@ -119,8 +122,13 @@ def get_config_pv_names():
         data = json.load(json_file)
 
         try:
-            return_val = data[PV_CONFIG_DICT]  # get dictionary
+            return_val = data[PV_CONFIG_ROOT]  # get dictionary
             return_val = [*return_val]  # unpack dict into list literal
+
+            if full_names:
+                for index, pv_name in enumerate(return_val):
+                    return_val[index] = get_full_pv_name(pv_name)
+
         except KeyError as e:
             log_pv_config_error(pv_name=f'{e}', config_file=PV_CONFIG, print_err=True)
 
@@ -137,7 +145,6 @@ def get_full_pv_name(name):
     Returns:
         (str) The full PV name.
     """
-    name = name.replace(f'{PV_PREFIX}:', '')
-    name = name.replace(f'{PV_DOMAIN}:', '')
+    name = name.replace(f'{PV_PREFIX}:', '').replace(f'{PV_DOMAIN}:', '')
     name = f'{PV_PREFIX}:{PV_DOMAIN}:{name}'
     return name

@@ -4,11 +4,10 @@ Environment variables: DB_IOC_USER, DB_IOC_PASS, DB_HE_USER, DB_HE_PASS
 """
 import os
 import mysql.connector
-from object_classes import *
 import utilities
 from datetime import datetime
 from ca_wrapper import get_pv_value
-from ca_logger import log_db_error
+from err_logger import log_db_error
 
 # the IOC DB containing the list of PVs
 IOC_HOST = "localhost"
@@ -58,73 +57,30 @@ def get_pv_records(*args):
     return records
 
 
-def add_vessel(vessel: EpicsVessel):
-    """
-    Create a new vessel record of given vessel type.
-
-    Args:
-        vessel (EpicsVessel): The vessel object
-
-    """
-
-    vessel_dict = {
-        'OB_OBJECTTYPE_ID': vessel.type_id,
-        'OB_NAME': vessel.name,
-        'OB_COMMENT': vessel.comment,
-        'OB_POSINFORMATION': vessel.pos_info,
-        'OB_ACTIVE': vessel.active,
-        'OB_MINVALUE': vessel.min_val,
-        'OB_MAXVALUE': vessel.max_val,
-        'OB_CRITVALUE': vessel.crit_val,
-        'OB_TARE': vessel.tare,
-        'OB_SPAN1': vessel.span,
-        'OB_ZERO1': vessel.zero,
-        'OB_ENABLED2': vessel.params_valid,
-        'OB_ENABLED3': vessel.display_reversed,
-        'OB_SHORTINTERVAL': vessel.interval_short,
-        'OB_LONGINTERVAL': vessel.interval_long,
-        'OB_QUENCHTIME': vessel.quench_time,
-        'OB_QUENCHCURRENT': vessel.quench_current,
-        'OB_WAITTIME': vessel.wait_time,
-        'OB_MEASCURRENT': vessel.measurement_current,
-        'OB_ADCLOOP': vessel.adc_loop,
-        'OB_FILLTIMEOUT': vessel.fill_timeout,
-        'OB_INSTALLED': vessel.installed_date,
-        'OB_SERNO': vessel.serial_no
-    }
-
-    table = 'gam_object'
-
-    _insert_query(table, values=vessel_dict)
-
-
-def add_measurement(pv_name, mea_valid=1):
+def add_measurement(pv_name, mea_valid=0):
     """
     Adds a measurement to the database.
 
     Args:
         pv_name (str): Name of the PV to insert the data from.
-        mea_valid (int, optional): If the measurement is valid, Defaults to 1 (true).
+        mea_valid (int, optional): If the measurement is valid, Defaults to 0 (false).
     """
     pv_config = utilities.get_pv_config(pv_name)
     object_id = pv_config['record_id']
-    object_name = _select_query(
-        table='gam_object',
-        columns='OB_NAME',
-        filters=f'WHERE OB_ID LIKE {object_id}'
-    )
+    object_name = _get_object_name(object_id)
 
-    mea_obj_type = _get_object_type(object_id)
-    mea_obj_class = _get_object_class(object_id)
-    mea_comment = f'{mea_obj_type} ({mea_obj_class} "{object_name} via {HLM_PV_IMPORT}")'
+    mea_obj_type = _get_object_type(object_id, name_only=True)
+    mea_obj_class = _get_object_class(object_id, name_only=True)
+    mea_comment = f'"{object_name}" ({mea_obj_type} - {mea_obj_class}) via {HLM_PV_IMPORT}'
 
     full_pv_name = utilities.get_full_pv_name(pv_name)
-    pv_value, mea_date = get_pv_value(full_pv_name), datetime.now()
+    pv_value = get_pv_value(name=full_pv_name)
+    mea_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     measurement_dict = {
         'MEA_OBJECT_ID': object_id,
         'MEA_DATE': mea_date,
-        'MEA_DATE2': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        # 'MEA_DATE2': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         # 'MEA_STATUS': ,
         'MEA_COMMENT': mea_comment,
         'MEA_VALUE1': pv_value,
@@ -136,9 +92,8 @@ def add_measurement(pv_name, mea_valid=1):
         'MEA_BOOKINGCODE': 0,  # 0 = measurement is not from the balance program
     }
     table = 'gam_measurement'
-    print(measurement_dict)
-    return 0
-    _insert_query(table, values=measurement_dict)
+
+    _insert_query(table, data=measurement_dict)
 
 
 def _get_object_type(object_id, name_only=False):
@@ -164,6 +119,8 @@ def _get_object_type(object_id, name_only=False):
     record = _select_query(table='gam_objecttype',
                            columns=columns,
                            filters=f'WHERE OT_ID LIKE {type_id}')
+    if name_only:
+        record = record[0]
 
     return record
 
@@ -185,6 +142,9 @@ def _get_object_class(object_id, name_only=False):
     record = _select_query(table='gam_objecttype',
                            columns=columns,
                            filters=f'WHERE OT_ID LIKE {class_id}')
+    if name_only:
+        record = record[0]
+
     return record
 
 
@@ -280,13 +240,13 @@ def _select_query(table, columns='*', filters=None, db=HE_DB):
             connection.close()
 
 
-def _insert_query(table, values):
+def _insert_query(table, data):
     """
     Adds the given values into the specified columns of the table.
 
     Args:
         table (str): The table to insert into.
-        values (dict): The values to be inserted, in a Column/Value dictionary.
+        data (dict): The values to be inserted, in a Column/Value dictionary.
     """
     try:
         connection = mysql.connector.connect(host=HE_HOST,
@@ -296,11 +256,12 @@ def _insert_query(table, values):
         if connection.is_connected():
             cursor = connection.cursor()
 
-            placeholders = ', '.join(['%s'] * len(values))
-            columns = ', '.join(values.keys())
+            placeholders = ', '.join(['%s'] * len(data))
+            columns = ', '.join(data.keys())
 
-            query = "INSERT INTO %s ( %s ) VALUES ( %s )" % (table, columns, placeholders)
+            query = f"INSERT INTO `{table}` ({columns}) VALUES ({placeholders})"
 
+            values = list(data.values())
             cursor.execute(query, values)
 
             connection.commit()
@@ -316,4 +277,25 @@ def _insert_query(table, values):
             cursor.close()
             connection.close()
 
+
+def _get_object_name(object_id):
+    """
+    Gets the DB object name corresponding to the record ID.
+
+    Args:
+        object_id (int): The object ID
+
+    Returns:
+        (str): The object name.
+    """
+    object_name = _select_query(
+        table='gam_object',
+        columns='OB_NAME',
+        filters=f'WHERE OB_ID LIKE {object_id}'
+    )
+
+    if isinstance(object_name, list):
+        object_name = object_name[0]
+
+    return object_name
 

@@ -1,5 +1,5 @@
 """
-Contains utilities for logging errors that may occur when accessing and reading PVs.
+Contains utilities for logging errors.
 """
 import os
 import sys

@@ -1,7 +1,7 @@
-ca\_logger module
+pv\_import module
 =================
 
-.. automodule:: ca_logger
+.. automodule:: pv_import
    :members:
    :undoc-members:
    :show-inheritance:

@@ -3,9 +3,52 @@ Wrap caproto to give utilities methods for access in one place
 """
 import caproto
 from caproto.sync.client import read
-from ca_logger import log_ca_error
+from err_logger import log_ca_error
+from caproto.threading.client import Context
 
-TIMEOUT = 3  # Default timeout for PV get
+TIMEOUT = 3  # Default timeout for reading a PV
+
+
+class PvMonitoring:
+    """
+    Class for monitoring PV channels and storing their data in a dict.
+    """
+
+    def __init__(self, pv_name_list):
+        self.ctx = Context()
+        self._pv_data = {}
+        self.pv_name_list = pv_name_list
+
+    def get_data(self):
+        return self._pv_data
+
+    def _callback_f(self, sub, response):
+        """
+        Stash the PV Name/Value results in a dictionary.
+
+        Args:
+            sub (caproto.threading.client.Subscription): The subscription, also containing the pertinent PV
+                                                            and its name.
+            response (caproto._commands.EventAddResponse): The full response from the server, which includes data
+                                                            and any metadata.
+        """
+        # print('Received response from', sub.pv.name)
+        value = response.data[0]
+
+        if isinstance(value, bytes):
+            value = value.decode('utf-8')
+
+        name = sub.pv.name
+        self._pv_data[name] = value
+
+    def start_monitors(self):
+        """
+        Subscribe to channel updates of all PVs in the name list.
+        """
+        channel_data = self.ctx.get_pvs(*self.pv_name_list)
+
+        for pv in channel_data:
+            pv.subscribe().add_callback(self._callback_f)
 
 
 def get_pv_value(name, timeout=TIMEOUT):
