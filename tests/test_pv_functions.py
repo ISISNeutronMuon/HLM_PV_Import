@@ -3,7 +3,6 @@ import unittest
 
 from hamcrest import *
 from mock import patch
-import ca_wrapper
 import pv_functions
 
 

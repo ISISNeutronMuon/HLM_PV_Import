@@ -1,15 +1,15 @@
 """
 Wrap caproto to give utilities methods for access in one place
 """
-import caproto
+from caproto import CaprotoTimeoutError
 from caproto.sync.client import read
-from err_logger import log_ca_error
 from caproto.threading.client import Context
+from err_logger import log_ca_error
 
 TIMEOUT = 3  # Default timeout for reading a PV
 
 
-class PvMonitoring:
+class PvMonitors:
     """
     Class for monitoring PV channels and storing their data in a dict.
     """
@@ -18,6 +18,7 @@ class PvMonitoring:
         self.ctx = Context()
         self._pv_data = {}
         self.pv_name_list = pv_name_list
+        self.subscriptions = {}
 
     def get_data(self):
         return self._pv_data
@@ -32,7 +33,7 @@ class PvMonitoring:
             response (caproto._commands.EventAddResponse): The full response from the server, which includes data
                                                             and any metadata.
         """
-        # print('Received response from', sub.pv.name)
+        print('Received response from', sub.pv.name)
         value = response.data[0]
 
         if isinstance(value, bytes):
@@ -48,7 +49,42 @@ class PvMonitoring:
         channel_data = self.ctx.get_pvs(*self.pv_name_list)
 
         for pv in channel_data:
-            pv.subscribe().add_callback(self._callback_f)
+            sub = pv.subscribe()
+            token = sub.add_callback(self._callback_f)
+            self.subscriptions[pv.name] = {'token': token, 'sub': sub}
+
+    def remove_pv(self, pv_name):
+        """
+        Clears the callback and removes the PV from the PV Data dict.
+        """
+        self.clear_callbacks(pv_name)
+        self._pv_data.pop(pv_name, None)
+
+    def clear_callbacks(self, pv_name):
+        """
+        Cancel future updates by clearing all callbacks on the subscription of the specified PV.
+
+        Args:
+            pv_name (str): The full PV name.
+        """
+        sub = self.subscriptions[pv_name]['sub']
+        sub.clear()
+
+    def add_callback(self, pv_name, callback_f=None):
+        """
+        Initiate updates by adding a user callback to the subscription of the specified PV.
+        If only the PV name is given, add the default callback.
+
+        Args:
+            pv_name (str): The full PV name.
+            callback_f (optional): The user callback function to add, Defaults to None (Default func).
+        """
+        sub = self.subscriptions[pv_name]['sub']
+
+        if not callback_f:
+            sub.add_callback(self._callback_f)
+        else:
+            sub.add_callback(callback_f)
 
 
 def get_pv_value(name, timeout=TIMEOUT):
@@ -88,7 +124,7 @@ def get_chan(name, timeout):
     """
     try:
         res = read(pv_name=name, timeout=timeout)
-    except caproto.sync.client.CaprotoTimeoutError as e:
+    except CaprotoTimeoutError as e:
         log_ca_error(pv_name=name, err=f'{e}', print_err=True)
         raise
     return res

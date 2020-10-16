@@ -1,27 +1,12 @@
 """
 Contains functions for working with the IOC and HeRecovery database.
-Environment variables: DB_IOC_USER, DB_IOC_PASS, DB_HE_USER, DB_HE_PASS
+Environment variables: DB_IOCDB.USER, DB_IOCDB.PASS, DB_HEDB.USER, DB_HEDB.PASS
 """
-import os
 import mysql.connector
-import utilities
+from utilities import single_tuples_to_strings, list_add_blank_values
 from datetime import datetime
-from ca_wrapper import get_pv_value
 from err_logger import log_db_error
-
-# the IOC DB containing the list of PVs
-IOC_HOST = "localhost"
-IOC_DB = "iocdb"
-IOC_USER = os.environ.get('DB_IOC_USER')
-IOC_PASS = os.environ.get('DB_IOC_PASS')
-
-# the HLM GAM DB
-HE_HOST = "localhost"
-HE_DB = "helium"
-HE_USER = os.environ.get('DB_HE_USER')
-HE_PASS = os.environ.get('DB_HE_PASS')
-
-HLM_PV_IMPORT = 'HLM PV IMPORT'
+from constants import IOCDB, HEDB, PV_IMPORT, Tables
 
 
 def get_pv_records(*args):
@@ -52,29 +37,33 @@ def get_pv_records(*args):
         columns = '*'
 
     filters = "WHERE pvname LIKE '%HLM%'"
-    records = _select_query(table='pvs', columns=columns, filters=filters, db=IOC_DB)
+    records = _select_query(table='pvs', columns=columns, filters=filters, db=IOCDB.NAME)
 
     return records
 
 
-def add_measurement(pv_name, mea_valid=0):
+def add_measurement(object_id, mea_values: list, mea_valid=0):
     """
-    Adds a measurement to the database.
+    Adds a measurement (and its relationship) to the database.
 
     Args:
-        pv_name (str): Name of the PV to insert the data from.
+        object_id (int): Record ID of the object the measurement is for.
+        mea_values (list): A list of the measurement values, max 5.
         mea_valid (int, optional): If the measurement is valid, Defaults to 0 (false).
     """
-    pv_config = utilities.get_pv_config(pv_name)
-    object_id = pv_config['record_id']
+    if not mea_values or len(mea_values) > 5:
+        raise ValueError('mea_values must have between 1 and 5 values (inclusive). '
+                         f'Provided values: {len(mea_values)}')
+
+    # If less than 5 measurement values, add None elements to avoid IndexError
+    mea_values = list_add_blank_values(mea_values, 5)
+
     object_name = _get_object_name(object_id)
 
     mea_obj_type = _get_object_type(object_id, name_only=True)
     mea_obj_class = _get_object_class(object_id, name_only=True)
-    mea_comment = f'"{object_name}" ({mea_obj_type} - {mea_obj_class}) via {HLM_PV_IMPORT}'
+    mea_comment = f'"{object_name}" ({mea_obj_type} - {mea_obj_class}) via {PV_IMPORT}'
 
-    full_pv_name = utilities.get_full_pv_name(pv_name)
-    pv_value = get_pv_value(name=full_pv_name)
     mea_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     measurement_dict = {
@@ -83,17 +72,155 @@ def add_measurement(pv_name, mea_valid=0):
         # 'MEA_DATE2': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         # 'MEA_STATUS': ,
         'MEA_COMMENT': mea_comment,
-        'MEA_VALUE1': pv_value,
-        # 'MEA_VALUE2': ,
-        # 'MEA_VALUE3': ,
-        # 'MEA_VALUE4': ,
-        # 'MEA_VALUE5': ,
+        'MEA_VALUE1': mea_values[0],
+        'MEA_VALUE2': mea_values[1],
+        'MEA_VALUE3': mea_values[2],
+        'MEA_VALUE4': mea_values[3],
+        'MEA_VALUE5': mea_values[4],
         'MEA_VALID': mea_valid,
         'MEA_BOOKINGCODE': 0,  # 0 = measurement is not from the balance program
     }
-    table = 'gam_measurement'
 
-    _insert_query(table, data=measurement_dict)
+    _insert_query(Tables.MEASUREMENT, data=measurement_dict)
+
+    add_relationship(assigned=object_id, or_date=mea_date)
+
+
+def add_relationship(assigned, or_date=None):
+    """
+    Adds a relationship between two objects.
+
+    Args:
+        assigned (int): The assigned object ID.
+        or_date (str): The assignment and removal date of the relationship.
+    """
+    if not or_date:
+        or_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    pv_import_obj_id = _get_pv_import_object_id()
+    relationship_dict = {
+        'OR_PRIMARY': 0,
+        'OR_OBJECT_ID': pv_import_obj_id,
+        'OR_OBJECT_ID_ASSIGNED': assigned,
+        'OR_DATE_ASSIGNMENT': or_date,
+        'OR_DATE_REMOVAL': or_date,
+        'OR_OUTFLOW': None,
+        'OR_BOOKINGREQUEST': None
+    }
+
+    _insert_query(Tables.OBJECT_RELATION, relationship_dict)
+
+
+def create_pv_import_class_and_function_if_not_exist():
+    """
+    Creates the HLM PV Import object class and function if it doesn't exist in the DB yet.
+    """
+    # CREATE FUNCTION IF IT DOES NOT EXIST
+    search = f"WHERE `OF_NAME` LIKE '{PV_IMPORT}'"
+    results = _select_query(
+                table=Tables.FUNCTION,
+                filters=search,
+                db=HEDB.NAME
+    )
+    if not results:
+        function_dict = {
+            'OF_NAME': PV_IMPORT,
+            'OF_COMMENT': 'HLM PV IMPORT'
+        }
+
+        _insert_query(
+            table=Tables.FUNCTION,
+            data=function_dict
+        )
+
+    # CREATE CLASS IF IT DOES NOT EXIST
+    search = f"WHERE OC_NAME LIKE '{PV_IMPORT}'"
+    results = _select_query(
+                table=Tables.OBJECT_CLASS,
+                filters=search,
+                db=HEDB.NAME
+    )
+    if not results:
+        function_id = _select_query(
+            table=Tables.FUNCTION,
+            columns='OF_ID',
+            filters=f"WHERE OF_NAME LIKE '{PV_IMPORT}'",
+            db=HEDB.NAME,
+            to_str=True
+        )
+
+        last_id = _get_table_last_id(Tables.OBJECT_CLASS)
+        new_id = f'{int(last_id) + 1}'
+
+        class_dict = {
+            'OC_ID':  new_id,  # Need to set manually as OC_ID has no default value
+            'OC_FUNCTION_ID': function_id,
+            'OC_NAME': PV_IMPORT,
+            'OC_POSITIONTYPE': 0,
+            'OC_COMMENT': 'HLM PV IMPORT',
+        }
+
+        _insert_query(
+            table=Tables.OBJECT_CLASS,
+            data=class_dict
+        )
+
+
+def create_pv_import_object_and_type_if_not_exist():
+    """
+    Creates the HLM PV Import object and object type if it doesn't exist in the DB yet.
+    """
+    # CREATE TYPE IF IT DOES NOT EXIST
+    search = f"WHERE `OT_NAME` LIKE '{PV_IMPORT}'"
+    results = _select_query(
+                table=Tables.OBJECT_TYPE,
+                filters=search,
+                db=HEDB.NAME
+    )
+    if not results:
+        pv_import_class_id = _select_query(
+            table=Tables.OBJECT_CLASS,
+            columns='OC_ID',
+            filters=f"WHERE OC_NAME LIKE '{PV_IMPORT}'",
+            db=HEDB.NAME, to_str=True
+        )
+        type_dict = {
+            'OT_OBJECTCLASS_ID': pv_import_class_id,
+            'OT_NAME': PV_IMPORT,
+            'OT_COMMENT': 'HLM PV IMPORT',
+            'OT_OUTOFOPERATION': 0
+        }
+
+        _insert_query(
+            table=Tables.OBJECT_TYPE,
+            data=type_dict
+        )
+
+    # CREATE OBJECT IF IT DOES NOT EXIST
+    results = _select_query(
+                table=Tables.OBJECT,
+                filters=f"WHERE OB_NAME LIKE '{PV_IMPORT}'",
+                db=HEDB.NAME
+    )
+    if not results:
+        pv_import_type_id = _select_query(
+            table=Tables.OBJECT_TYPE,
+            columns='OT_ID',
+            filters=f"WHERE OT_NAME LIKE '{PV_IMPORT}'",
+            db=HEDB.NAME,
+            to_str=True
+        )
+
+        object_dict = {
+            'OB_OBJECTTYPE_ID': pv_import_type_id,
+            'OB_NAME': PV_IMPORT,
+            'OB_COMMENT': 'HLM PV IMPORT',
+        }
+
+        _insert_query(
+            table=Tables.OBJECT,
+            data=object_dict
+        )
 
 
 def _get_object_type(object_id, name_only=False):
@@ -108,15 +235,13 @@ def _get_object_type(object_id, name_only=False):
         (str/dict): The type name/record of the object.
     """
 
-    type_id = _select_query(table='gam_object',
+    type_id = _select_query(table=Tables.OBJECT,
                             columns='OB_OBJECTTYPE_ID',
-                            filters=f'WHERE OB_ID LIKE {object_id}')
-
-    if isinstance(type_id, list):
-        type_id = type_id[0]
+                            filters=f'WHERE OB_ID LIKE {object_id}',
+                            to_str=True)
 
     columns = 'OT_NAME' if name_only else '*'
-    record = _select_query(table='gam_objecttype',
+    record = _select_query(table=Tables.OBJECT_TYPE,
                            columns=columns,
                            filters=f'WHERE OT_ID LIKE {type_id}')
     if name_only:
@@ -139,7 +264,7 @@ def _get_object_class(object_id, name_only=False):
     type_record = _get_object_type(object_id)
     class_id = type_record[0][1]
     columns = 'OT_NAME' if name_only else '*'
-    record = _select_query(table='gam_objecttype',
+    record = _select_query(table=Tables.OBJECT_TYPE,
                            columns=columns,
                            filters=f'WHERE OT_ID LIKE {class_id}')
     if name_only:
@@ -161,10 +286,10 @@ def _get_table_columns(table, names_only=False):
     """
 
     try:
-        connection = mysql.connector.connect(host=HE_HOST,
-                                             database=HE_DB,
-                                             user=HE_USER,
-                                             password=HE_PASS)
+        connection = mysql.connector.connect(host=HEDB.HOST,
+                                             database=HEDB.NAME,
+                                             user=HEDB.USER,
+                                             password=HEDB.PASS)
         if connection.is_connected():
             cursor = connection.cursor()
 
@@ -189,30 +314,31 @@ def _get_table_columns(table, names_only=False):
             connection.close()
 
 
-def _select_query(table, columns='*', filters=None, db=HE_DB):
+def _select_query(table, columns='*', filters=None, db=HEDB.NAME, to_str=False):
     """
     Returns the list of records from the given table.
 
     Args:
         table (str): The table to look in.
         columns (str, optional): The columns to be fetched, Defaults to '*' (all).
-        filters (str, optional): Conditions, e.g. 'WHERE type LIKE "cat"', Defaults to None
+        filters (str, optional): Search conditions, e.g. 'WHERE type LIKE "cat"', Defaults to None
         db (str, optional): The database to look in, Defaults to the Helium DB.
+        to_str (boolean, optional): If a list of one element is returned, convert to string, Defaults to False.
 
     Returns:
-        (list): The list of records.
+        (list/str): The list of records, or a string if single element list and to_str set to True.
     """
     try:
-        if db == IOC_DB:
-            connection = mysql.connector.connect(host=IOC_HOST,
-                                                 database=IOC_DB,
-                                                 user=IOC_USER,
-                                                 password=IOC_PASS)
-        elif db == HE_DB:
-            connection = mysql.connector.connect(host=HE_HOST,
-                                                 database=HE_DB,
-                                                 user=HE_USER,
-                                                 password=HE_PASS)
+        if db == IOCDB.NAME:
+            connection = mysql.connector.connect(host=IOCDB.HOST,
+                                                 database=IOCDB.NAME,
+                                                 user=IOCDB.USER,
+                                                 password=IOCDB.PASS)
+        elif db == HEDB.NAME:
+            connection = mysql.connector.connect(host=HEDB.HOST,
+                                                 database=HEDB.NAME,
+                                                 user=HEDB.USER,
+                                                 password=HEDB.PASS)
         else:
             raise ValueError(f'Invalid DB "{db}".')
 
@@ -226,9 +352,13 @@ def _select_query(table, columns='*', filters=None, db=HE_DB):
             cursor.execute(query)
             records = cursor.fetchall()
 
-            # If records are made of single-element tuples, convert to strings
-            if len(records[0]) == 1:
-                records = utilities.single_tuples_to_strings(records)
+            # If records are made of single-element tuples, convert to list of strings
+            if records and len(records[0]) == 1:
+                records = single_tuples_to_strings(records)
+
+            if to_str:
+                if isinstance(records, list) and len(records) == 1:
+                    records = records[0]
 
             return records
 
@@ -249,10 +379,10 @@ def _insert_query(table, data):
         data (dict): The values to be inserted, in a Column/Value dictionary.
     """
     try:
-        connection = mysql.connector.connect(host=HE_HOST,
-                                             database=HE_DB,
-                                             user=HE_USER,
-                                             password=HE_PASS)
+        connection = mysql.connector.connect(host=HEDB.HOST,
+                                             database=HEDB.NAME,
+                                             user=HEDB.USER,
+                                             password=HEDB.PASS)
         if connection.is_connected():
             cursor = connection.cursor()
 
@@ -267,6 +397,8 @@ def _insert_query(table, data):
             connection.commit()
 
             record_no = cursor.lastrowid
+            if record_no == 0:  # If table has no AUTO_INCREMENT column
+                record_no = _get_table_last_id(table)
 
             print(f"Added record no. {record_no} to {table}")
 
@@ -289,13 +421,54 @@ def _get_object_name(object_id):
         (str): The object name.
     """
     object_name = _select_query(
-        table='gam_object',
+        table=Tables.OBJECT,
         columns='OB_NAME',
-        filters=f'WHERE OB_ID LIKE {object_id}'
+        filters=f'WHERE OB_ID LIKE {object_id}',
+        to_str=True
     )
-
-    if isinstance(object_name, list):
-        object_name = object_name[0]
 
     return object_name
 
+
+def _get_table_last_id(table):
+    """
+    Gets the last/highest primary key ID of the given table.
+    """
+
+    sql = f"WHERE TABLE_NAME = '{table}'AND CONSTRAINT_NAME = 'PRIMARY'"
+
+    pk_column = _select_query(
+        table='information_schema.KEY_COLUMN_USAGE',
+        columns='COLUMN_NAME',
+        filters=sql,
+        db=HEDB.NAME,
+        to_str=True
+    )
+
+    last_id = _select_query(
+        table=table,
+        columns=f'MAX({pk_column})',
+        db=HEDB.NAME,
+        to_str=True
+    )
+
+    return last_id
+
+
+def _get_pv_import_object_id():
+    """
+    Gets the ID of the PV IMPORT object from the Objects He DB table.
+
+    Returns:
+        (int): The PV Import object ID.
+    """
+    search = f"WHERE OB_NAME LIKE '{PV_IMPORT}'"
+    result = _select_query(
+        table=Tables.OBJECT,
+        columns='OB_ID',
+        filters=search,
+        db=HEDB.NAME,
+        to_str=True
+    )
+
+    return result

@@ -1,7 +1,6 @@
 from db_functions import get_pv_records
 from ca_wrapper import get_pv_value
 import utilities
-from utilities import PV_PREFIX, PV_DOMAIN
 
 
 def get_pv_names(short_names=False):
@@ -17,7 +16,7 @@ def get_pv_names(short_names=False):
 
     if short_names:
         for index, name in enumerate(records):
-            records[index] = utilities.pv_name_without_prefix_and_domain(name, PV_DOMAIN)
+            records[index] = utilities.pv_name_without_prefix_and_domain(name)
 
     return records
 
@@ -54,7 +53,7 @@ def get_pv_names_and_values(short_names=False):
         value = get_pv_value(name)
 
         if short_names:
-            pv_dict[utilities.pv_name_without_prefix_and_domain(name, PV_DOMAIN)] = value
+            pv_dict[utilities.pv_name_without_prefix_and_domain(name)] = value
         else:
             pv_dict[name] = value
 
