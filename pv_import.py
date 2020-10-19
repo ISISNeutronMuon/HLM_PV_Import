@@ -1,6 +1,7 @@
 import copy
 
-from utilities import get_all_pv_configs, pv_name_without_prefix_and_domain
+from utilities import pv_name_without_prefix_and_domain
+from user_config import get_all_configs, ValidateUserConfig
 from db_functions import add_measurement, create_pv_import_class_and_function_if_not_exist, \
     create_pv_import_object_and_type_if_not_exist
 import time
@@ -11,26 +12,31 @@ class PvImport:
     def __init__(self, pv_monitors):
         self.pv_monitors = pv_monitors
         self.tasks = {}
-        self.pv_configs = get_all_pv_configs()
+        self.pv_configs = get_all_configs()
+        self.config_validator = ValidateUserConfig()
 
-    @staticmethod
-    def set_up():
+    def set_up(self):
         """
-        Requirements and checks for importing.
+        Requirements and checks before importing PV data.
         """
+        # Check if the user configuration is valid
+        self.config_validator.run_checks()
+
         # Make sure the PV IMPORT object class and function exist
         create_pv_import_class_and_function_if_not_exist()
         create_pv_import_object_and_type_if_not_exist()
 
     def start(self):
+        """
+        Starts the PV data importing loop.
+        """
         start_time = time.time()
         while True:
             print(f"({datetime.now().strftime('%H:%M:%S')})", end=' ')
             print(len(self.pv_monitors.get_data()), self.pv_monitors.get_data())
 
-            pvs = copy.deepcopy(self.pv_monitors.get_data())
-            for pv_name, pv_value in pvs.items():
-                #######################
+            pv_names_and_values = copy.deepcopy(self.pv_monitors.get_data())
+            for pv_name, pv_value in pv_names_and_values.items():
                 pv_short_name = pv_name_without_prefix_and_domain(pv_name)
                 try:
                     pv_config = self.pv_configs[pv_short_name]
@@ -43,8 +49,7 @@ class PvImport:
                 object_id = pv_config['record_id']
                 mea_values = [pv_value]
 
-                add_measurement(object_id=object_id, mea_values=mea_values, mea_valid=1)
-                #######################
+                """add_measurement(object_id=object_id, mea_values=mea_values, mea_valid=1)"""
 
             time.sleep(5.0 - ((time.time() - start_time) % 5.0))
 
@@ -57,7 +62,7 @@ class PvImport:
             (dict): A PV/Logging Period dictionary.
         """
         tasks = {}
-        configs = get_all_pv_configs()
+        configs = get_all_configs()
         for pv, config in configs.items():
             tasks[f'{pv}'] = config['logging']
 

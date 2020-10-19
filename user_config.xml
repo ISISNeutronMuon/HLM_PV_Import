@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<configuration>
+
+	<entry>
+		<record_name>TestVessel1</record_name>
+		<measurements>
+			<pv_name>MOTHER_DEWAR:HE_LEVEL</pv_name>
+		</measurements>
+	</entry>
+
+		<entry>
+		<record_name>EpicsVessel1</record_name>
+		<measurements>
+			<pv_name>MOTHER_DEWAR:HE_LEVEL</pv_name>
+		</measurements>
+	</entry>
+
+
+</configuration>

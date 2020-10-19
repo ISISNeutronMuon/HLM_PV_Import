@@ -32,8 +32,18 @@ class Tables:
 
 # PV Configuration
 class PvConfig:
-    NAME = 'pv_config.json'
-    PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), NAME)
-    ROOT = 'pvs'
     PV_PREFIX = 'TE:NDW2123'
     PV_DOMAIN = 'HA:HLM'
+
+
+# User Configuration
+class UserConfig:
+    FILE = 'user_config.xml'
+    PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), FILE)
+    SCHEMA = 'user_config.xsd'
+    SCHEMA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), SCHEMA)
+    ROOT = 'configuration'
+    ENTRY = 'entry'
+    RECORD = 'record_name'
+    MEAS = 'measurements'
+    PV = 'pv_name'

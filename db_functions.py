@@ -42,6 +42,23 @@ def get_pv_records(*args):
     return records
 
 
+def get_object_id(object_name):
+    """
+    Get the ID of the object with the given name.
+
+    Returns:
+        (int): The object ID.
+    """
+    search = f"WHERE `OB_NAME` LIKE '{object_name}'"
+    result = _select_query(
+        table=Tables.OBJECT,
+        columns='OB_ID',
+        filters=search,
+        to_str=True
+    )
+    return result
+
+
 def add_measurement(object_id, mea_values: list, mea_valid=0):
     """
     Adds a measurement (and its relationship) to the database.
