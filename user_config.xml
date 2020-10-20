@@ -9,7 +9,7 @@
 		</measurements>
 	</entry>
 
-		<entry>
+	<entry>
 		<record_name>EpicsVessel1</record_name>
 		<measurements>
 			<pv_name>MOTHER_DEWAR:HE_LEVEL</pv_name>

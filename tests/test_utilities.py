@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import unittest
-from hamcrest import *
+from hamcrest import assert_that, is_, calling, raises
 import utilities
 
 
@@ -75,7 +75,6 @@ class TestUtilities(unittest.TestCase):
 
     def test_GIVEN_pv_name_WHEN_get_short_name_THEN_name_without_domain_is_returned(self):
         # Arrange
-        domain_value = 'DO:MAIN'
         input_value = f'{self.utilities.PvConfig.PV_PREFIX}:{self.utilities.PvConfig.PV_DOMAIN}:NAME1'
         expected_value = 'NAME1'
 

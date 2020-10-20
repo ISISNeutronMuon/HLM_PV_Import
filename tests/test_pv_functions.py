@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import unittest
 
-from hamcrest import *
+from hamcrest import assert_that, is_
 from mock import patch
 import pv_functions
 
