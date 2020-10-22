@@ -4,6 +4,11 @@ import os
 PV_IMPORT = 'PV IMPORT'
 
 
+class LoggersConst:
+    ERR_LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs', 'err', '')
+    DB_LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs', 'db', '')
+
+
 # the IOC DB containing the list of PVs
 class IOCDB:
     HOST = "localhost"

@@ -5,8 +5,11 @@ Environment variables: DB_IOCDB.USER, DB_IOCDB.PASS, DB_HEDB.USER, DB_HEDB.PASS
 import mysql.connector
 from utilities import single_tuples_to_strings, measurements_dict_valid
 from datetime import datetime
-from err_logger import log_db_error, log_error
+from logger import log_db_error, log_error, DBLogger
 from constants import IOCDB, HEDB, PV_IMPORT, Tables
+
+db_logger = DBLogger()
+db_logger.make_log()
 
 
 def get_pv_records(*args):
@@ -59,12 +62,12 @@ def get_object_id(object_name):
     return result
 
 
-def add_measurement(object_id, mea_values: dict, mea_valid=0):
+def add_measurement(record_name, mea_values: dict, mea_valid=0):
     """
     Adds a measurement (and its relationship) to the database.
 
     Args:
-        object_id (int): Record ID of the object the measurement is for.
+        record_name (int): Record name of the object the measurement is for.
         mea_values (dict): A dict of the measurement values, max 5. (e.g. {1: 'val', 2: 'val2', ...} or {1: None,
             2: 'val2', 3: None, ...})
         mea_valid (int, optional): If the measurement is valid, Defaults to 0 (false).
@@ -75,11 +78,11 @@ def add_measurement(object_id, mea_values: dict, mea_valid=0):
         log_error(err_msg)
         raise ValueError(err_msg)
 
-    object_name = _get_object_name(object_id)
+    object_id = get_object_id(object_name=record_name)
 
     mea_obj_type = _get_object_type(object_id, name_only=True)
     mea_obj_class = _get_object_class(object_id, name_only=True)
-    mea_comment = f'"{object_name}" ({mea_obj_type} - {mea_obj_class}) via {PV_IMPORT}'
+    mea_comment = f'"{record_name}" ({mea_obj_type} - {mea_obj_class}) via {PV_IMPORT}'
 
     mea_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -99,7 +102,11 @@ def add_measurement(object_id, mea_values: dict, mea_valid=0):
     }
 
     _insert_query(Tables.MEASUREMENT, data=measurement_dict)
-
+    
+    last_id = _get_table_last_id(Tables.MEASUREMENT)
+    db_logger.log_new_measurement(record_no=last_id, obj_id=object_id,
+                                 obj_name=record_name, values=mea_values, print_msg=True)
+    
     add_relationship(assigned=object_id, or_date=mea_date)
 
 

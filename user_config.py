@@ -1,11 +1,11 @@
 from lxml import etree
 import xmltodict
 from iteration_utilities import duplicates, unique_everseen
-from err_logger import log_config_error
+from logger import log_config_error
 from constants import UserConfigConst
 from db_functions import get_object_id
 from pv_functions import get_pv_names
-from err_logger import log_error
+from logger import log_error
 from utilities import get_full_pv_name
 
 
