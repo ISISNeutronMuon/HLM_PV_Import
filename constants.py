@@ -37,7 +37,7 @@ class PvConfig:
 
 
 # User Configuration
-class UserConfig:
+class UserConfigConst:
     FILE = 'user_config.xml'
     PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), FILE)
     SCHEMA = 'user_config.xsd'

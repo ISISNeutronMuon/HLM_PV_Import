@@ -4,7 +4,7 @@ Contains utilities for logging errors.
 import os
 import sys
 import time
-from constants import UserConfig
+from constants import UserConfigConst
 
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs', '')
 
@@ -38,7 +38,7 @@ def log_ca_error(pv_name, err, print_err=False):
         sys.stderr.write(f'{err_msg}\n')
 
 
-def log_config_error(pv_name, config_file=UserConfig.FILE, print_err=False):
+def log_config_error(pv_name, config_file=UserConfigConst.FILE, print_err=False):
     """
     Logs a configuration error to the default log file.
 

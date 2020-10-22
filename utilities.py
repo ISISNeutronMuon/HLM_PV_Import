@@ -2,6 +2,7 @@
 Various utility functions
 """
 from constants import PvConfig
+from collections import Counter
 
 
 def single_tuples_to_strings(tuple_list):
@@ -58,6 +59,8 @@ def get_full_pv_name(name):
     Returns:
         (str) The full PV name.
     """
+    if not name:
+        return None
     name = pv_name_without_prefix_and_domain(name)
     name = f'{PvConfig.PV_PREFIX}:{PvConfig.PV_DOMAIN}:{name}'
     return name
@@ -77,3 +80,32 @@ def list_add_blank_values(list_, size):
     blank_values = [None] * (size - len(list_))
     list_.extend(blank_values)
     return list_
+
+
+def get_blank_measurements_dict():
+    """
+    Returns a blank (None values) measurements dict.
+    """
+    dict_ = {
+        1: None,
+        2: None,
+        3: None,
+        4: None,
+        5: None
+    }
+    return dict_
+
+
+def measurements_dict_valid(dict_):
+    """
+    Checks whether the given measurements values dictionary is valid (5 keys named from 1 to 5).
+
+    Args:
+        dict_ (dict): The measurements/mea_values dictionary.
+
+    Returns:
+        (boolean): True if valid, else False
+    """
+    keys = list(dict_.keys())
+    expected_keys = [1, 2, 3, 4, 5]
+    return Counter(keys) == Counter(expected_keys)

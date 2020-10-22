@@ -3,9 +3,9 @@ Contains functions for working with the IOC and HeRecovery database.
 Environment variables: DB_IOCDB.USER, DB_IOCDB.PASS, DB_HEDB.USER, DB_HEDB.PASS
 """
 import mysql.connector
-from utilities import single_tuples_to_strings, list_add_blank_values
+from utilities import single_tuples_to_strings, measurements_dict_valid
 from datetime import datetime
-from err_logger import log_db_error
+from err_logger import log_db_error, log_error
 from constants import IOCDB, HEDB, PV_IMPORT, Tables
 
 
@@ -59,21 +59,21 @@ def get_object_id(object_name):
     return result
 
 
-def add_measurement(object_id, mea_values: list, mea_valid=0):
+def add_measurement(object_id, mea_values: dict, mea_valid=0):
     """
     Adds a measurement (and its relationship) to the database.
 
     Args:
         object_id (int): Record ID of the object the measurement is for.
-        mea_values (list): A list of the measurement values, max 5.
+        mea_values (dict): A dict of the measurement values, max 5. (e.g. {1: 'val', 2: 'val2', ...} or {1: None,
+            2: 'val2', 3: None, ...})
         mea_valid (int, optional): If the measurement is valid, Defaults to 0 (false).
     """
-    if not mea_values or len(mea_values) > 5:
-        raise ValueError('mea_values must have between 1 and 5 values (inclusive). '
-                         f'Provided values: {len(mea_values)}')
 
-    # If less than 5 measurement values, add None elements to avoid IndexError
-    mea_values = list_add_blank_values(mea_values, 5)
+    if not measurements_dict_valid(mea_values):
+        err_msg = f'Measurements dictionary invalid: {mea_values}'
+        log_error(err_msg)
+        raise ValueError(err_msg)
 
     object_name = _get_object_name(object_id)
 
@@ -89,11 +89,11 @@ def add_measurement(object_id, mea_values: list, mea_valid=0):
         # 'MEA_DATE2': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         # 'MEA_STATUS': ,
         'MEA_COMMENT': mea_comment,
-        'MEA_VALUE1': mea_values[0],
-        'MEA_VALUE2': mea_values[1],
-        'MEA_VALUE3': mea_values[2],
-        'MEA_VALUE4': mea_values[3],
-        'MEA_VALUE5': mea_values[4],
+        'MEA_VALUE1': mea_values[1],
+        'MEA_VALUE2': mea_values[2],
+        'MEA_VALUE3': mea_values[3],
+        'MEA_VALUE4': mea_values[4],
+        'MEA_VALUE5': mea_values[5],
         'MEA_VALID': mea_valid,
         'MEA_BOOKINGCODE': 0,  # 0 = measurement is not from the balance program
     }

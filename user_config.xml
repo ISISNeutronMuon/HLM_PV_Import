@@ -2,17 +2,37 @@
 
 <configuration>
 
+	<!-- Entry example
+
+	<entry>
+		<record_name>TestVessel1</record_name>             # name of the record
+		<measurements>                                     # the measurement values, min 1, max 5
+			<pv_name>MOTHER_DEWAR:HE_LEVEL</pv_name>       # PV name for Measurement Value #1
+			<pv_name>MCP1:BANK6:SPARE_STORAGE</pv_name>    # PV name for Measurement Value #2  etc. up to #5
+		</measurements>
+	</entry>
+
+	Notes:
+	* XML record tags cannot have an empty body (e.g. <pv_name></pv_name>)
+	* Record names must be unique across all entries
+
+	-->
 	<entry>
 		<record_name>TestVessel1</record_name>
 		<measurements>
 			<pv_name>MOTHER_DEWAR:HE_LEVEL</pv_name>
+			<pv_name>MCP1:BANK6:SPARE_STORAGE</pv_name>
+			<pv_name></pv_name>
 		</measurements>
 	</entry>
 
 	<entry>
 		<record_name>EpicsVessel1</record_name>
 		<measurements>
+			<pv_name></pv_name>
 			<pv_name>MOTHER_DEWAR:HE_LEVEL</pv_name>
+			<pv_name></pv_name>
+			<pv_name>MCP1:BANK6:SPARE_STORAGE</pv_name>
 		</measurements>
 	</entry>
 

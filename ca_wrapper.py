@@ -14,7 +14,7 @@ class PvMonitors:
     Class for monitoring PV channels and storing their data in a dict.
     """
 
-    def __init__(self, pv_name_list):
+    def __init__(self, pv_name_list: list):
         self.ctx = Context()
         self._pv_data = {}
         self.pv_name_list = pv_name_list
@@ -47,7 +47,6 @@ class PvMonitors:
         Subscribe to channel updates of all PVs in the name list.
         """
         channel_data = self.ctx.get_pvs(*self.pv_name_list)
-
         for pv in channel_data:
             sub = pv.subscribe()
             token = sub.add_callback(self._callback_f)
