@@ -212,3 +212,22 @@ class TestUtilities(unittest.TestCase):
         meas_dict = {1: None, 2: None, 3: None, 4: None, 5: None}
         result = self.utilities.measurements_dict_valid(meas_dict)
         self.assertEqual(True, result)
+
+    def test_GIVEN_pv_names_WHEN_remove_raw_and_sim_pvs_THEN_correct_list_returned(self):
+        # Arrange
+        prefix = self.utilities.PvConfig.PV_PREFIX
+        domain = self.utilities.PvConfig.PV_DOMAIN
+
+        pv_names = [
+            f'{prefix}:{domain}:230ABC:ALARM',
+            f'{prefix}:{domain}:ALARM:_RAW',
+            f'{prefix}:{domain}:SIM:230ABC:ALARM',
+            f'{prefix}:{domain}:230ABC:ANOTHER'
+        ]
+        expected_result = [f'{prefix}:{domain}:230ABC:ALARM', f'{prefix}:{domain}:230ABC:ANOTHER']
+
+        # Act
+        result = self.utilities.remove_raw_and_sim_pvs(pv_names)
+
+        # Assert
+        self.assertEqual(result, expected_result)

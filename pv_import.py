@@ -8,12 +8,15 @@ from db_functions import add_measurement, create_pv_import_class_and_function_if
 import time
 from datetime import datetime
 
+# The timer between each PV import loop
+LOOP_TIMER = 5.0
+
 
 class PvImport:
-    def __init__(self, pv_monitors: PvMonitors, config: UserConfig):
+    def __init__(self, pv_monitors: PvMonitors, user_config: UserConfig):
         self.pv_monitors = pv_monitors
+        self.config = user_config
         self.tasks = {}
-        self.config = config
 
     def set_up(self):
         """
@@ -26,49 +29,53 @@ class PvImport:
         create_pv_import_class_and_function_if_not_exist()
         create_pv_import_object_and_type_if_not_exist()
 
+        # Initialize tasks
+        for record in self.config.records:
+            self.tasks[record] = 0
+
     def start(self):
         """
         Starts the PV data importing loop.
         """
         start_time = time.time()
         while True:
-            time.sleep(5.0 - ((time.time() - start_time) % 5.0))
+            time.sleep(LOOP_TIMER - ((time.time() - start_time) % LOOP_TIMER))
 
             pv_data = copy.deepcopy(self.pv_monitors.get_data())
             print(f"({datetime.now().strftime('%H:%M:%S')})", end=' ')
             print(len(pv_data), pv_data)
 
             for record in self.config.records:
-                measurement_pvs = self.config.get_record_measurement_pvs(record, full_names=True)
+
+                # Check record next logging time  in tasks, if not yet then go to next record
+                if self.tasks[record] > time.time():
+                    continue
+                # If record is ready to be updated, set curr time + log period in minutes as next run, then proceed
+                self.tasks[record] = time.time() + (60 * self.config.logging_periods[record])
+
+                # Get the entry record's PVs, the initialize the blank measurement values dict (with None values)
+                record_pvs = self.config.get_record_measurement_pvs(record, full_names=True)
                 mea_values = get_blank_measurements_dict()
 
-                for index, pv_name in enumerate(measurement_pvs):
+                # Iterate through the list of PVs, get the values from the PV monitor data dict, and add them to the
+                # measurement values.
+                for index, pv_name in enumerate(record_pvs):
+                    # If measurement number 'index + 1' doesn't have an assigned PV, skip it.
+                    if not pv_name:
+                        continue
+                    # Add the PV value to the measurements. If the PV does not exist in the PV monitors data dict,
+                    # then skip it.
                     try:
                         pv_value = pv_data[pv_name]
+                        mea_values[index + 1] = pv_value
                     except KeyError:
                         continue
-                    mea_values[index + 1] = pv_value
+                print(mea_values)
 
-                # If all measurement values are None/empty, skip to the next record.
+                # If none of the measurement PVs values were found in the PV monitors data dict,
+                # skip to the next record.
                 if all(value is None for value in mea_values.values()):
                     continue
 
-                print(mea_values)
-
+                # Add a measurement with the values for the record/object
                 add_measurement(record_name=record, mea_values=mea_values, mea_valid=1)
-
-
-                # for pv_name, pv_value in pv_names_and_values.items():
-                #     pv_short_name = pv_name_without_prefix_and_domain(pv_name)
-                #     print(self.config.get_pv_config(pv_short_name))
-                # try:
-                #     pv_config = self.pv_configs[pv_short_name]
-                # except KeyError:
-                #     # If PV name was not found in the config file, cancel future updates
-                #     # and remove it from the PV Data dict.
-                #     self.pv_monitors.remove_pv(pv_name)
-                #     continue
-                #
-                # object_id = pv_config['record_id']
-                # mea_values = [pv_value]
-

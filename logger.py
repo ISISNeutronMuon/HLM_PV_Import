@@ -92,7 +92,7 @@ class DBLogger:
         if not os.path.exists(self.log_path):
             os.makedirs(self.log_path)
         self.file_date = time.strftime("%Y-%m-%d-%a", curr_time)
-        file_name = self.log_path + 'HeRecovery' + time.strftime("%Y-%m-%d-%a", curr_time) + '.log'
+        file_name = self.log_path + 'HeRecovery-' + time.strftime("%Y-%m-%d-%a", curr_time) + '.log'
         self.log_file = open(file_name, 'a')
 
     def update_log(self):

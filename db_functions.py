@@ -102,11 +102,11 @@ def add_measurement(record_name, mea_values: dict, mea_valid=0):
     }
 
     _insert_query(Tables.MEASUREMENT, data=measurement_dict)
-    
+
     last_id = _get_table_last_id(Tables.MEASUREMENT)
     db_logger.log_new_measurement(record_no=last_id, obj_id=object_id,
-                                 obj_name=record_name, values=mea_values, print_msg=True)
-    
+                                  obj_name=record_name, values=mea_values, print_msg=True)
+
     add_relationship(assigned=object_id, or_date=mea_date)
 
 
@@ -142,9 +142,9 @@ def create_pv_import_class_and_function_if_not_exist():
     # CREATE FUNCTION IF IT DOES NOT EXIST
     search = f"WHERE `OF_NAME` LIKE '{PV_IMPORT}'"
     results = _select_query(
-                table=Tables.FUNCTION,
-                filters=search,
-                db=HEDB.NAME
+        table=Tables.FUNCTION,
+        filters=search,
+        db=HEDB.NAME
     )
     if not results:
         function_dict = {
@@ -160,9 +160,9 @@ def create_pv_import_class_and_function_if_not_exist():
     # CREATE CLASS IF IT DOES NOT EXIST
     search = f"WHERE OC_NAME LIKE '{PV_IMPORT}'"
     results = _select_query(
-                table=Tables.OBJECT_CLASS,
-                filters=search,
-                db=HEDB.NAME
+        table=Tables.OBJECT_CLASS,
+        filters=search,
+        db=HEDB.NAME
     )
     if not results:
         function_id = _select_query(
@@ -177,7 +177,7 @@ def create_pv_import_class_and_function_if_not_exist():
         new_id = f'{int(last_id) + 1}'
 
         class_dict = {
-            'OC_ID':  new_id,  # Need to set manually as OC_ID has no default value
+            'OC_ID': new_id,  # Need to set manually as OC_ID has no default value
             'OC_FUNCTION_ID': function_id,
             'OC_NAME': PV_IMPORT,
             'OC_POSITIONTYPE': 0,
@@ -197,9 +197,9 @@ def create_pv_import_object_and_type_if_not_exist():
     # CREATE TYPE IF IT DOES NOT EXIST
     search = f"WHERE `OT_NAME` LIKE '{PV_IMPORT}'"
     results = _select_query(
-                table=Tables.OBJECT_TYPE,
-                filters=search,
-                db=HEDB.NAME
+        table=Tables.OBJECT_TYPE,
+        filters=search,
+        db=HEDB.NAME
     )
     if not results:
         pv_import_class_id = _select_query(
@@ -222,9 +222,9 @@ def create_pv_import_object_and_type_if_not_exist():
 
     # CREATE OBJECT IF IT DOES NOT EXIST
     results = _select_query(
-                table=Tables.OBJECT,
-                filters=f"WHERE OB_NAME LIKE '{PV_IMPORT}'",
-                db=HEDB.NAME
+        table=Tables.OBJECT,
+        filters=f"WHERE OB_NAME LIKE '{PV_IMPORT}'",
+        db=HEDB.NAME
     )
     if not results:
         pv_import_type_id = _select_query(
@@ -308,7 +308,8 @@ def _get_table_columns(table, names_only=False):
     Returns:
         (list): A list of columns
     """
-
+    connection = None
+    cursor = None
     try:
         connection = mysql.connector.connect(host=HEDB.HOST,
                                              database=HEDB.NAME,
@@ -333,9 +334,10 @@ def _get_table_columns(table, names_only=False):
     except mysql.connector.Error as e:
         log_db_error(f'{e}', print_err=True)
     finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
+        if connection and cursor:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
 
 
 def _select_query(table, columns='*', filters=None, db=HEDB.NAME, to_str=False):
@@ -352,6 +354,8 @@ def _select_query(table, columns='*', filters=None, db=HEDB.NAME, to_str=False):
     Returns:
         (list/str): The list of records, or a string if single element list and to_str set to True.
     """
+    connection = None
+    cursor = None
     try:
         if db == IOCDB.NAME:
             connection = mysql.connector.connect(host=IOCDB.HOST,
@@ -389,9 +393,10 @@ def _select_query(table, columns='*', filters=None, db=HEDB.NAME, to_str=False):
     except mysql.connector.Error as e:
         log_db_error(f'{e}', print_err=True)
     finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
+        if connection and cursor:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
 
 
 def _insert_query(table, data):
@@ -402,6 +407,8 @@ def _insert_query(table, data):
         table (str): The table to insert into.
         data (dict): The values to be inserted, in a Column/Value dictionary.
     """
+    connection = None
+    cursor = None
     try:
         connection = mysql.connector.connect(host=HEDB.HOST,
                                              database=HEDB.NAME,
@@ -429,9 +436,10 @@ def _insert_query(table, data):
     except mysql.connector.Error as e:
         log_db_error(f'{e}', print_err=True)
     finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
+        if connection and cursor:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
 
 
 def _get_object_name(object_id):

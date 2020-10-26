@@ -52,3 +52,4 @@ class UserConfigConst:
     RECORD = 'record_name'
     MEAS = 'measurements'
     PV = 'pv_name'
+    LOG_PERIOD = 'logging_period'

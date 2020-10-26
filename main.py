@@ -3,7 +3,7 @@ Helium Level Monitoring Project - HeRecovery Database PV Import
 """
 
 from ca_wrapper import PvMonitors
-from pv_functions import get_pv_names
+from pv_functions import get_pv_names, get_pv_value
 from user_config import UserConfig
 import utilities
 from pv_import import PvImport

@@ -10,6 +10,8 @@
                       <xs:sequence>
                           <xs:element name="record_name"
                                       type="xs:string" />
+                          <xs:element name="logging_period"
+                                      type="xs:int" />
                           <xs:element name="measurements">
                               <xs:complexType>
                                   <xs:sequence>

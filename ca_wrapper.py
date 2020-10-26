@@ -6,7 +6,7 @@ from caproto.sync.client import read
 from caproto.threading.client import Context
 from logger import log_ca_error
 
-TIMEOUT = 3  # Default timeout for reading a PV
+TIMEOUT = 1  # Default timeout for reading a PV
 
 
 class PvMonitors:

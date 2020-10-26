@@ -16,20 +16,21 @@ class UserConfig:
     """
 
     def __init__(self):
+        self._validate_config_with_schema()
         self.entries = self._get_all_entries()
         self.records = self._get_all_entry_records()
         self.available_pvs = get_pv_names(short_names=True)
+        self.logging_periods = self._get_logging_periods()
 
     def run_checks(self):
-        self.validate_config_with_schema()
-        self.check_config_records_tag_not_empty()
-        self.check_records_have_at_least_one_measurement_pv()
-        self.check_config_records_unique()
-        self.check_config_records_exist()
-        self.check_measurement_pvs_exist()
+        self._check_config_records_tag_not_empty()
+        self._check_records_have_at_least_one_measurement_pv()
+        self._check_config_records_unique()
+        self._check_config_records_exist()
+        self._check_measurement_pvs_exist()
 
     @staticmethod
-    def validate_config_with_schema():
+    def _validate_config_with_schema():
 
         schema_file = UserConfigConst.SCHEMA_PATH
         with open(schema_file, 'rb') as f:
@@ -46,7 +47,7 @@ class UserConfig:
         except etree.XMLSchemaError:
             return False
 
-    def check_config_records_unique(self):
+    def _check_config_records_unique(self):
         """
         Checks whether all record names are unique (no double entries) or not (same record name used twice).
 
@@ -59,7 +60,7 @@ class UserConfig:
             log_error(err_msg)
             raise UserConfigurationException(err_msg)
 
-    def check_config_records_tag_not_empty(self):
+    def _check_config_records_tag_not_empty(self):
         """
         Throws error if a tag in the user configuration has an empty body (value None).
 
@@ -72,7 +73,7 @@ class UserConfig:
                 log_error('One or more elements in the user configuration is empty/null/None.')
                 raise UserConfigurationException(err_msg)
 
-    def check_config_records_exist(self):
+    def _check_config_records_exist(self):
         """
         Checks if the record names from the user configuration exist in the database.
 
@@ -90,7 +91,7 @@ class UserConfig:
             log_error(err_msg)
             raise UserConfigurationException(err_msg)
 
-    def check_measurement_pvs_exist(self):
+    def _check_measurement_pvs_exist(self):
         """
         Checks whether the measurement PVs from the user configuration exist in the database.
 
@@ -109,7 +110,7 @@ class UserConfig:
             log_error(err_msg)
             raise UserConfigurationException(err_msg)
 
-    def check_records_have_at_least_one_measurement_pv(self):
+    def _check_records_have_at_least_one_measurement_pv(self):
         """
         Verifies records have at least one existing PV in the measurements.
 
@@ -131,15 +132,14 @@ class UserConfig:
             log_error(err_msg)
             raise UserConfigurationException(err_msg)
 
-    def get_measurement_pvs(self, no_duplicates=True, full_names=False, ignore_empty=True):
+    def get_measurement_pvs(self, no_duplicates=True, full_names=False):
         """
-        Gets a list of the measurement PVs.
+        Gets a list of the measurement PVs, ignoring empty measurements.
 
         Args:
             no_duplicates (boolean, optional): If one PV is present in multiple measurements/records, add it to the list
                 only once, Defaults to True.
             full_names (boolean, optional): Get the PV names with their prefix and domain, Defaults to False.
-            ignore_empty (boolean, optional): Don't return 'None' PVs from empty tags, Defaults to True.
 
         Returns:
             (list): The list of PVs
@@ -197,11 +197,29 @@ class UserConfig:
 
         return entry_pvs
 
+    def _get_logging_periods(self):
+        """
+        Gets a dictionary of records and their database logging period from the user configuration.
+
+        Returns:
+            (dict): The records and their logging period (int).
+        """
+        entries = self.entries[UserConfigConst.ENTRY]
+        if not isinstance(entries, list):
+            entries = [entries]
+        records_and_periods = {}
+        for entry in entries:
+            record_name = entry[UserConfigConst.RECORD]
+            log_period = int(entry[UserConfigConst.LOG_PERIOD])
+            records_and_periods[record_name] = log_period
+
+        return records_and_periods
+
     @staticmethod
     def _get_pv_config(pv_name):
         """
-        Get the configuration of given PV. If PV is used as a measurement in multiple records, return each of those records
-        in a list.
+        Get the configuration of given PV. If PV is used as a measurement in multiple records, return each
+        of those records in a list.
 
         Args:
             pv_name (str): Name of the PV
