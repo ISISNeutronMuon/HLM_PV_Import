@@ -3,6 +3,7 @@ import os
 import sys
 import time
 from constants import UserConfigConst, LoggersConst
+import math
 
 ERR_LOG_DIR = LoggersConst.ERR_LOG_DIR
 DB_LOG_DIR = LoggersConst.DB_LOG_DIR
@@ -10,7 +11,7 @@ DB_LOG_DIR = LoggersConst.DB_LOG_DIR
 
 def log_db_error(err, print_err=False):
     """
-    Logs a MySQL DB error to the default log file.
+    Logs a MySQL DB error to the error log file.
 
     Args:
         err (str): the error message
@@ -24,7 +25,7 @@ def log_db_error(err, print_err=False):
 
 def log_ca_error(pv_name, err, print_err=False):
     """
-    Logs a Channel Access error to the default log file.
+    Logs a Channel Access error to the error log file.
 
     Args:
         pv_name (str): the name of the PV
@@ -37,12 +38,28 @@ def log_ca_error(pv_name, err, print_err=False):
         sys.stderr.write(f'{err_msg}\n')
 
 
-def log_config_error(pv_name, config_file=UserConfigConst.FILE, print_err=False):
+def log_stale_pv_warning(pv_name, time_since_last_update, print_err=False):
     """
-    Logs a configuration error to the default log file.
+    Logs a stale PV warning to the error log file.
 
     Args:
-        pv_name (str, optional): the name of the PV
+        pv_name (str): the name of the PV
+        time_since_last_update (int): Time since last PV data update, in seconds.
+        print_err (boolean, optional): Output the error message to console, Defaults to False.
+    """
+    time_since_last_update = '{:.1f}'.format(time_since_last_update)
+    err_msg = f"Stale PV warning: PV '{pv_name}' has not received updates for {time_since_last_update} seconds."
+    log_error(err_msg)
+    if print_err:
+        sys.stderr.write(f'{err_msg}\n')
+
+
+def log_config_error(pv_name, config_file=UserConfigConst.FILE, print_err=False):
+    """
+    Logs a configuration error to the error log file.
+
+    Args:
+        pv_name (str): the name of the PV
         config_file (str, optional): the name of the configuration file
         print_err (boolean, optional): Output the error message to console, Defaults to False.
     """

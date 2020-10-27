@@ -1,37 +1,38 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
+<!-- Entry example
+
+<entry>
+	<record_name>TestVessel1</record_name>             # name of the record
+	<logging_period>60</logging_period>                # logging period for database in minutes
+	<measurements>                                     # the measurement values, min 1, max 5
+		<pv_name>MOTHER_DEWAR:HE_LEVEL</pv_name>       # PV name for Measurement Value #1
+		<pv_name>MCP1:BANK6:SPARE_STORAGE</pv_name>    # PV name for Measurement Value #2  etc. up to #5
+	</measurements>
+</entry>
+
+Notes:
+* XML record tags cannot have an empty body (e.g. <pv_name></pv_name>)
+* Record names must be unique across all entries
+
+
+Entry template:
+
+<entry>
+	<record_name></record_name>
+	<logging_period></logging_period>
+	<measurements>
+		<pv_name></pv_name>
+		<pv_name></pv_name>
+		<pv_name></pv_name>
+		<pv_name></pv_name>
+		<pv_name></pv_name>
+	</measurements>
+</entry>
+
+-->
+
 <configuration>
-
-	<!-- Entry example
-
-	<entry>
-		<record_name>TestVessel1</record_name>             # name of the record
-		<logging_period></logging_period>                  # logging period for database in minutes
-		<measurements>                                     # the measurement values, min 1, max 5
-			<pv_name>MOTHER_DEWAR:HE_LEVEL</pv_name>       # PV name for Measurement Value #1
-			<pv_name>MCP1:BANK6:SPARE_STORAGE</pv_name>    # PV name for Measurement Value #2  etc. up to #5
-		</measurements>
-	</entry>
-
-	Notes:
-	* XML record tags cannot have an empty body (e.g. <pv_name></pv_name>)
-	* Record names must be unique across all entries
-
-	Entry template:
-
-	<entry>
-		<record_name></record_name>
-		<logging_period></logging_period>
-		<measurements>
-			<pv_name></pv_name>
-			<pv_name></pv_name>
-			<pv_name></pv_name>
-			<pv_name></pv_name>
-			<pv_name></pv_name>
-		</measurements>
-	</entry>
-
-	-->
 
 	<entry>
 		<record_name>TestVessel1</record_name>

@@ -8,8 +8,7 @@ from db_functions import add_measurement, create_pv_import_class_and_function_if
 import time
 from datetime import datetime
 
-# The timer between each PV import loop
-LOOP_TIMER = 5.0
+LOOP_TIMER = 5.0    # The timer between each PV import loop
 
 
 class PvImport:
@@ -60,11 +59,16 @@ class PvImport:
                 # Iterate through the list of PVs, get the values from the PV monitor data dict, and add them to the
                 # measurement values.
                 for index, pv_name in enumerate(record_pvs):
-                    # If measurement number 'index + 1' doesn't have an assigned PV, skip it.
+                    # If the measurement doesn't have an assigned PV, go to the next one.
                     if not pv_name:
                         continue
+
+                    # If the PV data is stale, then ignore it
+                    if self.pv_monitors.pv_data_is_stale(pv_name, print_warning=True):
+                        continue
+
                     # Add the PV value to the measurements. If the PV does not exist in the PV monitors data dict,
-                    # then skip it.
+                    # then skip it. This could happen because of a monitor not receiving updates from the existing PV.
                     try:
                         pv_value = pv_data[pv_name]
                         mea_values[index + 1] = pv_value
@@ -78,4 +82,4 @@ class PvImport:
                     continue
 
                 # Add a measurement with the values for the record/object
-                add_measurement(record_name=record, mea_values=mea_values, mea_valid=1)
+                # add_measurement(record_name=record, mea_values=mea_values, mea_valid=1)
