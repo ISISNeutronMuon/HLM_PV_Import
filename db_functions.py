@@ -3,7 +3,7 @@ Contains functions for working with the IOC and HeRecovery database.
 Environment variables: DB_IOCDB.USER, DB_IOCDB.PASS, DB_HEDB.USER, DB_HEDB.PASS
 """
 import mysql.connector
-from utilities import single_tuples_to_strings, measurements_dict_valid
+from utilities import single_tuples_to_strings, meas_values_dict_valid
 from datetime import datetime
 from logger import log_db_error, log_error, DBLogger
 from constants import IOCDB, HEDB, PV_IMPORT, Tables
@@ -67,14 +67,14 @@ def add_measurement(record_name, mea_values: dict, mea_valid=0):
     Adds a measurement (and its relationship) to the database.
 
     Args:
-        record_name (int): Record name of the object the measurement is for.
+        record_name (str): Record name of the object the measurement is for.
         mea_values (dict): A dict of the measurement values, max 5. (e.g. {1: 'val', 2: 'val2', ...} or {1: None,
             2: 'val2', 3: None, ...})
-        mea_valid (int, optional): If the measurement is valid, Defaults to 0 (false).
+        mea_valid (boolean, optional): True if the measurement is valid, Defaults to False.
     """
 
-    if not measurements_dict_valid(mea_values):
-        err_msg = f'Measurements dictionary invalid: {mea_values}'
+    if not meas_values_dict_valid(mea_values):
+        err_msg = f'Measurement values dictionary invalid: {mea_values}'
         log_error(err_msg)
         raise ValueError(err_msg)
 
@@ -97,7 +97,7 @@ def add_measurement(record_name, mea_values: dict, mea_valid=0):
         'MEA_VALUE3': mea_values[3],
         'MEA_VALUE4': mea_values[4],
         'MEA_VALUE5': mea_values[5],
-        'MEA_VALID': mea_valid,
+        'MEA_VALID': 1 if mea_valid is True else 0,
         'MEA_BOOKINGCODE': 0,  # 0 = measurement is not from the balance program
     }
 
@@ -135,46 +135,35 @@ def add_relationship(assigned, or_date=None):
     _insert_query(Tables.OBJECT_RELATION, relationship_dict)
 
 
-def create_pv_import_class_and_function_if_not_exist():
+def _create_pv_import_function_if_not_exist():
     """
-    Creates the HLM PV Import object class and function if it doesn't exist in the DB yet.
+    Creates the HLM PV Import object function if it doesn't exist in the DB yet.
     """
     # CREATE FUNCTION IF IT DOES NOT EXIST
     search = f"WHERE `OF_NAME` LIKE '{PV_IMPORT}'"
-    results = _select_query(
-        table=Tables.FUNCTION,
-        filters=search,
-        db=HEDB.NAME
-    )
+    results = _select_query(table=Tables.FUNCTION, filters=search, db=HEDB.NAME)
     if not results:
-        function_dict = {
-            'OF_NAME': PV_IMPORT,
-            'OF_COMMENT': 'HLM PV IMPORT'
-        }
+        function_dict = {'OF_NAME': PV_IMPORT, 'OF_COMMENT': 'HLM PV IMPORT'}
 
-        _insert_query(
-            table=Tables.FUNCTION,
-            data=function_dict
-        )
+        _insert_query(table=Tables.FUNCTION, data=function_dict)
 
+
+def _create_pv_import_class_if_not_exist():
+    """
+    Creates the HLM PV Import object class if it doesn't exist in the DB yet.
+    """
     # CREATE CLASS IF IT DOES NOT EXIST
     search = f"WHERE OC_NAME LIKE '{PV_IMPORT}'"
-    results = _select_query(
-        table=Tables.OBJECT_CLASS,
-        filters=search,
-        db=HEDB.NAME
-    )
+    results = _select_query(table=Tables.OBJECT_CLASS, filters=search, db=HEDB.NAME)
     if not results:
         function_id = _select_query(
-            table=Tables.FUNCTION,
-            columns='OF_ID',
+            table=Tables.FUNCTION, columns='OF_ID',
             filters=f"WHERE OF_NAME LIKE '{PV_IMPORT}'",
-            db=HEDB.NAME,
-            to_str=True
+            db=HEDB.NAME, to_str=True
         )
 
         last_id = _get_table_last_id(Tables.OBJECT_CLASS)
-        new_id = f'{int(last_id) + 1}'
+        new_id = last_id + 1
 
         class_dict = {
             'OC_ID': new_id,  # Need to set manually as OC_ID has no default value
@@ -184,27 +173,19 @@ def create_pv_import_class_and_function_if_not_exist():
             'OC_COMMENT': 'HLM PV IMPORT',
         }
 
-        _insert_query(
-            table=Tables.OBJECT_CLASS,
-            data=class_dict
-        )
+        _insert_query(table=Tables.OBJECT_CLASS, data=class_dict)
 
 
-def create_pv_import_object_and_type_if_not_exist():
+def _create_pv_import_type_if_not_exist():
     """
-    Creates the HLM PV Import object and object type if it doesn't exist in the DB yet.
+    Creates the HLM PV Import type if it doesn't exist in the DB yet.
     """
     # CREATE TYPE IF IT DOES NOT EXIST
     search = f"WHERE `OT_NAME` LIKE '{PV_IMPORT}'"
-    results = _select_query(
-        table=Tables.OBJECT_TYPE,
-        filters=search,
-        db=HEDB.NAME
-    )
+    results = _select_query(table=Tables.OBJECT_TYPE, filters=search, db=HEDB.NAME)
     if not results:
         pv_import_class_id = _select_query(
-            table=Tables.OBJECT_CLASS,
-            columns='OC_ID',
+            table=Tables.OBJECT_CLASS, columns='OC_ID',
             filters=f"WHERE OC_NAME LIKE '{PV_IMPORT}'",
             db=HEDB.NAME, to_str=True
         )
@@ -215,24 +196,20 @@ def create_pv_import_object_and_type_if_not_exist():
             'OT_OUTOFOPERATION': 0
         }
 
-        _insert_query(
-            table=Tables.OBJECT_TYPE,
-            data=type_dict
-        )
+        _insert_query(table=Tables.OBJECT_TYPE, data=type_dict)
 
+
+def _create_pv_import_object_if_not_exist():
+    """
+    Creates the HLM PV Import object if it doesn't exist in the DB yet.
+    """
     # CREATE OBJECT IF IT DOES NOT EXIST
-    results = _select_query(
-        table=Tables.OBJECT,
-        filters=f"WHERE OB_NAME LIKE '{PV_IMPORT}'",
-        db=HEDB.NAME
-    )
+    results = _select_query( table=Tables.OBJECT, filters=f"WHERE OB_NAME LIKE '{PV_IMPORT}'", db=HEDB.NAME)
     if not results:
         pv_import_type_id = _select_query(
-            table=Tables.OBJECT_TYPE,
-            columns='OT_ID',
+            table=Tables.OBJECT_TYPE, columns='OT_ID',
             filters=f"WHERE OT_NAME LIKE '{PV_IMPORT}'",
-            db=HEDB.NAME,
-            to_str=True
+            db=HEDB.NAME, to_str=True
         )
 
         object_dict = {
@@ -241,10 +218,17 @@ def create_pv_import_object_and_type_if_not_exist():
             'OB_COMMENT': 'HLM PV IMPORT',
         }
 
-        _insert_query(
-            table=Tables.OBJECT,
-            data=object_dict
-        )
+        _insert_query(table=Tables.OBJECT, data=object_dict)
+
+
+def setup_db_pv_import():
+    """
+    Checks the DB for the function, class, type and object of PV IMPORT, and create them if any are missing.
+    """
+    _create_pv_import_function_if_not_exist()
+    _create_pv_import_class_if_not_exist()
+    _create_pv_import_type_if_not_exist()
+    _create_pv_import_object_if_not_exist()
 
 
 def _get_object_type(object_id, name_only=False):
@@ -287,10 +271,10 @@ def _get_object_class(object_id, name_only=False):
     """
     type_record = _get_object_type(object_id)
     class_id = type_record[0][1]
-    columns = 'OT_NAME' if name_only else '*'
-    record = _select_query(table=Tables.OBJECT_TYPE,
+    columns = 'OC_NAME' if name_only else '*'
+    record = _select_query(table=Tables.OBJECT_CLASS,
                            columns=columns,
-                           filters=f'WHERE OT_ID LIKE {class_id}')
+                           filters=f'WHERE OC_ID LIKE {class_id}')
     if name_only:
         record = record[0]
 
@@ -462,11 +446,13 @@ def _get_object_name(object_id):
     return object_name
 
 
-def _get_table_last_id(table):
+def _get_primary_key_column(table):
     """
-    Gets the last/highest primary key ID of the given table.
-    """
+    Gets the column name of the primary key in the given table.
 
+    Returns:
+        (str): The PK column name.
+    """
     sql = f"WHERE TABLE_NAME = '{table}'AND CONSTRAINT_NAME = 'PRIMARY'"
 
     pk_column = _select_query(
@@ -476,6 +462,19 @@ def _get_table_last_id(table):
         db=HEDB.NAME,
         to_str=True
     )
+
+    return pk_column
+
+
+def _get_table_last_id(table):
+    """
+    Gets the last/highest primary key ID of the given table.
+
+    Returns:
+        (int): The last table row ID.
+    """
+
+    pk_column = _get_primary_key_column(table)
 
     last_id = _select_query(
         table=table,

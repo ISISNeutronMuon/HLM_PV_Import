@@ -2,9 +2,8 @@ import copy
 
 from ca_wrapper import PvMonitors
 from user_config import UserConfig
-from utilities import pv_name_without_prefix_and_domain, get_blank_measurements_dict
-from db_functions import add_measurement, create_pv_import_class_and_function_if_not_exist, \
-    create_pv_import_object_and_type_if_not_exist, get_object_id
+from utilities import get_blank_measurements_dict
+from db_functions import add_measurement, setup_db_pv_import
 import time
 from datetime import datetime
 
@@ -24,9 +23,8 @@ class PvImport:
         # Check if the user configuration is valid
         self.config.run_checks()
 
-        # Make sure the PV IMPORT object class and function exist
-        create_pv_import_class_and_function_if_not_exist()
-        create_pv_import_object_and_type_if_not_exist()
+        # Create the PV IMPORT object within the database if it doesn't already exist
+        setup_db_pv_import()
 
         # Initialize tasks
         for record in self.config.records:
@@ -82,4 +80,4 @@ class PvImport:
                     continue
 
                 # Add a measurement with the values for the record/object
-                # add_measurement(record_name=record, mea_values=mea_values, mea_valid=1)
+                add_measurement(record_name=record, mea_values=mea_values, mea_valid=True)

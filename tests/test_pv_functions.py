@@ -2,15 +2,15 @@ from __future__ import absolute_import
 import unittest
 
 from hamcrest import assert_that, is_
-from mock import patch
+from mock import patch, DEFAULT
 import pv_functions
 
 
 class TestPvFunctions(unittest.TestCase):
 
-    @patch('db_functions._select_query')
-    @patch('db_functions.get_pv_records')
-    def test_GIVEN_pv_records_WHEN_get_pv_names_THEN_list_is_returned(self, mock_get_records, mock_select_query):
+    @patch.multiple('db_functions', _select_query=DEFAULT, get_pv_records=DEFAULT)
+    def test_GIVEN_pv_records_WHEN_get_pv_names_THEN_list_is_returned(self, **mocks):
+        mock_get_records, mock_select_query = mocks['_select_query'], mocks['get_pv_records']
         expected_value = [
             'TE:NDWXXXX:XX:XXX:123AAA:XXXX:XXXXX',
             'TE:NDWXXXX:XX:XXX:123BBB:XXXX:XXXXX',

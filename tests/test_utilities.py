@@ -185,32 +185,32 @@ class TestUtilities(unittest.TestCase):
 
     def test_GIVEN_valid_measurements_dict_WHEN_check_meas_dict_valid_THEN_return_true(self):
         meas_dict = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
-        result = self.utilities.measurements_dict_valid(meas_dict)
+        result = self.utilities.meas_values_dict_valid(meas_dict)
         self.assertEqual(True, result)
 
     def test_GIVEN_invalid_measurements_dict_less_keys_WHEN_check_meas_dict_valid_THEN_return_false(self):
         meas_dict = {1: 1, 2: 2, 3: 3, 4: 4}
-        result = self.utilities.measurements_dict_valid(meas_dict)
+        result = self.utilities.meas_values_dict_valid(meas_dict)
         self.assertEqual(False, result)
 
     def test_GIVEN_invalid_measurements_dict_more_keys_WHEN_check_meas_dict_valid_THEN_return_false(self):
         meas_dict = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6}
-        result = self.utilities.measurements_dict_valid(meas_dict)
+        result = self.utilities.meas_values_dict_valid(meas_dict)
         self.assertEqual(False, result)
 
     def test_GIVEN_invalid_measurements_key_names_WHEN_check_meas_dict_valid_THEN_return_false(self):
         meas_dict = {1: 1, 2: 2, 6: 3, 4: 4, 5: 5}
-        result = self.utilities.measurements_dict_valid(meas_dict)
+        result = self.utilities.meas_values_dict_valid(meas_dict)
         self.assertEqual(False, result)
 
     def test_GIVEN_invalid_measurements_dict_empty_WHEN_check_meas_dict_valid_THEN_return_false(self):
         meas_dict = {}
-        result = self.utilities.measurements_dict_valid(meas_dict)
+        result = self.utilities.meas_values_dict_valid(meas_dict)
         self.assertEqual(False, result)
 
     def test_GIVEN_valid_measurements_None_values_WHEN_check_meas_dict_valid_THEN_return_false(self):
         meas_dict = {1: None, 2: None, 3: None, 4: None, 5: None}
-        result = self.utilities.measurements_dict_valid(meas_dict)
+        result = self.utilities.meas_values_dict_valid(meas_dict)
         self.assertEqual(True, result)
 
     def test_GIVEN_pv_names_WHEN_remove_raw_and_sim_pvs_THEN_correct_list_returned(self):

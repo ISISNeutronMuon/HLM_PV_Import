@@ -96,7 +96,7 @@ def get_blank_measurements_dict():
     return dict_
 
 
-def measurements_dict_valid(dict_):
+def meas_values_dict_valid(dict_):
     """
     Checks whether the given measurements values dictionary is valid (5 keys named from 1 to 5).
 
