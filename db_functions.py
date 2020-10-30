@@ -53,12 +53,7 @@ def get_object_id(object_name):
         (int): The object ID.
     """
     search = f"WHERE `OB_NAME` LIKE '{object_name}'"
-    result = _select_query(
-        table=Tables.OBJECT,
-        columns='OB_ID',
-        filters=search,
-        to_str=True
-    )
+    result = _select_query(table=Tables.OBJECT, columns='OB_ID', filters=search, f_elem=True)
     return result
 
 
@@ -156,11 +151,8 @@ def _create_pv_import_class_if_not_exist():
     search = f"WHERE OC_NAME LIKE '{PV_IMPORT}'"
     results = _select_query(table=Tables.OBJECT_CLASS, filters=search, db=HEDB.NAME)
     if not results:
-        function_id = _select_query(
-            table=Tables.FUNCTION, columns='OF_ID',
-            filters=f"WHERE OF_NAME LIKE '{PV_IMPORT}'",
-            db=HEDB.NAME, to_str=True
-        )
+        function_id = _select_query(table=Tables.FUNCTION, columns='OF_ID', filters=f"WHERE OF_NAME LIKE '{PV_IMPORT}'",
+                                    db=HEDB.NAME, f_elem=True)
 
         last_id = _get_table_last_id(Tables.OBJECT_CLASS)
         new_id = last_id + 1
@@ -184,11 +176,8 @@ def _create_pv_import_type_if_not_exist():
     search = f"WHERE `OT_NAME` LIKE '{PV_IMPORT}'"
     results = _select_query(table=Tables.OBJECT_TYPE, filters=search, db=HEDB.NAME)
     if not results:
-        pv_import_class_id = _select_query(
-            table=Tables.OBJECT_CLASS, columns='OC_ID',
-            filters=f"WHERE OC_NAME LIKE '{PV_IMPORT}'",
-            db=HEDB.NAME, to_str=True
-        )
+        pv_import_class_id = _select_query(table=Tables.OBJECT_CLASS, columns='OC_ID',
+                                           filters=f"WHERE OC_NAME LIKE '{PV_IMPORT}'", db=HEDB.NAME, f_elem=True)
         type_dict = {
             'OT_OBJECTCLASS_ID': pv_import_class_id,
             'OT_NAME': PV_IMPORT,
@@ -204,13 +193,10 @@ def _create_pv_import_object_if_not_exist():
     Creates the HLM PV Import object if it doesn't exist in the DB yet.
     """
     # CREATE OBJECT IF IT DOES NOT EXIST
-    results = _select_query( table=Tables.OBJECT, filters=f"WHERE OB_NAME LIKE '{PV_IMPORT}'", db=HEDB.NAME)
+    results = _select_query(table=Tables.OBJECT, filters=f"WHERE OB_NAME LIKE '{PV_IMPORT}'", db=HEDB.NAME)
     if not results:
-        pv_import_type_id = _select_query(
-            table=Tables.OBJECT_TYPE, columns='OT_ID',
-            filters=f"WHERE OT_NAME LIKE '{PV_IMPORT}'",
-            db=HEDB.NAME, to_str=True
-        )
+        pv_import_type_id = _select_query(table=Tables.OBJECT_TYPE, columns='OT_ID',
+                                          filters=f"WHERE OT_NAME LIKE '{PV_IMPORT}'", db=HEDB.NAME, f_elem=True)
 
         object_dict = {
             'OB_OBJECTTYPE_ID': pv_import_type_id,
@@ -243,15 +229,11 @@ def _get_object_type(object_id, name_only=False):
         (str/dict): The type name/record of the object.
     """
 
-    type_id = _select_query(table=Tables.OBJECT,
-                            columns='OB_OBJECTTYPE_ID',
-                            filters=f'WHERE OB_ID LIKE {object_id}',
-                            to_str=True)
+    type_id = _select_query(table=Tables.OBJECT, columns='OB_OBJECTTYPE_ID', filters=f'WHERE OB_ID LIKE {object_id}',
+                            f_elem=True)
 
     columns = 'OT_NAME' if name_only else '*'
-    record = _select_query(table=Tables.OBJECT_TYPE,
-                           columns=columns,
-                           filters=f'WHERE OT_ID LIKE {type_id}')
+    record = _select_query(table=Tables.OBJECT_TYPE, columns=columns, filters=f'WHERE OT_ID LIKE {type_id}')
     if name_only:
         record = record[0]
 
@@ -272,9 +254,7 @@ def _get_object_class(object_id, name_only=False):
     type_record = _get_object_type(object_id)
     class_id = type_record[0][1]
     columns = 'OC_NAME' if name_only else '*'
-    record = _select_query(table=Tables.OBJECT_CLASS,
-                           columns=columns,
-                           filters=f'WHERE OC_ID LIKE {class_id}')
+    record = _select_query(table=Tables.OBJECT_CLASS, columns=columns, filters=f'WHERE OC_ID LIKE {class_id}')
     if name_only:
         record = record[0]
 
@@ -324,7 +304,7 @@ def _get_table_columns(table, names_only=False):
                 connection.close()
 
 
-def _select_query(table, columns='*', filters=None, db=HEDB.NAME, to_str=False):
+def _select_query(table, columns='*', filters=None, db=HEDB.NAME, f_elem=False):
     """
     Returns the list of records from the given table.
 
@@ -333,7 +313,8 @@ def _select_query(table, columns='*', filters=None, db=HEDB.NAME, to_str=False):
         columns (str, optional): The columns to be fetched, Defaults to '*' (all).
         filters (str, optional): Search conditions, e.g. 'WHERE type LIKE "cat"', Defaults to None
         db (str, optional): The database to look in, Defaults to the Helium DB.
-        to_str (boolean, optional): If a list of one element is returned, convert to string, Defaults to False.
+        f_elem (boolean, optional): If a list/tuple of one element is returned, return only the element,
+            Defaults to False.
 
     Returns:
         (list/str): The list of records, or a string if single element list and to_str set to True.
@@ -356,7 +337,7 @@ def _select_query(table, columns='*', filters=None, db=HEDB.NAME, to_str=False):
 
         if connection.is_connected():
             cursor = connection.cursor()
-
+            columns = '*' if columns is None else columns
             query = f"SELECT {columns} FROM {table}"
             if filters:
                 query += f' {filters}'
@@ -368,7 +349,7 @@ def _select_query(table, columns='*', filters=None, db=HEDB.NAME, to_str=False):
             if records and len(records[0]) == 1:
                 records = single_tuples_to_strings(records)
 
-            if to_str:
+            if f_elem:
                 if isinstance(records, list) and len(records) == 1:
                     records = records[0]
 
@@ -389,7 +370,7 @@ def _insert_query(table, data):
 
     Args:
         table (str): The table to insert into.
-        data (dict): The values to be inserted, in a Column/Value dictionary.
+        data (dict): The values to be inserted, in a Column Name/Value dictionary.
     """
     connection = None
     cursor = None
@@ -436,12 +417,8 @@ def _get_object_name(object_id):
     Returns:
         (str): The object name.
     """
-    object_name = _select_query(
-        table=Tables.OBJECT,
-        columns='OB_NAME',
-        filters=f'WHERE OB_ID LIKE {object_id}',
-        to_str=True
-    )
+    object_name = _select_query(table=Tables.OBJECT, columns='OB_NAME', filters=f'WHERE OB_ID LIKE {object_id}',
+                                f_elem=True)
 
     return object_name
 
@@ -455,13 +432,8 @@ def _get_primary_key_column(table):
     """
     sql = f"WHERE TABLE_NAME = '{table}'AND CONSTRAINT_NAME = 'PRIMARY'"
 
-    pk_column = _select_query(
-        table='information_schema.KEY_COLUMN_USAGE',
-        columns='COLUMN_NAME',
-        filters=sql,
-        db=HEDB.NAME,
-        to_str=True
-    )
+    pk_column = _select_query(table='information_schema.KEY_COLUMN_USAGE', columns='COLUMN_NAME', filters=sql,
+                              db=HEDB.NAME, f_elem=True)
 
     return pk_column
 
@@ -476,12 +448,7 @@ def _get_table_last_id(table):
 
     pk_column = _get_primary_key_column(table)
 
-    last_id = _select_query(
-        table=table,
-        columns=f'MAX({pk_column})',
-        db=HEDB.NAME,
-        to_str=True
-    )
+    last_id = _select_query(table=table, columns=f'MAX({pk_column})', db=HEDB.NAME, f_elem=True)
 
     return last_id
 
@@ -494,12 +461,6 @@ def _get_pv_import_object_id():
         (int): The PV Import object ID.
     """
     search = f"WHERE OB_NAME LIKE '{PV_IMPORT}'"
-    result = _select_query(
-        table=Tables.OBJECT,
-        columns='OB_ID',
-        filters=search,
-        db=HEDB.NAME,
-        to_str=True
-    )
+    result = _select_query(table=Tables.OBJECT, columns='OB_ID', filters=search, db=HEDB.NAME, f_elem=True)
 
     return result

@@ -11,6 +11,35 @@ TIMEOUT = 3                 # Default timeout for reading a PV
 TIME_AFTER_STALE = 7200     # time in seconds after which a PV data is considered stale and will no longer be considered
 
 
+def get_pv_value(name, timeout=TIMEOUT):
+    """
+    Get the current value of the PV.
+
+    Args:
+        name (str): The PV.
+        timeout (optional): How long to wait for the PV to connect etc.
+
+    Returns:
+        The PV value.
+
+    Raises:
+        UnableToConnectToPVException: If cannot connect to PV.
+    """
+
+    try:
+        res = read(pv_name=name, timeout=timeout)
+    except CaprotoTimeoutError as e:
+        log_ca_error(pv_name=name, err=f'{e}', print_err=True)
+        raise
+
+    value = res.data[0]
+
+    if isinstance(value, bytes):
+        value = value.decode('utf-8')
+
+    return value
+
+
 class PvMonitors:
     """
     Monitor PV channels and continuously store updates data.
@@ -109,46 +138,3 @@ class PvMonitors:
             return True
         else:
             return False
-
-
-def get_pv_value(name, timeout=TIMEOUT):
-    """
-    Get the current value of the PV.
-
-    Args:
-        name (str): The PV.
-        timeout (optional): How long to wait for the PV to connect etc.
-
-    Returns:
-        The PV value.
-
-    Raises:
-        UnableToConnectToPVException: If cannot connect to PV.
-    """
-
-    res = get_chan(name, timeout)
-    value = res.data[0]
-
-    if isinstance(value, bytes):
-        value = value.decode('utf-8')
-
-    return value
-
-
-def get_chan(name, timeout):
-    """
-    Gets a channel based on a channel name.
-
-    Args:
-        name (str): the name of the channel to get
-        timeout (int): timeout to set on channel
-
-    Returns:
-        ReadNotifyResponse caproto object containing channel data and more.
-    """
-    try:
-        res = read(pv_name=name, timeout=timeout)
-    except CaprotoTimeoutError as e:
-        log_ca_error(pv_name=name, err=f'{e}', print_err=True)
-        raise
-    return res

@@ -11,8 +11,6 @@ import db_functions
 
 if __name__ == '__main__':
 
-    print(db_functions._get_object_class(4))
-
     # Get the user configuration and the list of measurement PVs
     config = UserConfig()
     pv_list = config.get_measurement_pvs(no_duplicates=True, full_names=True)
