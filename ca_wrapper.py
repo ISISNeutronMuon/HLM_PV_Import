@@ -121,7 +121,8 @@ class PvMonitors:
 
     def pv_data_is_stale(self, pv_name, print_warning=False):
         """
-        Checks a PV to see if its data is stale or not, by looking at the time of its last update.
+        Checks whether a PVs data is stale or not, by looking at the time since its last update and the set length of
+        time after which a PV is considered stale.
 
         Args:
             pv_name (str): The name of the PV.
@@ -133,7 +134,7 @@ class PvMonitors:
         last_update = self._pv_last_update[pv_name]
         current_time = time.time()
         time_since_last_update = current_time - last_update
-        if time_since_last_update > TIME_AFTER_STALE:
+        if time_since_last_update >= TIME_AFTER_STALE:
             log_stale_pv_warning(pv_name, time_since_last_update, print_err=print_warning)
             return True
         else:
