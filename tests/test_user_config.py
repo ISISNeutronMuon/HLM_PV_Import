@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import unittest
 
 from mock import patch
-from user_config import *
+from HLM_PV_Import.user_config import *
 
 
 class TestUserConfig(unittest.TestCase):
@@ -69,14 +69,14 @@ class TestUserConfig(unittest.TestCase):
         with self.assertRaises(UserConfigurationException):
             config._check_records_have_at_least_one_measurement_pv()
 
-    @patch('db_functions._select_query')
+    @patch('HLM_PV_Import.db_functions._select_query')
     def test_GIVEN_records_exist_WHEN_check_if_records_exist_THEN_no_exception(self, mock_query_res):
         config = UserConfig()
         config.records = ['a', 'b', 'c']
         mock_query_res.return_value = 1
         config._check_config_records_exist()
 
-    @patch('db_functions._select_query')
+    @patch('HLM_PV_Import.db_functions._select_query')
     def test_GIVEN_nonexistent_records_WHEN_check_if_records_exist_THEN_exception_raised(self, mock_query_res):
         config = UserConfig()
         config.records = ['a', 'b', 'c']
@@ -84,14 +84,14 @@ class TestUserConfig(unittest.TestCase):
         with self.assertRaises(UserConfigurationException):
             config._check_config_records_exist()
 
-    @patch('user_config.UserConfig.get_measurement_pvs')
+    @patch('HLM_PV_Import.user_config.UserConfig.get_measurement_pvs')
     def test_GIVEN_existing_pvs_WHEN_check_if_measurement_pvs_exist_THEN_no_exception(self, mock_meas_pvs):
         config = UserConfig()
         config.available_pvs = ['a', 'b', 'c']
         mock_meas_pvs.return_value = ['a', 'b', 'c']
         config._check_measurement_pvs_exist()
 
-    @patch('user_config.UserConfig.get_measurement_pvs')
+    @patch('HLM_PV_Import.user_config.UserConfig.get_measurement_pvs')
     def test_GIVEN_nonexistent_pvs_WHEN_check_if_measurement_pvs_exist_THEN_exception_raised(self, mock_meas_pvs):
         config = UserConfig()
         config.available_pvs = ['a', 'b', 'c']

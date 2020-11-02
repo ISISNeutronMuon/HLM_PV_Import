@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 import unittest
 from hamcrest import assert_that, is_, calling, raises
-import utilities
-from constants import PvConfig
+from HLM_PV_Import import utilities
+from HLM_PV_Import.constants import PvConfig
 from parameterized import parameterized
 
 

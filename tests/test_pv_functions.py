@@ -3,12 +3,12 @@ import unittest
 
 from hamcrest import assert_that, is_
 from mock import patch, DEFAULT
-import pv_functions
+from HLM_PV_Import import pv_functions
 
 
 class TestPvFunctions(unittest.TestCase):
 
-    @patch.multiple('db_functions', _select_query=DEFAULT, get_pv_records=DEFAULT)
+    @patch.multiple('HLM_PV_Import.db_functions', _select_query=DEFAULT, get_pv_records=DEFAULT)
     def test_GIVEN_pv_records_WHEN_get_pv_names_THEN_list_is_returned(self, **mocks):
         mock_get_records, mock_select_query = mocks['_select_query'], mocks['get_pv_records']
         expected_value = [
@@ -28,9 +28,9 @@ class TestPvFunctions(unittest.TestCase):
 
         assert_that(result, is_(expected_value))
 
-    @patch('db_functions._select_query')
-    @patch('pv_functions.get_pv_value')  # From ca_wrapper
-    @patch('db_functions.get_pv_records')
+    @patch('HLM_PV_Import.db_functions._select_query')
+    @patch('HLM_PV_Import.pv_functions.get_pv_value')  # From ca_wrapper
+    @patch('HLM_PV_Import.db_functions.get_pv_records')
     def test_GIVEN_pv_records_WHEN_get_pv_names_and_values_THEN_dict_is_returned(self, mock_get_records, mock_get_val,
                                                                                  mock_select_query):
         # Arrange

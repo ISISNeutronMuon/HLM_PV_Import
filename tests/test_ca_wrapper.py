@@ -1,8 +1,8 @@
 import unittest
 
-from mock import patch, MagicMock
-import ca_wrapper
-from ca_wrapper import PvMonitors
+from mock import patch
+from HLM_PV_Import import ca_wrapper
+from HLM_PV_Import.ca_wrapper import PvMonitors
 from parameterized import parameterized
 from caproto.threading import client
 
@@ -13,7 +13,7 @@ class TestWrapper(unittest.TestCase):
         ([b'val'], 'val'),
         (['val'], 'val')
     ])
-    @patch('ca_wrapper.read')
+    @patch('HLM_PV_Import.ca_wrapper.read')
     def test_GIVEN_value_WHEN_get_pv_value_THEN_return_string(self, return_val, exp_val, mock_read):
         mock_read.return_value.data = return_val
         result = ca_wrapper.get_pv_value('')
@@ -23,7 +23,7 @@ class TestWrapper(unittest.TestCase):
 class TestPvMonitors(unittest.TestCase):
 
     def setUp(self):
-        patcher = patch('ca_wrapper.Context')
+        patcher = patch('HLM_PV_Import.ca_wrapper.Context')
         self.mock_ctx = patcher.start().return_value
         self.addCleanup(patcher.stop)
         self.pvm = PvMonitors([])
@@ -129,7 +129,7 @@ class TestPvMonitors(unittest.TestCase):
         (1, 1, False)
     ])
     def test_GIVEN_pv_name_WHEN_check_if_data_is_stale_THEN_correct_check(self, last_update, current_time, expected):
-        with patch('time.time') as mock_time, patch('logger.log_stale_pv_warning'):
+        with patch('time.time') as mock_time, patch('HLM_PV_Import.logger.log_stale_pv_warning'):
 
             # Arrange
             ca_wrapper.TIME_AFTER_STALE = 1  # set 1 second old as stale data

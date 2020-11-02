@@ -2,14 +2,12 @@
 Helium Level Monitoring Project - HeRecovery Database PV Import
 """
 
-from ca_wrapper import PvMonitors
-from pv_functions import get_pv_names, get_pv_value
-from user_config import UserConfig
-import utilities
-from pv_import import PvImport
-import db_functions
+from HLM_PV_Import.ca_wrapper import PvMonitors
+from HLM_PV_Import.user_config import UserConfig
+from HLM_PV_Import.pv_import import PvImport
 
-if __name__ == '__main__':
+
+def main():
 
     # Get the user configuration and the list of measurement PVs
     config = UserConfig()
@@ -30,3 +28,7 @@ if __name__ == '__main__':
 
     # Start the PV import main loop to check each record
     pv_import.start()
+
+
+if __name__ == '__main__':
+    main()

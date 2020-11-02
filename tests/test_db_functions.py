@@ -3,8 +3,8 @@ from __future__ import absolute_import
 import unittest
 from mock import patch, DEFAULT
 from parameterized import parameterized
-import db_functions
-from constants import Tables, PV_IMPORT, HEDB, IOCDB
+from HLM_PV_Import import db_functions
+from HLM_PV_Import.constants import Tables, PV_IMPORT, HEDB, IOCDB
 from datetime import datetime
 
 
@@ -17,13 +17,13 @@ class TestDbFunctions(unittest.TestCase):
         (['pvname', 'record_type'], 'pvname,record_type'),
         (['pvname', 'nonexisting_column', 'record_type'], 'pvname,record_type')
     ])
-    @patch('db_functions._select_query')
+    @patch('HLM_PV_Import.db_functions._select_query')
     def test_GIVEN_columns_WHEN_get_pv_records_THEN_get_correct_columns(self, cols, exp_cols, mock_select_query):
         db_functions.get_pv_records(*cols)
         mock_select_query.assert_called_with(table='pvs', columns=exp_cols,
                                              filters="WHERE pvname LIKE '%HLM%'", db='iocdb')
 
-    @patch('db_functions._select_query')
+    @patch('HLM_PV_Import.db_functions._select_query')
     def test_GIVEN_object_name_WHEN_get_object_id_THEN_correct_search_query(self, mock_select_query):
         db_functions.get_object_id('obj_name')
         search = f"WHERE `OB_NAME` LIKE 'obj_name'"
@@ -31,7 +31,7 @@ class TestDbFunctions(unittest.TestCase):
                                              filters=search, f_elem=True)
 
     @parameterized.expand([('date', 'date'), (None, 'current date')])
-    @patch.multiple('db_functions', _get_pv_import_object_id=DEFAULT, _insert_query=DEFAULT, datetime=DEFAULT)
+    @patch.multiple('HLM_PV_Import.db_functions', _get_pv_import_object_id=DEFAULT, _insert_query=DEFAULT, datetime=DEFAULT)
     def test_WHEN_add_relationship_THEN_correct_date(self, date, expected, **mocks):
         # Arrange
         mock_get_import_id = mocks['_get_pv_import_object_id']
@@ -62,7 +62,7 @@ class TestDbFunctions(unittest.TestCase):
         (False, [(1, 2, 'Coordinator default')], [(1, 2, 'Coordinator default')], '*'),
         (True, ['Coordinator default'], 'Coordinator default', 'OT_NAME')
     ])
-    @patch('db_functions._select_query')
+    @patch('HLM_PV_Import.db_functions._select_query')
     def test_GIVEN_object_id_WHEN_get_object_type_THEN_correct_type_row_returned(self, name_only, obj_type, exp_val,
                                                                                  columns, mock_select):
         # Arrange
@@ -80,7 +80,7 @@ class TestDbFunctions(unittest.TestCase):
         (False, [(1, 1, 'Coordinator')], [(1, 1, 'Coordinator')], '*'),
         (True, ['Coordinator default'], 'Coordinator default', 'OC_NAME')
     ])
-    @patch.multiple('db_functions', _get_object_type=DEFAULT, _select_query=DEFAULT)
+    @patch.multiple('HLM_PV_Import.db_functions', _get_object_type=DEFAULT, _select_query=DEFAULT)
     def test_GIVEN_object_id_WHEN_get_object_class_THEN_correct_class_row_returned(self, name_only, select_val, exp_val,
                                                                                    columns, **mocks):
         # Arrange
@@ -100,7 +100,7 @@ class TestDbFunctions(unittest.TestCase):
                                        filters=f'WHERE OC_ID LIKE {123}')
         self.assertEqual(exp_val, result)
 
-    @patch('db_functions._select_query')
+    @patch('HLM_PV_Import.db_functions._select_query')
     def test_WHEN_get_object_name_THEN_correct_select_query_called(self, mock_select):
         obj_id = 123
         db_functions._get_object_name(obj_id)
@@ -111,7 +111,7 @@ class TestDbFunctions(unittest.TestCase):
             f_elem=True
         )
 
-    @patch.multiple('db_functions', _select_query=DEFAULT, _get_primary_key_column=DEFAULT)
+    @patch.multiple('HLM_PV_Import.db_functions', _select_query=DEFAULT, _get_primary_key_column=DEFAULT)
     def test_WHEN_get_table_last_row_id_THEN_correct_select_query_called(self, **mocks):
         # Arrange
         mock_select = mocks['_select_query']
@@ -133,7 +133,7 @@ class TestDbFunctions(unittest.TestCase):
             f_elem=True
         )
 
-    @patch('db_functions._select_query')
+    @patch('HLM_PV_Import.db_functions._select_query')
     def test_WHEN_get_table_primary_key_column_THEN_correct_select_query_called(self, mock_select):
         # Arrange
         table = 'table_name'
@@ -227,10 +227,10 @@ class TestSelectAndInsert(unittest.TestCase):
 class TestAddMeasurement(unittest.TestCase):
 
     def setUp(self):
-        patcher = patch.multiple('db_functions', datetime=DEFAULT, db_logger=DEFAULT, _get_table_last_id=DEFAULT,
-                                 add_relationship=DEFAULT, _insert_query=DEFAULT, _get_object_class=DEFAULT,
-                                 _get_object_type=DEFAULT, get_object_id=DEFAULT, log_error=DEFAULT,
-                                 log_db_error=DEFAULT)
+        patcher = patch.multiple('HLM_PV_Import.db_functions', datetime=DEFAULT, db_logger=DEFAULT,
+                                 _get_table_last_id=DEFAULT, add_relationship=DEFAULT, _insert_query=DEFAULT,
+                                 _get_object_class=DEFAULT, _get_object_type=DEFAULT, get_object_id=DEFAULT,
+                                 log_error=DEFAULT, log_db_error=DEFAULT)
         self.addCleanup(patcher.stop)
         self.mocks = patcher.start()
 
@@ -332,7 +332,7 @@ class TestAddMeasurement(unittest.TestCase):
 class TestImportObjectDBSetup(unittest.TestCase):
 
     def setUp(self):
-        patcher = patch.multiple('db_functions', _select_query=DEFAULT, _insert_query=DEFAULT,
+        patcher = patch.multiple('HLM_PV_Import.db_functions', _select_query=DEFAULT, _insert_query=DEFAULT,
                                  _get_table_last_id=DEFAULT)
         self.addCleanup(patcher.stop)
         self.mocks = patcher.start()
@@ -464,7 +464,7 @@ class TestImportObjectDBSetup(unittest.TestCase):
         # Assert
         mock_insert.assert_not_called()
 
-    @patch.multiple('db_functions',
+    @patch.multiple('HLM_PV_Import.db_functions',
                     _create_pv_import_function_if_not_exist=DEFAULT,
                     _create_pv_import_class_if_not_exist=DEFAULT,
                     _create_pv_import_type_if_not_exist=DEFAULT,

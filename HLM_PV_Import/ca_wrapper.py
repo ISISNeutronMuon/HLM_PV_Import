@@ -4,7 +4,7 @@ Wrap caproto to give utilities methods for access in one place
 from caproto import CaprotoTimeoutError
 from caproto.sync.client import read
 from caproto.threading.client import Context
-from logger import log_ca_error, log_stale_pv_warning
+from HLM_PV_Import.logger import log_ca_error, log_stale_pv_warning
 import time
 
 TIMEOUT = 3                 # Default timeout for reading a PV

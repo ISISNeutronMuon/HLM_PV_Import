@@ -1,12 +1,22 @@
+import sys
 import os
+
+if getattr(sys, 'frozen', False):
+    # If the application is run as a bundle, the PyInstaller bootloader
+    # extends the sys module by a flag frozen=True and sets the app
+    # path into variable _MEIPASS'.
+    application_path = sys._MEIPASS
+else:
+    application_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 
 # Helium DB PV Import Class Name
 PV_IMPORT = 'PV IMPORT'
 
 
 class LoggersConst:
-    ERR_LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs', 'err', '')
-    DB_LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs', 'db', '')
+    LOGS_DIR = 'logs'
+    ERR_LOG_DIR = os.path.join(application_path, LOGS_DIR, 'err', '')
+    DB_LOG_DIR = os.path.join(application_path, LOGS_DIR, 'db', '')
 
 
 # the IOC DB containing the list of PVs
@@ -43,10 +53,11 @@ class PvConfig:
 
 # User Configuration
 class UserConfigConst:
+    CONFIG_DIR = 'config'
     FILE = 'user_config.xml'
-    PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), FILE)
+    PATH = os.path.join(application_path, CONFIG_DIR, FILE)
     SCHEMA = 'user_config.xsd'
-    SCHEMA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), SCHEMA)
+    SCHEMA_PATH = os.path.join(application_path, CONFIG_DIR, SCHEMA)
     ROOT = 'configuration'
     ENTRY = 'entry'
     RECORD = 'record_name'
