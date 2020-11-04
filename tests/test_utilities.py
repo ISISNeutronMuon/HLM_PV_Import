@@ -1,6 +1,4 @@
-from __future__ import absolute_import
 import unittest
-from hamcrest import assert_that, is_, calling, raises
 from HLM_PV_Import import utilities
 from HLM_PV_Import.constants import PvConfig
 from parameterized import parameterized
@@ -26,7 +24,7 @@ class TestUtilities(unittest.TestCase):
         result = self.utilities.single_tuples_to_strings(input_val)
 
         # Assert
-        assert_that(result, is_(exp_val))
+        self.assertEqual(exp_val, result)
 
     @parameterized.expand([
         (f'{PvConfig.PV_PREFIX}:{PvConfig.PV_DOMAIN}:NAME1', 'NAME1'),
@@ -37,7 +35,7 @@ class TestUtilities(unittest.TestCase):
         result = self.utilities.pv_name_without_prefix_and_domain(input_val)
 
         # Assert
-        assert_that(result, is_(exp_val))
+        self.assertEqual(exp_val, result)
 
     @parameterized.expand([
         ('MOTHER_DEWAR:HE_LEVEL', f'{PvConfig.PV_PREFIX}:{PvConfig.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'),
@@ -59,7 +57,7 @@ class TestUtilities(unittest.TestCase):
         result = self.utilities.get_full_pv_name(input_val)
 
         # Assert
-        assert_that(result, is_(exp_val))
+        self.assertEqual(exp_val, result)
 
     @parameterized.expand([
         ([], 5, [None, None, None, None, None]),
@@ -71,7 +69,7 @@ class TestUtilities(unittest.TestCase):
         result = self.utilities.list_add_blank_values(list_, size)
 
         # Assert
-        assert_that(result, is_(expected))
+        self.assertEqual(expected, result)
 
     def test_GIVEN_list_bigger_size_WHEN_add_list_blank_values_THEN_return_correct_list_size(self):
         # Arrange
@@ -79,8 +77,8 @@ class TestUtilities(unittest.TestCase):
         size = 4
 
         # Assert
-        assert_that(calling(self.utilities.list_add_blank_values).with_args(list_, size),
-                    raises(ValueError))
+        with self.assertRaises(ValueError):
+            self.utilities.list_add_blank_values(list_, size)
 
     @parameterized.expand([
         (True, {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}),

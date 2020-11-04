@@ -1,6 +1,5 @@
-from __future__ import absolute_import
-import unittest
 
+import unittest
 from mock import patch
 from HLM_PV_Import.user_config import *
 
@@ -18,10 +17,11 @@ class TestUserConfig(unittest.TestCase):
         config._check_config_records_unique()
 
     def test_GIVEN_duplicate_records_WHEN_check_if_records_unique_THEN_exception_raised(self):
-        config = UserConfig()
-        config.records = ['a', 'b', 'b']
-        with self.assertRaises(UserConfigurationException):
-            config._check_config_records_unique()
+        with patch('HLM_PV_Import.user_config.log_error'):
+            config = UserConfig()
+            config.records = ['a', 'b', 'b']
+            with self.assertRaises(UserConfigurationException):
+                config._check_config_records_unique()
 
     def test_GIVEN_no_empty_record_WHEN_check_if_records_tag_empty_THEN_no_exception(self):
         config = UserConfig()
@@ -29,10 +29,11 @@ class TestUserConfig(unittest.TestCase):
         config._check_config_records_tag_not_empty()
 
     def test_GIVEN_empty_record_WHEN_check_if_records_tag_empty_THEN_exception_raised(self):
-        config = UserConfig()
-        config.records = ['a', 'b', None]
-        with self.assertRaises(UserConfigurationException):
-            config._check_config_records_tag_not_empty()
+        with patch('HLM_PV_Import.user_config.log_error'):
+            config = UserConfig()
+            config.records = ['a', 'b', None]
+            with self.assertRaises(UserConfigurationException):
+                config._check_config_records_tag_not_empty()
 
     def test_GIVEN_records_with_pvs_WHEN_check_if_records_have_measurement_pvs_THEN_no_exception(self):
         config = UserConfig()
@@ -46,28 +47,30 @@ class TestUserConfig(unittest.TestCase):
         config._check_records_have_at_least_one_measurement_pv()
 
     def test_GIVEN_record_with_no_pvs_WHEN_check_if_records_have_measurement_pvs_THEN_exception_raised(self):
-        config = UserConfig()
-        config.entries = {
-            'entry': [
-                {'record_name': 'record_one', 'measurements': {'pv_name': 'one_one'}},
-                {'record_name': 'record_two', 'measurements': {'pv_name': None}},
-                {'record_name': 'record_three', 'measurements': {'pv_name': ['three_one', 'one_one']}}
-            ]
-        }
-        with self.assertRaises(UserConfigurationException):
-            config._check_records_have_at_least_one_measurement_pv()
+        with patch('HLM_PV_Import.user_config.log_error'):
+            config = UserConfig()
+            config.entries = {
+                'entry': [
+                    {'record_name': 'record_one', 'measurements': {'pv_name': 'one_one'}},
+                    {'record_name': 'record_two', 'measurements': {'pv_name': None}},
+                    {'record_name': 'record_three', 'measurements': {'pv_name': ['three_one', 'one_one']}}
+                ]
+            }
+            with self.assertRaises(UserConfigurationException):
+                config._check_records_have_at_least_one_measurement_pv()
 
     def test_GIVEN_records_with_no_pvs_WHEN_check_if_records_have_measurement_pvs_THEN_exception_raised(self):
-        config = UserConfig()
-        config.entries = {
-            'entry': [
-                {'record_name': 'record_one', 'measurements': {'pv_name': None}},
-                {'record_name': 'record_two', 'measurements': {'pv_name': None}},
-                {'record_name': 'record_three', 'measurements': {'pv_name': None}}
-            ]
-        }
-        with self.assertRaises(UserConfigurationException):
-            config._check_records_have_at_least_one_measurement_pv()
+        with patch('HLM_PV_Import.user_config.log_error'):
+            config = UserConfig()
+            config.entries = {
+                'entry': [
+                    {'record_name': 'record_one', 'measurements': {'pv_name': None}},
+                    {'record_name': 'record_two', 'measurements': {'pv_name': None}},
+                    {'record_name': 'record_three', 'measurements': {'pv_name': None}}
+                ]
+            }
+            with self.assertRaises(UserConfigurationException):
+                config._check_records_have_at_least_one_measurement_pv()
 
     @patch('HLM_PV_Import.db_functions._select_query')
     def test_GIVEN_records_exist_WHEN_check_if_records_exist_THEN_no_exception(self, mock_query_res):
@@ -78,11 +81,12 @@ class TestUserConfig(unittest.TestCase):
 
     @patch('HLM_PV_Import.db_functions._select_query')
     def test_GIVEN_nonexistent_records_WHEN_check_if_records_exist_THEN_exception_raised(self, mock_query_res):
-        config = UserConfig()
-        config.records = ['a', 'b', 'c']
-        mock_query_res.return_value = None
-        with self.assertRaises(UserConfigurationException):
-            config._check_config_records_exist()
+        with patch('HLM_PV_Import.user_config.log_error'):
+            config = UserConfig()
+            config.records = ['a', 'b', 'c']
+            mock_query_res.return_value = None
+            with self.assertRaises(UserConfigurationException):
+                config._check_config_records_exist()
 
     @patch('HLM_PV_Import.user_config.UserConfig.get_measurement_pvs')
     def test_GIVEN_existing_pvs_WHEN_check_if_measurement_pvs_exist_THEN_no_exception(self, mock_meas_pvs):
@@ -93,11 +97,12 @@ class TestUserConfig(unittest.TestCase):
 
     @patch('HLM_PV_Import.user_config.UserConfig.get_measurement_pvs')
     def test_GIVEN_nonexistent_pvs_WHEN_check_if_measurement_pvs_exist_THEN_exception_raised(self, mock_meas_pvs):
-        config = UserConfig()
-        config.available_pvs = ['a', 'b', 'c']
-        mock_meas_pvs.return_value = ['a', 'b', 'c', 'd', 'e']
-        with self.assertRaises(UserConfigurationException):
-            config._check_measurement_pvs_exist()
+        with patch('HLM_PV_Import.user_config.log_error'):
+            config = UserConfig()
+            config.available_pvs = ['a', 'b', 'c']
+            mock_meas_pvs.return_value = ['a', 'b', 'c', 'd', 'e']
+            with self.assertRaises(UserConfigurationException):
+                config._check_measurement_pvs_exist()
 
     def test_GIVEN_entries_WHEN_get_measurement_pvs_THEN_pvs_returned(self):
         # Arrange

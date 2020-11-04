@@ -1,7 +1,5 @@
-from __future__ import absolute_import
-import unittest
 
-from hamcrest import assert_that, is_
+import unittest
 from mock import patch, DEFAULT
 from HLM_PV_Import import pv_functions
 
@@ -26,7 +24,7 @@ class TestPvFunctions(unittest.TestCase):
 
         result = pv_functions.get_pv_names()
 
-        assert_that(result, is_(expected_value))
+        self.assertEqual(expected_value, result)
 
     @patch('HLM_PV_Import.db_functions._select_query')
     @patch('HLM_PV_Import.pv_functions.get_pv_value')  # From ca_wrapper
@@ -62,4 +60,4 @@ class TestPvFunctions(unittest.TestCase):
         result = pv_functions.get_pv_names_and_values()
 
         # Assert
-        assert_that(result, is_(expected_value))
+        self.assertEqual(expected_value, result)

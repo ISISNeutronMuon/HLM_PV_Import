@@ -103,7 +103,8 @@ class UserConfig:
         not_found = []
         for pv in config_pvs:
             if pv and pv not in self.available_pvs:
-                not_found.append(pv)
+                full_name = get_full_pv_name(pv)
+                not_found.append(full_name)
 
         if not_found:
             err_msg = f'One or more PVs in the user configuration does not exist: {not_found}'

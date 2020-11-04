@@ -61,13 +61,14 @@ class PvImport:
                     if not pv_name:
                         continue
 
-                    # If the PV data is stale, then ignore it
-                    if self.pv_monitors.pv_data_is_stale(pv_name, print_warning=True):
-                        continue
-
                     # Add the PV value to the measurements. If the PV does not exist in the PV monitors data dict,
                     # then skip it. This could happen because of a monitor not receiving updates from the existing PV.
                     try:
+
+                        # If the PV data is stale, then ignore it
+                        if self.pv_monitors.pv_data_is_stale(pv_name, print_warning=True):
+                            continue
+
                         pv_value = pv_data[pv_name]
                         mea_values[index + 1] = pv_value
                     except KeyError:

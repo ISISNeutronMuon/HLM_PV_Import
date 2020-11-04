@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 
 import unittest
 from mock import patch, DEFAULT
@@ -31,7 +30,8 @@ class TestDbFunctions(unittest.TestCase):
                                              filters=search, f_elem=True)
 
     @parameterized.expand([('date', 'date'), (None, 'current date')])
-    @patch.multiple('HLM_PV_Import.db_functions', _get_pv_import_object_id=DEFAULT, _insert_query=DEFAULT, datetime=DEFAULT)
+    @patch.multiple('HLM_PV_Import.db_functions', _get_pv_import_object_id=DEFAULT,
+                    _insert_query=DEFAULT, datetime=DEFAULT)
     def test_WHEN_add_relationship_THEN_correct_date(self, date, expected, **mocks):
         # Arrange
         mock_get_import_id = mocks['_get_pv_import_object_id']
@@ -89,8 +89,6 @@ class TestDbFunctions(unittest.TestCase):
 
         mock_get_type.return_value = [(1, 123, 'Coordinator default', 3, None, None, None)]
         mock_select.return_value = select_val
-
-        expected = mock_select()
 
         # Act
         result = db_functions._get_object_class(object_id=1, name_only=name_only)
