@@ -88,21 +88,25 @@ class TestUserConfig(unittest.TestCase):
             with self.assertRaises(UserConfigurationException):
                 config._check_config_records_exist()
 
+    @patch('HLM_PV_Import.user_config.get_connected_pvs')
     @patch('HLM_PV_Import.user_config.UserConfig.get_measurement_pvs')
-    def test_GIVEN_existing_pvs_WHEN_check_if_measurement_pvs_exist_THEN_no_exception(self, mock_meas_pvs):
+    def test_GIVEN_existing_pvs_WHEN_check_if_measurement_pvs_connect_THEN_no_exception(self, mock_meas_pvs,
+                                                                                        mock_connected_pvs):
         config = UserConfig()
-        config.available_pvs = ['a', 'b', 'c']
         mock_meas_pvs.return_value = ['a', 'b', 'c']
-        config._check_measurement_pvs_exist()
+        mock_connected_pvs.return_value = ['a', 'b', 'c']
+        config._check_measurement_pvs_connect()
 
+    @patch('HLM_PV_Import.user_config.get_connected_pvs')
     @patch('HLM_PV_Import.user_config.UserConfig.get_measurement_pvs')
-    def test_GIVEN_nonexistent_pvs_WHEN_check_if_measurement_pvs_exist_THEN_exception_raised(self, mock_meas_pvs):
+    def test_GIVEN_nonexistent_pvs_WHEN_check_if_measurement_pvs_exist_THEN_exception_raised(self, mock_meas_pvs,
+                                                                                             mock_connected_pvs):
         with patch('HLM_PV_Import.user_config.log_error'):
             config = UserConfig()
-            config.available_pvs = ['a', 'b', 'c']
             mock_meas_pvs.return_value = ['a', 'b', 'c', 'd', 'e']
+            mock_connected_pvs.return_value = ['a', 'b']
             with self.assertRaises(UserConfigurationException):
-                config._check_measurement_pvs_exist()
+                config._check_measurement_pvs_connect()
 
     def test_GIVEN_entries_WHEN_get_measurement_pvs_THEN_pvs_returned(self):
         # Arrange

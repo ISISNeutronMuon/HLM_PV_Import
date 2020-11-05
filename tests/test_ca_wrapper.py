@@ -14,10 +14,35 @@ class TestWrapper(unittest.TestCase):
         (['val'], 'val')
     ])
     @patch('HLM_PV_Import.ca_wrapper.read')
-    def test_GIVEN_value_WHEN_get_pv_value_THEN_return_string(self, return_val, exp_val, mock_read):
+    def test_WHEN_get_pv_value_THEN_return_string(self, return_val, exp_val, mock_read):
         mock_read.return_value.data = return_val
         result = ca_wrapper.get_pv_value('')
         self.assertEqual(exp_val, result)
+
+    @parameterized.expand([
+        ({'1': True, '2': True, '3': False, '4': False, '5': True}, ['1', '2', '5']),
+        ({'1': True, '2': True, '3': True, '4': True, '5': True}, ['1', '2', '3', '4', '5']),
+        ({'1': False, '2': False, '3': False, '4': False, '5': False}, []),
+        ({'1': True}, ['1']), ({'1': False}, [])
+    ])
+    @patch('HLM_PV_Import.ca_wrapper.Context')
+    def test_WHEN_get_connected_pvs_THEN_return_correct_list(self, pvs_param, expected, mock_ctx):
+        # Arrange
+        class TestPV:
+            def __init__(self, name_, connected_):
+                self.name = name_
+                self.connected = connected_
+        pvs = []
+        for name, connected in pvs_param.items():
+            pvs.append(TestPV(name_=name, connected_=connected))
+
+        mock_ctx.return_value.get_pvs.return_value = pvs
+
+        # Act
+        result = ca_wrapper.get_connected_pvs(pv_list=[], timeout=0)
+
+        # Assert
+        self.assertEqual(expected, result)
 
 
 class TestPvMonitors(unittest.TestCase):

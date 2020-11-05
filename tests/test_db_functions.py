@@ -3,24 +3,11 @@ import unittest
 from mock import patch, DEFAULT
 from parameterized import parameterized
 from HLM_PV_Import import db_functions
-from HLM_PV_Import.constants import Tables, PV_IMPORT, HEDB, IOCDB
+from HLM_PV_Import.constants import Tables, PV_IMPORT, HEDB
 from datetime import datetime
 
 
 class TestDbFunctions(unittest.TestCase):
-
-    @parameterized.expand([
-        ([None], '*'),
-        (['pvname'], 'pvname'),
-        (['wrong', 'wrong2'], '*'),
-        (['pvname', 'record_type'], 'pvname,record_type'),
-        (['pvname', 'nonexisting_column', 'record_type'], 'pvname,record_type')
-    ])
-    @patch('HLM_PV_Import.db_functions._select_query')
-    def test_GIVEN_columns_WHEN_get_pv_records_THEN_get_correct_columns(self, cols, exp_cols, mock_select_query):
-        db_functions.get_pv_records(*cols)
-        mock_select_query.assert_called_with(table='pvs', columns=exp_cols,
-                                             filters="WHERE pvname LIKE '%HLM%'", db='iocdb')
 
     @patch('HLM_PV_Import.db_functions._select_query')
     def test_GIVEN_object_name_WHEN_get_object_id_THEN_correct_search_query(self, mock_select_query):
@@ -127,7 +114,6 @@ class TestDbFunctions(unittest.TestCase):
         mock_select.assert_called_with(
             table=table,
             columns=f'MAX({mock_pk_col()})',
-            db=HEDB.NAME,
             f_elem=True
         )
 
@@ -144,7 +130,6 @@ class TestDbFunctions(unittest.TestCase):
             table='information_schema.KEY_COLUMN_USAGE',
             columns='COLUMN_NAME',
             filters=f"WHERE TABLE_NAME = '{table}'AND CONSTRAINT_NAME = 'PRIMARY'",
-            db=HEDB.NAME,
             f_elem=True
         )
 
@@ -155,17 +140,6 @@ class TestSelectAndInsert(unittest.TestCase):
         patcher = patch('mysql.connector.connect')
         self.addCleanup(patcher.stop)
         self.mock_connect = patcher.start()
-
-    @parameterized.expand([HEDB.NAME, IOCDB.NAME])
-    def test_GIVEN_db_name_WHEN_select_query_THEN_connect_to_correct_db(self, db):
-        db_functions._select_query(table='', db=db)
-        self.mock_connect.assert_called_with(host='localhost', database=db,
-                                             user=None, password=None)
-
-    def test_GIVEN_invalid_db_name_WHEN_select_query_THEN_error_raised(self):
-        db_name = 'invalid name'
-        with self.assertRaises(ValueError):
-            db_functions._select_query(table='', db=db_name)
 
     @parameterized.expand([
         ('table_name', 'col1, col2', 'WHERE a LIKE b', 'SELECT col1, col2 FROM table_name WHERE a LIKE b'),
