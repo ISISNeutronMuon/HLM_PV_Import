@@ -39,8 +39,7 @@ class PvImport:
             time.sleep(LOOP_TIMER - ((time.time() - start_time) % LOOP_TIMER))
 
             pv_data = copy.deepcopy(self.pv_monitors.get_data())
-            print(f"({datetime.now().strftime('%H:%M:%S')})", end=' ')
-            print(len(pv_data), pv_data)
+            print(f"({datetime.now().strftime('%H:%M:%S')}) {len(pv_data)} {pv_data}")
 
             for record in self.config.records:
 
@@ -73,7 +72,7 @@ class PvImport:
                         mea_values[index + 1] = pv_value
                     except KeyError:
                         continue
-                print(mea_values)
+                print(f'mea. values: {mea_values}')
 
                 # If none of the measurement PVs values were found in the PV monitors data dict,
                 # skip to the next record.

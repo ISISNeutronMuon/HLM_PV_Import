@@ -1,48 +1,15 @@
 """
-Contains functions for working with the IOC and HeRecovery database.
-Environment variables: DB_IOCDB.USER, DB_IOCDB.PASS, DB_HEDB.USER, DB_HEDB.PASS
+Contains functions for working with the HeRecovery database.
 """
 import mysql.connector
 from HLM_PV_Import.utilities import single_tuples_to_strings, meas_values_dict_valid
 from datetime import datetime
 from HLM_PV_Import.logger import log_db_error, log_error, DBLogger
-from HLM_PV_Import.constants import IOCDB, HEDB, PV_IMPORT, Tables
+from HLM_PV_Import.constants import HEDB, PV_IMPORT, Tables
 
+# setup the database events logger
 db_logger = DBLogger()
 db_logger.make_log()
-
-
-def get_pv_records(*args):
-    """
-    Get the list of PVs containing the Helium Recovery PLC data.
-
-    args:
-        *args (str): The columns to get from the table row.
-
-    returns:
-        The list of PV records.
-
-    notes:
-        Columns/PV Attributes: ['pvname', 'record_type', 'record_desc', 'iocname'].
-
-        If arguments are not provided, all columns (PV attributes) will be selected.
-
-        Invalid arguments (not a valid column) will be ignored.
-    """
-    valid_columns = ['pvname', 'record_type', 'record_desc', 'iocname']
-    columns = []
-    for arg in args:
-        if arg in valid_columns and arg not in columns:
-            columns.append(arg)
-    columns = ','.join(columns)
-
-    if not columns:  # if columns is empty
-        columns = '*'
-
-    filters = "WHERE pvname LIKE '%HLM%'"
-    records = _select_query(table='pvs', columns=columns, filters=filters, db=IOCDB.NAME)
-
-    return records
 
 
 def get_object_id(object_name):
@@ -136,7 +103,7 @@ def _create_pv_import_function_if_not_exist():
     """
     # CREATE FUNCTION IF IT DOES NOT EXIST
     search = f"WHERE `OF_NAME` LIKE '{PV_IMPORT}'"
-    results = _select_query(table=Tables.FUNCTION, filters=search, db=HEDB.NAME)
+    results = _select_query(table=Tables.FUNCTION, filters=search)
     if not results:
         function_dict = {'OF_NAME': PV_IMPORT, 'OF_COMMENT': 'HLM PV IMPORT'}
 
@@ -149,10 +116,10 @@ def _create_pv_import_class_if_not_exist():
     """
     # CREATE CLASS IF IT DOES NOT EXIST
     search = f"WHERE OC_NAME LIKE '{PV_IMPORT}'"
-    results = _select_query(table=Tables.OBJECT_CLASS, filters=search, db=HEDB.NAME)
+    results = _select_query(table=Tables.OBJECT_CLASS, filters=search)
     if not results:
         function_id = _select_query(table=Tables.FUNCTION, columns='OF_ID', filters=f"WHERE OF_NAME LIKE '{PV_IMPORT}'",
-                                    db=HEDB.NAME, f_elem=True)
+                                    f_elem=True)
 
         last_id = _get_table_last_id(Tables.OBJECT_CLASS)
         new_id = last_id + 1
@@ -174,10 +141,10 @@ def _create_pv_import_type_if_not_exist():
     """
     # CREATE TYPE IF IT DOES NOT EXIST
     search = f"WHERE `OT_NAME` LIKE '{PV_IMPORT}'"
-    results = _select_query(table=Tables.OBJECT_TYPE, filters=search, db=HEDB.NAME)
+    results = _select_query(table=Tables.OBJECT_TYPE, filters=search)
     if not results:
         pv_import_class_id = _select_query(table=Tables.OBJECT_CLASS, columns='OC_ID',
-                                           filters=f"WHERE OC_NAME LIKE '{PV_IMPORT}'", db=HEDB.NAME, f_elem=True)
+                                           filters=f"WHERE OC_NAME LIKE '{PV_IMPORT}'", f_elem=True)
         type_dict = {
             'OT_OBJECTCLASS_ID': pv_import_class_id,
             'OT_NAME': PV_IMPORT,
@@ -193,10 +160,10 @@ def _create_pv_import_object_if_not_exist():
     Creates the HLM PV Import object if it doesn't exist in the DB yet.
     """
     # CREATE OBJECT IF IT DOES NOT EXIST
-    results = _select_query(table=Tables.OBJECT, filters=f"WHERE OB_NAME LIKE '{PV_IMPORT}'", db=HEDB.NAME)
+    results = _select_query(table=Tables.OBJECT, filters=f"WHERE OB_NAME LIKE '{PV_IMPORT}'")
     if not results:
         pv_import_type_id = _select_query(table=Tables.OBJECT_TYPE, columns='OT_ID',
-                                          filters=f"WHERE OT_NAME LIKE '{PV_IMPORT}'", db=HEDB.NAME, f_elem=True)
+                                          filters=f"WHERE OT_NAME LIKE '{PV_IMPORT}'", f_elem=True)
 
         object_dict = {
             'OB_OBJECTTYPE_ID': pv_import_type_id,
@@ -304,7 +271,7 @@ def _get_table_columns(table, names_only=False):
                 connection.close()
 
 
-def _select_query(table, columns='*', filters=None, db=HEDB.NAME, f_elem=False):
+def _select_query(table, columns='*', filters=None, f_elem=False):
     """
     Returns the list of records from the given table.
 
@@ -312,7 +279,6 @@ def _select_query(table, columns='*', filters=None, db=HEDB.NAME, f_elem=False):
         table (str): The table to look in.
         columns (str, optional): The columns to be fetched, Defaults to '*' (all).
         filters (str, optional): Search conditions, e.g. 'WHERE type LIKE "cat"', Defaults to None
-        db (str, optional): The database to look in, Defaults to the Helium DB.
         f_elem (boolean, optional): If a list/tuple of one element is returned, return only the element,
             Defaults to False.
 
@@ -322,18 +288,10 @@ def _select_query(table, columns='*', filters=None, db=HEDB.NAME, f_elem=False):
     connection = None
     cursor = None
     try:
-        if db == IOCDB.NAME:
-            connection = mysql.connector.connect(host=IOCDB.HOST,
-                                                 database=IOCDB.NAME,
-                                                 user=IOCDB.USER,
-                                                 password=IOCDB.PASS)
-        elif db == HEDB.NAME:
-            connection = mysql.connector.connect(host=HEDB.HOST,
-                                                 database=HEDB.NAME,
-                                                 user=HEDB.USER,
-                                                 password=HEDB.PASS)
-        else:
-            raise ValueError(f'Invalid DB "{db}".')
+        connection = mysql.connector.connect(host=HEDB.HOST,
+                                             database=HEDB.NAME,
+                                             user=HEDB.USER,
+                                             password=HEDB.PASS)
 
         if connection.is_connected():
             cursor = connection.cursor()
@@ -431,9 +389,8 @@ def _get_primary_key_column(table):
         (str): The PK column name.
     """
     sql = f"WHERE TABLE_NAME = '{table}'AND CONSTRAINT_NAME = 'PRIMARY'"
-
-    pk_column = _select_query(table='information_schema.KEY_COLUMN_USAGE', columns='COLUMN_NAME', filters=sql,
-                              db=HEDB.NAME, f_elem=True)
+    table = 'information_schema.KEY_COLUMN_USAGE'
+    pk_column = _select_query(table=table, columns='COLUMN_NAME', filters=sql, f_elem=True)
 
     return pk_column
 
@@ -448,7 +405,7 @@ def _get_table_last_id(table):
 
     pk_column = _get_primary_key_column(table)
 
-    last_id = _select_query(table=table, columns=f'MAX({pk_column})', db=HEDB.NAME, f_elem=True)
+    last_id = _select_query(table=table, columns=f'MAX({pk_column})', f_elem=True)
 
     return last_id
 
@@ -461,6 +418,6 @@ def _get_pv_import_object_id():
         (int): The PV Import object ID.
     """
     search = f"WHERE OB_NAME LIKE '{PV_IMPORT}'"
-    result = _select_query(table=Tables.OBJECT, columns='OB_ID', filters=search, db=HEDB.NAME, f_elem=True)
+    result = _select_query(table=Tables.OBJECT, columns='OB_ID', filters=search, f_elem=True)
 
     return result

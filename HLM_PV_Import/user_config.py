@@ -4,9 +4,9 @@ from iteration_utilities import duplicates, unique_everseen
 from HLM_PV_Import.logger import log_config_error
 from HLM_PV_Import.constants import UserConfigConst
 from HLM_PV_Import.db_functions import get_object_id
-from HLM_PV_Import.pv_functions import get_pv_names
 from HLM_PV_Import.logger import log_error
 from HLM_PV_Import.utilities import get_full_pv_name
+from HLM_PV_Import.ca_wrapper import get_connected_pvs
 
 
 class UserConfig:
@@ -19,7 +19,6 @@ class UserConfig:
         self._validate_config_with_schema()
         self.entries = self._get_all_entries()
         self.records = self._get_all_entry_records()
-        self.available_pvs = get_pv_names(short_names=True)
         self.logging_periods = self._get_logging_periods()
 
     def run_checks(self):
@@ -27,7 +26,7 @@ class UserConfig:
         self._check_records_have_at_least_one_measurement_pv()
         self._check_config_records_unique()
         self._check_config_records_exist()
-        self._check_measurement_pvs_exist()
+        self._check_measurement_pvs_connect()
 
     @staticmethod
     def _validate_config_with_schema():
@@ -91,25 +90,24 @@ class UserConfig:
             log_error(err_msg)
             raise UserConfigurationException(err_msg)
 
-    def _check_measurement_pvs_exist(self):
+    def _check_measurement_pvs_connect(self):
         """
         Checks whether the measurement PVs from the user configuration exist in the database.
 
         Raises:
             ValueError: If one or more PVs were not found.
         """
-        config_pvs = self.get_measurement_pvs(no_duplicates=True)
+        print('UserConfig: Checking measurement PVs...')
+        config_pvs = self.get_measurement_pvs(no_duplicates=True, full_names=True)
+        connected_pvs = get_connected_pvs(config_pvs)
+        not_connected = set(config_pvs) ^ set(connected_pvs)
 
-        not_found = []
-        for pv in config_pvs:
-            if pv and pv not in self.available_pvs:
-                full_name = get_full_pv_name(pv)
-                not_found.append(full_name)
-
-        if not_found:
-            err_msg = f'One or more PVs in the user configuration does not exist: {not_found}'
+        if not_connected:
+            err_msg = f'Could not connect to one or more measurement PVs: {not_connected}'
             log_error(err_msg)
             raise UserConfigurationException(err_msg)
+        else:
+            print('UserConfig: All measurement PVs connected.')
 
     def _check_records_have_at_least_one_measurement_pv(self):
         """

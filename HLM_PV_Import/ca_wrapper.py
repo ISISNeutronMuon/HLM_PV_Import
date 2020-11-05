@@ -7,8 +7,32 @@ from caproto.threading.client import Context
 from HLM_PV_Import.logger import log_ca_error, log_stale_pv_warning
 import time
 
-TIMEOUT = 3                 # Default timeout for reading a PV
+TIMEOUT = 2                 # Default timeout for reading a PV
 TIME_AFTER_STALE = 7200     # time in seconds after which a PV data is considered stale and will no longer be considered
+
+
+def get_connected_pvs(pv_list, timeout=TIMEOUT):
+    """
+    Returns a list of connected PVs from the given PV list.
+
+    Args:
+        pv_list (list): The full PV names list.
+        timeout (int, optional): PV connection timeout.
+
+    Returns:
+        (list): The connected PVs.
+    """
+    connected_pvs = []
+
+    ctx = Context()
+    pvs = ctx.get_pvs(*pv_list, timeout=timeout)
+    time.sleep(timeout)
+
+    for pv in pvs:
+        if pv.connected:
+            connected_pvs.append(pv.name)
+
+    return connected_pvs
 
 
 def get_pv_value(name, timeout=TIMEOUT):
@@ -17,13 +41,13 @@ def get_pv_value(name, timeout=TIMEOUT):
 
     Args:
         name (str): The PV.
-        timeout (optional): How long to wait for the PV to connect etc.
+        timeout (int, optional): PV connection timeout.
 
     Returns:
         The PV value.
 
     Raises:
-        UnableToConnectToPVException: If cannot connect to PV.
+        CaprotoTimeoutError: If cannot connect to PV.
     """
 
     try:

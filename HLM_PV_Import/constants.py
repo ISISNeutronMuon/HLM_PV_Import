@@ -1,6 +1,7 @@
 import sys
 import os
 import configparser
+import win32serviceutil
 
 if getattr(sys, 'frozen', False):
     # If the application is run as a bundle, the PyInstaller bootloader
@@ -32,20 +33,18 @@ class LoggersConst:
     DB_LOG_DIR = os.path.join(application_path, LOGS_DIR, 'db', '')
 
 
-# the IOC DB containing the list of PVs
-class IOCDB:
-    HOST = config['IOCDB']['Host']
-    NAME = config['IOCDB']['Name']
-    USER = os.environ.get('DB_IOC_USER')
-    PASS = os.environ.get('DB_IOC_PASS')
+class Service:
+    NAME = config['Service']['Name']
+    DISPLAY_NAME = config['Service']['DisplayName']
+    DESCRIPTION = config['Service']['Description']
 
 
 # the HLM GAM DB
 class HEDB:
     HOST = config['HeRecoveryDB']['Host']
     NAME = config['HeRecoveryDB']['Name']
-    USER = os.environ.get('DB_HE_USER')
-    PASS = os.environ.get('DB_HE_PASS')
+    USER = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_USER')
+    PASS = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_PASS')
 
 
 # Helium DB Tables
