@@ -1,8 +1,8 @@
 from HLM_PV_Import.__main__ import main
+from HLM_PV_Import.constants import Service
 
 import servicemanager
 import socket
-import os
 import sys
 import win32event
 import win32service
@@ -11,16 +11,11 @@ from service_logging import logger, except_hook
 
 
 class PVImportService(win32serviceutil.ServiceFramework):
-    _svc_name_ = "HLMPVImport"
-    _svc_display_name_ = "HLM PV Import"
-    _svc_description_ = "Helium Level Monitoring - PV Import"
+    _svc_name_ = Service.NAME
+    _svc_display_name_ = Service.DISPLAY_NAME
+    _svc_description_ = Service.DESCRIPTION
 
     def __init__(self, args):
-        f = open("C:\\Users\\bgd37885\\Desktop\\test.txt", "a")
-        f.write(f'args: {args}\n')
-        key = win32serviceutil.GetServiceCustomOption("HLMPVImport", 'DB_HE_USER')
-        f.write(f'custom option: {key}\n')
-        f.close()
         win32serviceutil.ServiceFramework.__init__(self, args)
         self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
         socket.setdefaulttimeout(60)
@@ -36,7 +31,7 @@ class PVImportService(win32serviceutil.ServiceFramework):
         try:
             logger.info("Starting service")
             main()
-        except Exception as e:
+        except Exception:
             except_hook(*sys.exc_info())
 
         servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
