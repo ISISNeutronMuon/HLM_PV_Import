@@ -5,10 +5,13 @@ from caproto import CaprotoTimeoutError
 from caproto.sync.client import read
 from caproto.threading.client import Context
 from HLM_PV_Import.logger import log_ca_error, log_stale_pv_warning
+from HLM_PV_Import.constants import PvConfig
 import time
 
-TIMEOUT = 2                 # Default timeout for reading a PV
-TIME_AFTER_STALE = 7200     # time in seconds after which a PV data is considered stale and will no longer be considered
+# Default timeout for reading a PV
+TIMEOUT = PvConfig.CONN_TIMEOUT
+# time in s after which a PV's data is considered stale and will no longer be considered when adding a measurement
+TIME_AFTER_STALE = PvConfig.STALE_AFTER
 
 
 def get_connected_pvs(pv_list, timeout=TIMEOUT):
@@ -90,7 +93,7 @@ class PvMonitors:
             response (caproto._commands.EventAddResponse): The full response from the server, which includes data
                                                             and any metadata.
         """
-        print('Received response from', sub.pv.name)
+        print(f'Received response from {sub.pv.name}')
         value = response.data[0]
 
         if isinstance(value, bytes):

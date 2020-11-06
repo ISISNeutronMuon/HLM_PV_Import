@@ -20,11 +20,13 @@ else:
 config = configparser.ConfigParser()
 config.read(os.path.join(application_path, 'settings.ini'))
 
-# Helium DB PV Import Class Name
-PV_IMPORT = config['PVImport']['DBObjectName']
-
 # Epics channel access address list
 EPICS_CA_ADDR_LIST = config['ChannelAccess']['EPICS_CA_ADDR_LIST']
+
+
+class PvImportConst:
+    LOOP_TIMER = config['PVImport'].getfloat('LoopTimer')
+    DB_OBJ_NAME = config['PVImport']['DBObjectName']  # Helium DB PV Import object name
 
 
 class LoggersConst:
@@ -61,6 +63,8 @@ class Tables:
 class PvConfig:
     PV_PREFIX = config['PVConfig']['PV_PREFIX']
     PV_DOMAIN = config['PVConfig']['PV_DOMAIN']
+    CONN_TIMEOUT = config['PVConfig'].getfloat('ConnectionTimeout')
+    STALE_AFTER = config['PVConfig'].getfloat('PvStaleAfter')
 
 
 # User Configuration

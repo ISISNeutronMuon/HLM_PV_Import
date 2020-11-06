@@ -1,13 +1,14 @@
-import copy
 
 from HLM_PV_Import.ca_wrapper import PvMonitors
 from HLM_PV_Import.user_config import UserConfig
 from HLM_PV_Import.utilities import get_blank_measurements_dict
 from HLM_PV_Import.db_functions import add_measurement, setup_db_pv_import
-import time
+from HLM_PV_Import.constants import PvImportConst
 from datetime import datetime
+import time
+import copy
 
-LOOP_TIMER = 5.0    # The timer between each PV import loop
+LOOP_TIMER = PvImportConst.LOOP_TIMER   # The timer between each PV import loop
 
 
 class PvImport:
@@ -15,6 +16,7 @@ class PvImport:
         self.pv_monitors = pv_monitors
         self.config = user_config
         self.tasks = {}
+        self.running = False
 
     def set_up(self):
         """
@@ -34,8 +36,10 @@ class PvImport:
         """
         Starts the PV data importing loop.
         """
+        self.running = True  # in case it was previously stopped
         start_time = time.time()
-        while True:
+
+        while self.running:
             time.sleep(LOOP_TIMER - ((time.time() - start_time) % LOOP_TIMER))
 
             pv_data = copy.deepcopy(self.pv_monitors.get_data())
@@ -81,3 +85,9 @@ class PvImport:
 
                 # Add a measurement with the values for the record/object
                 add_measurement(record_name=record, mea_values=mea_values, mea_valid=True)
+
+    def stop(self):
+        """
+        Stop the PV Import loop if it is currently running.
+        """
+        self.running = False

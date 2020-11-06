@@ -1,13 +1,18 @@
-from HLM_PV_Import.__main__ import main
-from HLM_PV_Import.constants import Service
 
 import servicemanager
 import socket
 import sys
+import os
 import win32event
 import win32service
 import win32serviceutil
-from service_logging import logger, except_hook
+from service_logging import logger, log_exception
+
+from HLM_PV_Import.constants import Service
+from HLM_PV_Import.ca_wrapper import PvMonitors
+from HLM_PV_Import.user_config import UserConfig
+from HLM_PV_Import.pv_import import PvImport
+from HLM_PV_Import.constants import EPICS_CA_ADDR_LIST
 
 
 class PVImportService(win32serviceutil.ServiceFramework):
@@ -19,24 +24,57 @@ class PVImportService(win32serviceutil.ServiceFramework):
         win32serviceutil.ServiceFramework.__init__(self, args)
         self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
         socket.setdefaulttimeout(60)
+        self.pv_import = None
+        self.pv_monitors = None
 
     def SvcStop(self):
-        logger.info("Stop request received")
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+
+        try:
+            self.stop()
+        except:
+            log_exception(*sys.exc_info())
+
         win32event.SetEvent(self.hWaitStop)
+        self.ReportServiceStatus(win32service.SERVICE_STOPPED)
 
     def SvcDoRun(self):
-        # sys.excepthook doesn't seem to work in this routine -
-        # apparently, everything is handled by the ServiceFramework machinery
-        try:
-            logger.info("Starting service")
-            main()
-        except Exception:
-            except_hook(*sys.exc_info())
-
         servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
                               servicemanager.PYS_SERVICE_STARTED,
                               (self._svc_name_, ''))
+        try:
+            self.main()
+        except:
+            log_exception(*sys.exc_info())
+
+    def main(self):
+        logger.info("Starting service")
+
+        # Setup the channel access address list in order to connect to PVs
+        os.environ['EPICS_CA_ADDR_LIST'] = EPICS_CA_ADDR_LIST
+
+        # Get the user configuration and the list of measurement PVs
+        config = UserConfig()
+        pv_list = config.get_measurement_pvs(no_duplicates=True, full_names=True)
+
+        # Initialize the PV monitoring and set up the monitors for each measurement PV from the user config
+        self.pv_monitors = PvMonitors(pv_list)
+
+        # Initialize and set-up the PV import in charge of preparing the PV data, handling logging periods & tasks,
+        # running content checks for the user config, and looping through each record every few seconds to check for
+        # records scheduled to be updated with a new measurement.
+        self.pv_import = PvImport(self.pv_monitors, config)
+        self.pv_import.set_up()
+
+        # Start the monitors and continuously store the PV data received on every update
+        self.pv_monitors.start_monitors()
+
+        # Start the PV import main loop to check each record
+        self.pv_import.start()
+
+    def stop(self):
+        logger.info("Stop request received")
+        self.pv_import.stop()
 
 
 if __name__ == '__main__':

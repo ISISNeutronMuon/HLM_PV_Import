@@ -5,7 +5,9 @@ import mysql.connector
 from HLM_PV_Import.utilities import single_tuples_to_strings, meas_values_dict_valid
 from datetime import datetime
 from HLM_PV_Import.logger import log_db_error, log_error, DBLogger
-from HLM_PV_Import.constants import HEDB, PV_IMPORT, Tables
+from HLM_PV_Import.constants import HEDB, Tables, PvImportConst
+
+IMPORT_OBJECT = PvImportConst.DB_OBJ_NAME  # The database PV Import object name
 
 # setup the database events logger
 db_logger = DBLogger()
@@ -44,7 +46,7 @@ def add_measurement(record_name, mea_values: dict, mea_valid=0):
 
     mea_obj_type = _get_object_type(object_id, name_only=True)
     mea_obj_class = _get_object_class(object_id, name_only=True)
-    mea_comment = f'"{record_name}" ({mea_obj_type} - {mea_obj_class}) via {PV_IMPORT}'
+    mea_comment = f'"{record_name}" ({mea_obj_type} - {mea_obj_class}) via {IMPORT_OBJECT}'
 
     mea_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -102,10 +104,10 @@ def _create_pv_import_function_if_not_exist():
     Creates the HLM PV Import object function if it doesn't exist in the DB yet.
     """
     # CREATE FUNCTION IF IT DOES NOT EXIST
-    search = f"WHERE `OF_NAME` LIKE '{PV_IMPORT}'"
+    search = f"WHERE `OF_NAME` LIKE '{IMPORT_OBJECT}'"
     results = _select_query(table=Tables.FUNCTION, filters=search)
     if not results:
-        function_dict = {'OF_NAME': PV_IMPORT, 'OF_COMMENT': 'HLM PV IMPORT'}
+        function_dict = {'OF_NAME': IMPORT_OBJECT, 'OF_COMMENT': 'HLM PV IMPORT'}
 
         _insert_query(table=Tables.FUNCTION, data=function_dict)
 
@@ -115,11 +117,11 @@ def _create_pv_import_class_if_not_exist():
     Creates the HLM PV Import object class if it doesn't exist in the DB yet.
     """
     # CREATE CLASS IF IT DOES NOT EXIST
-    search = f"WHERE OC_NAME LIKE '{PV_IMPORT}'"
+    search = f"WHERE OC_NAME LIKE '{IMPORT_OBJECT}'"
     results = _select_query(table=Tables.OBJECT_CLASS, filters=search)
     if not results:
-        function_id = _select_query(table=Tables.FUNCTION, columns='OF_ID', filters=f"WHERE OF_NAME LIKE '{PV_IMPORT}'",
-                                    f_elem=True)
+        function_id = _select_query(table=Tables.FUNCTION, columns='OF_ID',
+                                    filters=f"WHERE OF_NAME LIKE '{IMPORT_OBJECT}'", f_elem=True)
 
         last_id = _get_table_last_id(Tables.OBJECT_CLASS)
         new_id = last_id + 1
@@ -127,7 +129,7 @@ def _create_pv_import_class_if_not_exist():
         class_dict = {
             'OC_ID': new_id,  # Need to set manually as OC_ID has no default value
             'OC_FUNCTION_ID': function_id,
-            'OC_NAME': PV_IMPORT,
+            'OC_NAME': IMPORT_OBJECT,
             'OC_POSITIONTYPE': 0,
             'OC_COMMENT': 'HLM PV IMPORT',
         }
@@ -140,14 +142,14 @@ def _create_pv_import_type_if_not_exist():
     Creates the HLM PV Import type if it doesn't exist in the DB yet.
     """
     # CREATE TYPE IF IT DOES NOT EXIST
-    search = f"WHERE `OT_NAME` LIKE '{PV_IMPORT}'"
+    search = f"WHERE `OT_NAME` LIKE '{IMPORT_OBJECT}'"
     results = _select_query(table=Tables.OBJECT_TYPE, filters=search)
     if not results:
         pv_import_class_id = _select_query(table=Tables.OBJECT_CLASS, columns='OC_ID',
-                                           filters=f"WHERE OC_NAME LIKE '{PV_IMPORT}'", f_elem=True)
+                                           filters=f"WHERE OC_NAME LIKE '{IMPORT_OBJECT}'", f_elem=True)
         type_dict = {
             'OT_OBJECTCLASS_ID': pv_import_class_id,
-            'OT_NAME': PV_IMPORT,
+            'OT_NAME': IMPORT_OBJECT,
             'OT_COMMENT': 'HLM PV IMPORT',
             'OT_OUTOFOPERATION': 0
         }
@@ -160,14 +162,14 @@ def _create_pv_import_object_if_not_exist():
     Creates the HLM PV Import object if it doesn't exist in the DB yet.
     """
     # CREATE OBJECT IF IT DOES NOT EXIST
-    results = _select_query(table=Tables.OBJECT, filters=f"WHERE OB_NAME LIKE '{PV_IMPORT}'")
+    results = _select_query(table=Tables.OBJECT, filters=f"WHERE OB_NAME LIKE '{IMPORT_OBJECT}'")
     if not results:
         pv_import_type_id = _select_query(table=Tables.OBJECT_TYPE, columns='OT_ID',
-                                          filters=f"WHERE OT_NAME LIKE '{PV_IMPORT}'", f_elem=True)
+                                          filters=f"WHERE OT_NAME LIKE '{IMPORT_OBJECT}'", f_elem=True)
 
         object_dict = {
             'OB_OBJECTTYPE_ID': pv_import_type_id,
-            'OB_NAME': PV_IMPORT,
+            'OB_NAME': IMPORT_OBJECT,
             'OB_COMMENT': 'HLM PV IMPORT',
         }
 
@@ -417,7 +419,7 @@ def _get_pv_import_object_id():
     Returns:
         (int): The PV Import object ID.
     """
-    search = f"WHERE OB_NAME LIKE '{PV_IMPORT}'"
+    search = f"WHERE OB_NAME LIKE '{IMPORT_OBJECT}'"
     result = _select_query(table=Tables.OBJECT, columns='OB_ID', filters=search, f_elem=True)
 
     return result

@@ -3,7 +3,7 @@ import unittest
 from mock import patch, DEFAULT
 from parameterized import parameterized
 from HLM_PV_Import import db_functions
-from HLM_PV_Import.constants import Tables, PV_IMPORT, HEDB
+from HLM_PV_Import.constants import Tables, DB_OBJ_NAME, HEDB
 from datetime import datetime
 
 
@@ -223,7 +223,7 @@ class TestAddMeasurement(unittest.TestCase):
         mock_obj_type.return_value = 'obj_type_name'
         mock_obj_class.return_value = 'obj_class_name'
 
-        expected_comment = f'"record_name" (obj_type_name - obj_class_name) via {PV_IMPORT}'
+        expected_comment = f'"record_name" (obj_type_name - obj_class_name) via {DB_OBJ_NAME}'
         expected_dict = {
             'MEA_OBJECT_ID': 0,
             'MEA_DATE': '0001-02-03 04:05:06',
@@ -315,7 +315,7 @@ class TestImportObjectDBSetup(unittest.TestCase):
         mock_insert = self.mocks['_insert_query']
 
         mock_select.return_value = None
-        expected_dict = {'OF_NAME': PV_IMPORT, 'OF_COMMENT': 'HLM PV IMPORT'}
+        expected_dict = {'OF_NAME': DB_OBJ_NAME, 'OF_COMMENT': 'HLM PV IMPORT'}
 
         # Act
         db_functions._create_pv_import_function_if_not_exist()
@@ -349,7 +349,7 @@ class TestImportObjectDBSetup(unittest.TestCase):
         expected_insert = {
             'OC_ID': 11,
             'OC_FUNCTION_ID': 42,
-            'OC_NAME': PV_IMPORT,
+            'OC_NAME': DB_OBJ_NAME,
             'OC_POSITIONTYPE': 0,
             'OC_COMMENT': 'HLM PV IMPORT',
         }
@@ -381,7 +381,7 @@ class TestImportObjectDBSetup(unittest.TestCase):
 
         expected_insert = {
             'OT_OBJECTCLASS_ID': 42,
-            'OT_NAME': PV_IMPORT,
+            'OT_NAME': DB_OBJ_NAME,
             'OT_COMMENT': 'HLM PV IMPORT',
             'OT_OUTOFOPERATION': 0
         }
@@ -413,7 +413,7 @@ class TestImportObjectDBSetup(unittest.TestCase):
 
         expected_insert = {
             'OB_OBJECTTYPE_ID': 42,
-            'OB_NAME': PV_IMPORT,
+            'OB_NAME': DB_OBJ_NAME,
             'OB_COMMENT': 'HLM PV IMPORT',
         }
 
