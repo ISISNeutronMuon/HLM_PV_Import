@@ -8,6 +8,7 @@ from HLM_PV_Import.logger import log_db_error, log_error, DBLogger
 from HLM_PV_Import.constants import HEDB, Tables, PvImportConst
 
 IMPORT_OBJECT = PvImportConst.DB_OBJ_NAME  # The database PV Import object name
+IMPORT_OBJECT_TYPE = PvImportConst.DB_OBJ_TYPE
 
 # setup the database events logger
 db_logger = DBLogger()
@@ -22,7 +23,7 @@ def get_object_id(object_name):
         (int): The object ID.
     """
     search = f"WHERE `OB_NAME` LIKE '{object_name}'"
-    result = _select_query(table=Tables.OBJECT, columns='OB_ID', filters=search, f_elem=True)
+    result = _select(table=Tables.OBJECT, columns='OB_ID', filters=search, f_elem=True)
     return result
 
 
@@ -53,7 +54,7 @@ def add_measurement(record_name, mea_values: dict, mea_valid=0):
     measurement_dict = {
         'MEA_OBJECT_ID': object_id,
         'MEA_DATE': mea_date,
-        # 'MEA_DATE2': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'MEA_DATE2': mea_date,
         # 'MEA_STATUS': ,
         'MEA_COMMENT': mea_comment,
         'MEA_VALUE1': mea_values[1],
@@ -65,96 +66,39 @@ def add_measurement(record_name, mea_values: dict, mea_valid=0):
         'MEA_BOOKINGCODE': 0,  # 0 = measurement is not from the balance program
     }
 
-    _insert_query(Tables.MEASUREMENT, data=measurement_dict)
+    _insert(Tables.MEASUREMENT, data=measurement_dict)
 
     last_id = _get_table_last_id(Tables.MEASUREMENT)
     db_logger.log_new_measurement(record_no=last_id, obj_id=object_id,
                                   obj_name=record_name, values=mea_values, print_msg=True)
 
-    add_relationship(assigned=object_id, or_date=mea_date)
+    add_relationship(assigned=object_id, removal_date=mea_date)
 
 
-def add_relationship(assigned, or_date=None):
+def add_relationship(assigned, start_date=None, removal_date=None):
     """
-    Adds a relationship between two objects.
+    Adds a relationship between two objects. Dates must be in '%Y-%m-%d %H:%M:%S' format.
 
     Args:
         assigned (int): The assigned object ID.
-        or_date (str): The assignment and removal date of the relationship.
+        start_date (str, optional): The starting date of the relationship, Defaults to current time.
+        removal_date (str, optional): The removal date of the relationship, Defaults to None.
     """
-    if not or_date:
-        or_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    if not start_date:
+        start_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     pv_import_obj_id = _get_pv_import_object_id()
     relationship_dict = {
         'OR_PRIMARY': 0,
         'OR_OBJECT_ID': pv_import_obj_id,
         'OR_OBJECT_ID_ASSIGNED': assigned,
-        'OR_DATE_ASSIGNMENT': or_date,
-        'OR_DATE_REMOVAL': or_date,
+        'OR_DATE_ASSIGNMENT': start_date,
+        'OR_DATE_REMOVAL': removal_date,
         'OR_OUTFLOW': None,
         'OR_BOOKINGREQUEST': None
     }
 
-    _insert_query(Tables.OBJECT_RELATION, relationship_dict)
-
-
-def _create_pv_import_function_if_not_exist():
-    """
-    Creates the HLM PV Import object function if it doesn't exist in the DB yet.
-    """
-    # CREATE FUNCTION IF IT DOES NOT EXIST
-    search = f"WHERE `OF_NAME` LIKE '{IMPORT_OBJECT}'"
-    results = _select_query(table=Tables.FUNCTION, filters=search)
-    if not results:
-        function_dict = {'OF_NAME': IMPORT_OBJECT, 'OF_COMMENT': 'HLM PV IMPORT'}
-
-        _insert_query(table=Tables.FUNCTION, data=function_dict)
-
-
-def _create_pv_import_class_if_not_exist():
-    """
-    Creates the HLM PV Import object class if it doesn't exist in the DB yet.
-    """
-    # CREATE CLASS IF IT DOES NOT EXIST
-    search = f"WHERE OC_NAME LIKE '{IMPORT_OBJECT}'"
-    results = _select_query(table=Tables.OBJECT_CLASS, filters=search)
-    if not results:
-        function_id = _select_query(table=Tables.FUNCTION, columns='OF_ID',
-                                    filters=f"WHERE OF_NAME LIKE '{IMPORT_OBJECT}'", f_elem=True)
-
-        last_id = _get_table_last_id(Tables.OBJECT_CLASS)
-        new_id = last_id + 1
-
-        class_dict = {
-            'OC_ID': new_id,  # Need to set manually as OC_ID has no default value
-            'OC_FUNCTION_ID': function_id,
-            'OC_NAME': IMPORT_OBJECT,
-            'OC_POSITIONTYPE': 0,
-            'OC_COMMENT': 'HLM PV IMPORT',
-        }
-
-        _insert_query(table=Tables.OBJECT_CLASS, data=class_dict)
-
-
-def _create_pv_import_type_if_not_exist():
-    """
-    Creates the HLM PV Import type if it doesn't exist in the DB yet.
-    """
-    # CREATE TYPE IF IT DOES NOT EXIST
-    search = f"WHERE `OT_NAME` LIKE '{IMPORT_OBJECT}'"
-    results = _select_query(table=Tables.OBJECT_TYPE, filters=search)
-    if not results:
-        pv_import_class_id = _select_query(table=Tables.OBJECT_CLASS, columns='OC_ID',
-                                           filters=f"WHERE OC_NAME LIKE '{IMPORT_OBJECT}'", f_elem=True)
-        type_dict = {
-            'OT_OBJECTCLASS_ID': pv_import_class_id,
-            'OT_NAME': IMPORT_OBJECT,
-            'OT_COMMENT': 'HLM PV IMPORT',
-            'OT_OUTOFOPERATION': 0
-        }
-
-        _insert_query(table=Tables.OBJECT_TYPE, data=type_dict)
+    _insert(Tables.OBJECT_RELATION, relationship_dict)
 
 
 def _create_pv_import_object_if_not_exist():
@@ -162,10 +106,12 @@ def _create_pv_import_object_if_not_exist():
     Creates the HLM PV Import object if it doesn't exist in the DB yet.
     """
     # CREATE OBJECT IF IT DOES NOT EXIST
-    results = _select_query(table=Tables.OBJECT, filters=f"WHERE OB_NAME LIKE '{IMPORT_OBJECT}'")
+    results = _select(table=Tables.OBJECT, filters=f"WHERE OB_NAME LIKE '{IMPORT_OBJECT}'")
     if not results:
-        pv_import_type_id = _select_query(table=Tables.OBJECT_TYPE, columns='OT_ID',
-                                          filters=f"WHERE OT_NAME LIKE '{IMPORT_OBJECT}'", f_elem=True)
+        pv_import_type_id = _select(table=Tables.OBJECT_TYPE, columns='OT_ID',
+                                    filters=f"WHERE OT_NAME LIKE '{IMPORT_OBJECT_TYPE}'", f_elem=True)
+        if not pv_import_type_id:
+            raise Exception(f'Could not find type with name "{IMPORT_OBJECT_TYPE}" in the database.')
 
         object_dict = {
             'OB_OBJECTTYPE_ID': pv_import_type_id,
@@ -173,16 +119,13 @@ def _create_pv_import_object_if_not_exist():
             'OB_COMMENT': 'HLM PV IMPORT',
         }
 
-        _insert_query(table=Tables.OBJECT, data=object_dict)
+        _insert(table=Tables.OBJECT, data=object_dict)
 
 
 def setup_db_pv_import():
     """
     Checks the DB for the function, class, type and object of PV IMPORT, and create them if any are missing.
     """
-    _create_pv_import_function_if_not_exist()
-    _create_pv_import_class_if_not_exist()
-    _create_pv_import_type_if_not_exist()
     _create_pv_import_object_if_not_exist()
 
 
@@ -198,11 +141,11 @@ def _get_object_type(object_id, name_only=False):
         (str/dict): The type name/record of the object.
     """
 
-    type_id = _select_query(table=Tables.OBJECT, columns='OB_OBJECTTYPE_ID', filters=f'WHERE OB_ID LIKE {object_id}',
-                            f_elem=True)
+    type_id = _select(table=Tables.OBJECT, columns='OB_OBJECTTYPE_ID', filters=f'WHERE OB_ID LIKE {object_id}',
+                      f_elem=True)
 
     columns = 'OT_NAME' if name_only else '*'
-    record = _select_query(table=Tables.OBJECT_TYPE, columns=columns, filters=f'WHERE OT_ID LIKE {type_id}')
+    record = _select(table=Tables.OBJECT_TYPE, columns=columns, filters=f'WHERE OT_ID LIKE {type_id}')
     if name_only:
         record = record[0]
 
@@ -223,7 +166,7 @@ def _get_object_class(object_id, name_only=False):
     type_record = _get_object_type(object_id)
     class_id = type_record[0][1]
     columns = 'OC_NAME' if name_only else '*'
-    record = _select_query(table=Tables.OBJECT_CLASS, columns=columns, filters=f'WHERE OC_ID LIKE {class_id}')
+    record = _select(table=Tables.OBJECT_CLASS, columns=columns, filters=f'WHERE OC_ID LIKE {class_id}')
     if name_only:
         record = record[0]
 
@@ -273,7 +216,7 @@ def _get_table_columns(table, names_only=False):
                 connection.close()
 
 
-def _select_query(table, columns='*', filters=None, f_elem=False):
+def _select(table, columns='*', filters=None, f_elem=False):
     """
     Returns the list of records from the given table.
 
@@ -324,7 +267,7 @@ def _select_query(table, columns='*', filters=None, f_elem=False):
                 connection.close()
 
 
-def _insert_query(table, data):
+def _insert(table, data):
     """
     Adds the given values into the specified columns of the table.
 
@@ -377,8 +320,7 @@ def _get_object_name(object_id):
     Returns:
         (str): The object name.
     """
-    object_name = _select_query(table=Tables.OBJECT, columns='OB_NAME', filters=f'WHERE OB_ID LIKE {object_id}',
-                                f_elem=True)
+    object_name = _select(table=Tables.OBJECT, columns='OB_NAME', filters=f'WHERE OB_ID LIKE {object_id}', f_elem=True)
 
     return object_name
 
@@ -392,7 +334,7 @@ def _get_primary_key_column(table):
     """
     sql = f"WHERE TABLE_NAME = '{table}'AND CONSTRAINT_NAME = 'PRIMARY'"
     table = 'information_schema.KEY_COLUMN_USAGE'
-    pk_column = _select_query(table=table, columns='COLUMN_NAME', filters=sql, f_elem=True)
+    pk_column = _select(table=table, columns='COLUMN_NAME', filters=sql, f_elem=True)
 
     return pk_column
 
@@ -407,7 +349,7 @@ def _get_table_last_id(table):
 
     pk_column = _get_primary_key_column(table)
 
-    last_id = _select_query(table=table, columns=f'MAX({pk_column})', f_elem=True)
+    last_id = _select(table=table, columns=f'MAX({pk_column})', f_elem=True)
 
     return last_id
 
@@ -420,6 +362,6 @@ def _get_pv_import_object_id():
         (int): The PV Import object ID.
     """
     search = f"WHERE OB_NAME LIKE '{IMPORT_OBJECT}'"
-    result = _select_query(table=Tables.OBJECT, columns='OB_ID', filters=search, f_elem=True)
+    result = _select(table=Tables.OBJECT, columns='OB_ID', filters=search, f_elem=True)
 
     return result

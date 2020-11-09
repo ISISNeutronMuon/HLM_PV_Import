@@ -27,6 +27,7 @@ EPICS_CA_ADDR_LIST = config['ChannelAccess']['EPICS_CA_ADDR_LIST']
 class PvImportConst:
     LOOP_TIMER = config['PVImport'].getfloat('LoopTimer')
     DB_OBJ_NAME = config['PVImport']['DBObjectName']  # Helium DB PV Import object name
+    DB_OBJ_TYPE = config['PVImport']['DBObjectType']  # and its type name
 
 
 class LoggersConst:

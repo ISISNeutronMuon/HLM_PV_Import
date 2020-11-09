@@ -39,3 +39,4 @@ sphinxcontrib-serializinghtml==1.1.4
 urllib3==1.25.10
 xmltodict==0.12.0
 setuptools~=50.3.0
+PyQt5~=5.15.1

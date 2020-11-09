@@ -72,14 +72,14 @@ class TestUserConfig(unittest.TestCase):
             with self.assertRaises(UserConfigurationException):
                 config._check_records_have_at_least_one_measurement_pv()
 
-    @patch('HLM_PV_Import.db_functions._select_query')
+    @patch('HLM_PV_Import.db_functions._select')
     def test_GIVEN_records_exist_WHEN_check_if_records_exist_THEN_no_exception(self, mock_query_res):
         config = UserConfig()
         config.records = ['a', 'b', 'c']
         mock_query_res.return_value = 1
         config._check_config_records_exist()
 
-    @patch('HLM_PV_Import.db_functions._select_query')
+    @patch('HLM_PV_Import.db_functions._select')
     def test_GIVEN_nonexistent_records_WHEN_check_if_records_exist_THEN_exception_raised(self, mock_query_res):
         with patch('HLM_PV_Import.user_config.log_error'):
             config = UserConfig()
