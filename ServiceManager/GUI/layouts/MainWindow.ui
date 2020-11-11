@@ -30,6 +30,76 @@
      <string>Test</string>
     </property>
    </widget>
+   <widget class="QListWidget" name="listWidget">
+    <property name="geometry">
+     <rect>
+      <x>565</x>
+      <y>60</y>
+      <width>391</width>
+      <height>531</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>test</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>test2</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QTableWidget" name="tableWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>55</x>
+      <y>280</y>
+      <width>451</width>
+      <height>341</height>
+     </rect>
+    </property>
+    <row>
+     <property name="text">
+      <string>Row1</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>Row2</string>
+     </property>
+    </row>
+    <column>
+     <property name="text">
+      <string>Col1</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Col2</string>
+     </property>
+    </column>
+    <item row="0" column="0">
+     <property name="text">
+      <string>c</string>
+     </property>
+    </item>
+    <item row="0" column="1">
+     <property name="text">
+      <string>d</string>
+     </property>
+    </item>
+    <item row="1" column="0">
+     <property name="text">
+      <string>a</string>
+     </property>
+    </item>
+    <item row="1" column="1">
+     <property name="text">
+      <string>b</string>
+     </property>
+    </item>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menuBar">
@@ -95,6 +165,11 @@
    </property>
   </action>
   <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="action_7">
    <property name="text">
     <string>About</string>
    </property>
