@@ -20,8 +20,8 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>270</x>
-      <y>170</y>
+      <x>470</x>
+      <y>220</y>
       <width>93</width>
       <height>28</height>
      </rect>
@@ -33,10 +33,10 @@
    <widget class="QListWidget" name="listWidget">
     <property name="geometry">
      <rect>
-      <x>565</x>
-      <y>60</y>
+      <x>560</x>
+      <y>280</y>
       <width>391</width>
-      <height>531</height>
+      <height>341</height>
      </rect>
     </property>
     <item>
@@ -115,8 +115,9 @@
     <property name="title">
      <string>Settings</string>
     </property>
-    <addaction name="actionDB_Connection"/>
+    <addaction name="actionGeneral"/>
     <addaction name="separator"/>
+    <addaction name="actionDB_Connection"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -172,6 +173,11 @@
   <action name="action_7">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionGeneral">
+   <property name="text">
+    <string>General</string>
    </property>
   </action>
  </widget>

@@ -12,7 +12,7 @@ from HLM_PV_Import.constants import Service
 from HLM_PV_Import.ca_wrapper import PvMonitors
 from HLM_PV_Import.user_config import UserConfig
 from HLM_PV_Import.pv_import import PvImport
-from HLM_PV_Import.constants import EPICS_CA_ADDR_LIST
+from HLM_PV_Import.constants import CA
 
 
 class PVImportService(win32serviceutil.ServiceFramework):
@@ -51,7 +51,7 @@ class PVImportService(win32serviceutil.ServiceFramework):
         logger.info("Starting service")
 
         # Setup the channel access address list in order to connect to PVs
-        os.environ['EPICS_CA_ADDR_LIST'] = EPICS_CA_ADDR_LIST
+        os.environ['EPICS_CA_ADDR_LIST'] = CA.EPICS_CA_ADDR_LIST
 
         # Get the user configuration and the list of measurement PVs
         config = UserConfig()

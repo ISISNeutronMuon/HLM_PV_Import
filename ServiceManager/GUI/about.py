@@ -2,15 +2,13 @@ from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QIcon, QDesktopServices
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton
 from PyQt5 import uic
-from ServiceManager.settings import VER, B_DATE
-import os
+from ServiceManager.settings import VER, B_DATE, about_ui, about_logo_path
 
 
 class UIAbout(QDialog):
     def __init__(self):
         super(UIAbout, self).__init__()
-        ui_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'layouts', 'about.ui')
-        uic.loadUi(ui_file_path, self)
+        uic.loadUi(uifile=about_ui, baseinstance=self)
 
         # Remove the "?" QWhatsThis button from the About dialog
         # noinspection PyTypeChecker
@@ -30,8 +28,7 @@ class UIAbout(QDialog):
         self.ok_button.clicked.connect(self.ok_pressed)
 
         self.logo_button = self.findChild(QPushButton, 'logo')
-        logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', 'isis-logo.png')
-        self.logo_button.setIcon(QIcon(logo_path))
+        self.logo_button.setIcon(QIcon(about_logo_path))
         self.logo_button.clicked.connect(self.logo_pressed)
 
     def ok_pressed(self):

@@ -5,10 +5,10 @@ import mysql.connector
 from HLM_PV_Import.utilities import single_tuples_to_strings, meas_values_dict_valid
 from datetime import datetime
 from HLM_PV_Import.logger import log_db_error, log_error, DBLogger
-from HLM_PV_Import.constants import HEDB, Tables, PvImportConst
+from HLM_PV_Import.constants import HEDB, Tables
 
-IMPORT_OBJECT = PvImportConst.DB_OBJ_NAME  # The database PV Import object name
-IMPORT_OBJECT_TYPE = PvImportConst.DB_OBJ_TYPE
+IMPORT_OBJECT = HEDB.DB_OBJ_NAME  # The database PV Import object name
+IMPORT_OBJECT_TYPE = HEDB.DB_OBJ_TYPE
 
 # setup the database events logger
 db_logger = DBLogger()

@@ -20,18 +20,15 @@ else:
 config = configparser.ConfigParser()
 config.read(os.path.join(application_path, 'settings.ini'))
 
-# Epics channel access address list
-EPICS_CA_ADDR_LIST = config['ChannelAccess']['EPICS_CA_ADDR_LIST']
 
-
-class PvImportConst:
-    LOOP_TIMER = config['PVImport'].getfloat('LoopTimer')
-    DB_OBJ_NAME = config['PVImport']['DBObjectName']  # Helium DB PV Import object name
-    DB_OBJ_TYPE = config['PVImport']['DBObjectType']  # and its type name
+class CA:
+    EPICS_CA_ADDR_LIST = config['ChannelAccess']['EPICS_CA_ADDR_LIST']  # Epics channel access address list
+    CONN_TIMEOUT = config['PVConfig'].getfloat('ConnectionTimeout')
 
 
 class LoggersConst:
-    LOGS_DIR = 'logs'
+    _config_logs_dir = config['Logging']['DirectoryPath']
+    LOGS_DIR = 'logs' if not _config_logs_dir else _config_logs_dir
     ERR_LOG_DIR = os.path.join(application_path, LOGS_DIR, 'err', '')
     DB_LOG_DIR = os.path.join(application_path, LOGS_DIR, 'db', '')
 
@@ -48,6 +45,8 @@ class HEDB:
     NAME = config['HeRecoveryDB']['Name']
     USER = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_USER')
     PASS = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_PASS')
+    DB_OBJ_NAME = config['PVImport']['DBObjectName']  # Helium DB PV Import object name
+    DB_OBJ_TYPE = config['PVImport']['DBObjectType']  # and its type name
 
 
 # Helium DB Tables
@@ -60,20 +59,21 @@ class Tables:
     FUNCTION = 'gam_function'
 
 
-# PV Configuration
-class PvConfig:
+# PV Import Configuration
+class PvImportConfig:
+    LOOP_TIMER = config['PVImport'].getfloat('LoopTimer')
+    STALE_AFTER = config['PVConfig'].getfloat('PvStaleAfter')
     PV_PREFIX = config['PVConfig']['PV_PREFIX']
     PV_DOMAIN = config['PVConfig']['PV_DOMAIN']
-    CONN_TIMEOUT = config['PVConfig'].getfloat('ConnectionTimeout')
-    STALE_AFTER = config['PVConfig'].getfloat('PvStaleAfter')
 
 
 # User Configuration
 class UserConfigConst:
     CONFIG_DIR = config['UserConfig']['DIRECTORY']
     FILE = config['UserConfig']['FILE']
-    PATH = os.path.join(application_path, CONFIG_DIR, FILE)
     SCHEMA = config['UserConfig']['SCHEMA']
+
+    PATH = os.path.join(application_path, CONFIG_DIR, FILE)
     SCHEMA_PATH = os.path.join(application_path, CONFIG_DIR, SCHEMA)
     ROOT = 'configuration'
     ENTRY = 'entry'

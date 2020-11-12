@@ -3,12 +3,12 @@ from HLM_PV_Import.ca_wrapper import PvMonitors
 from HLM_PV_Import.user_config import UserConfig
 from HLM_PV_Import.utilities import get_blank_measurements_dict
 from HLM_PV_Import.db_functions import add_measurement, setup_db_pv_import
-from HLM_PV_Import.constants import PvImportConst
+from HLM_PV_Import.constants import PvImportConfig
 from datetime import datetime
 import time
 import copy
 
-LOOP_TIMER = PvImportConst.LOOP_TIMER   # The timer between each PV import loop
+LOOP_TIMER = PvImportConfig.LOOP_TIMER   # The timer between each PV import loop
 
 
 class PvImport:

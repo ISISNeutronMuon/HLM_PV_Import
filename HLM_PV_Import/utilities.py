@@ -1,7 +1,7 @@
 """
 Various utility functions
 """
-from HLM_PV_Import.constants import PvConfig
+from HLM_PV_Import.constants import PvImportConfig
 from collections import Counter
 
 
@@ -45,7 +45,7 @@ def pv_name_without_prefix_and_domain(name):
     Returns:
         name(str): the PV name without prefix and domain
     """
-    name = name.replace(f'{PvConfig.PV_PREFIX}:', '').replace(f'{PvConfig.PV_DOMAIN}:', '')
+    name = name.replace(f'{PvImportConfig.PV_PREFIX}:', '').replace(f'{PvImportConfig.PV_DOMAIN}:', '')
     return name
 
 
@@ -62,7 +62,7 @@ def get_full_pv_name(name):
     if not name:
         return None
     name = pv_name_without_prefix_and_domain(name)
-    name = f'{PvConfig.PV_PREFIX}:{PvConfig.PV_DOMAIN}:{name}'
+    name = f'{PvImportConfig.PV_PREFIX}:{PvImportConfig.PV_DOMAIN}:{name}'
     return name
 
 
