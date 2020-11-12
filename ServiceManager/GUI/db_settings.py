@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QDialogButtonBox
 from PyQt5 import uic
 
 from ServiceManager.utilities import is_admin, make_bold, set_colored_text
-from ServiceManager.settings import db_settings_ui, service_settings
+from ServiceManager.settings import db_settings_ui, Settings
 
 
 class UIDBSettings(QDialog):
@@ -36,7 +36,7 @@ class UIDBSettings(QDialog):
         # Add the current settings to the LineEdit widgets (input fields).
         self.update_fields()
 
-        # Connect dialog box buttons
+        # Assign slots to button signals
         self.button_box = self.findChild(QDialogButtonBox, 'buttonBox')
         self.button_box.accepted.connect(self.on_accepted)
         self.button_box.rejected.connect(self.on_rejected)
@@ -96,13 +96,13 @@ class UIDBSettings(QDialog):
         self.close()
 
     def save_new_settings(self):
-        service_settings.HeliumDB.set_host(self.host.text())
-        service_settings.HeliumDB.set_name(self.db.text())
+        Settings.Service.HeliumDB.set_host(self.host.text())
+        Settings.Service.HeliumDB.set_name(self.db.text())
 
         if is_admin():
             try:
-                service_settings.HeliumDB.set_user(self.user.text())
-                service_settings.HeliumDB.set_pass(self.password.text())
+                Settings.Service.HeliumDB.set_user(self.user.text())
+                Settings.Service.HeliumDB.set_pass(self.password.text())
 
                 set_colored_text(label=self.message, text='Updated DB configuration.', color=QColor('green'))
             except Exception as e:
@@ -117,6 +117,7 @@ class UIDBSettings(QDialog):
         """ Upon dialog close """
         set_colored_text(label=self.message, text='', color=QColor('black'))  # Remove message upon window close
         self.refresh()
+        event.accept()
 
     def refresh(self):
         """ Reset widgets to default, fetch current settings. """
@@ -146,8 +147,8 @@ class UIDBSettings(QDialog):
             self.password.setToolTip('Please restart the app in Administrator Mode to edit this setting.')
         else:
             # Check if user and password are already in the registry and if so add them to the fields
-            self.reg_user = service_settings.HeliumDB.get_user()
-            self.reg_pass = service_settings.HeliumDB.get_pass()
+            self.reg_user = Settings.Service.HeliumDB.get_user()
+            self.reg_pass = Settings.Service.HeliumDB.get_pass()
 
             if self.reg_user:
                 self.user.setText(self.reg_user)
@@ -156,8 +157,8 @@ class UIDBSettings(QDialog):
                 self.password.setText(self.reg_pass)
 
         # Check if host and db name are already in the settings.ini, and if so add them to the fields
-        self.settings_host = service_settings.HeliumDB.get_host()
-        self.settings_db = service_settings.HeliumDB.get_name()
+        self.settings_host = Settings.Service.HeliumDB.get_host()
+        self.settings_db = Settings.Service.HeliumDB.get_name()
 
         if self.settings_host:
             self.host.setText(self.settings_host)

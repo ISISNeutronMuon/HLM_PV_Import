@@ -19,6 +19,7 @@ service_path_dlg_ui = os.path.join(gui_dir, 'layouts', 'ServicePathDialog.ui')
 # Directory for storing the manager app settings and persistent data
 MANAGER_SETTINGS_DIR = os.path.join(os.getenv('LOCALAPPDATA'), 'HLM Service Manager', '')
 MANAGER_SETTINGS_FILE = os.path.join(MANAGER_SETTINGS_DIR, 'settings.ini')
+SERVICE_SETTINGS_FILE_NAME = os.path.join('settings.ini')
 
 MANAGER_SETTINGS_TEMPLATE = {
     'Service': ['Directory']
@@ -34,6 +35,29 @@ SERVICE_SETTINGS_TEMPLATE = {
 }
 
 
+def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):
+    """
+    Creates the settings file and its directory, if it doesn't exist, and writes the given config template with
+    blank values to it.
+
+    Args:
+        path (str): The full path of the file.
+        template (dict): The template containing sections (keys, str) and their options (values, list of str).
+        parser (ConfigParser): The ConfigParser object.
+    """
+    # Create file and directory if not exists and write config template to it with blank values
+    settings_dir = os.path.dirname(path)
+    if not os.path.exists(settings_dir):  # If settings directory does not exist either, create it too
+        os.makedirs(settings_dir)
+
+    for section, options in template.items():
+        parser.add_section(section)
+        for option in options:
+            parser.set(section, option, '')
+    with open(path, 'w') as settings_file:
+        parser.write(settings_file)
+
+
 class Settings:
     def __init__(self):
         self.Manager = None
@@ -42,8 +66,8 @@ class Settings:
     def init_manager_settings(self):
         self.Manager = ManagerSettings(MANAGER_SETTINGS_FILE)
 
-    def init_service_settings(self):
-        self.Service = ServiceSettings()
+    def init_service_settings(self, service_path):
+        self.Service = ServiceSettings(service_path)
 
 
 class ManagerSettings:
@@ -70,13 +94,13 @@ class ManagerSettings:
 
 
 class ServiceSettings:
-    def __init__(self, settings_path):
+    def __init__(self, service_path):
         self.config_parser = configparser.ConfigParser()
         self.config_parser.optionxform = lambda option_: option_  # preserve case for letters
-        self.settings_path = settings_path
+        self.settings_path = os.path.join(service_path, SERVICE_SETTINGS_FILE_NAME)
 
-        if not os.path.exists(settings_path):
-            setup_settings_file(path=settings_path, template=SERVICE_SETTINGS_TEMPLATE, parser=self.config_parser)
+        if not os.path.exists(self.settings_path):
+            setup_settings_file(path=self.settings_path, template=SERVICE_SETTINGS_TEMPLATE, parser=self.config_parser)
 
         self.config_parser.read(self.settings_path)
 
@@ -151,34 +175,4 @@ class ServiceSettings:
             self.outer.update_service()
 
 
-def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):
-    """
-    Creates the settings file and its directory, if it doesn't exist, and writes the given config template with
-    blank values to it.
-
-    Args:
-        path (str): The full path of the file.
-        template (dict): The template containing sections (keys, str) and their options (values, list of str).
-        parser (ConfigParser): The ConfigParser object.
-    """
-    # Create file and directory if not exists and write config template to it with blank values
-    settings_dir = os.path.dirname(path)
-    if not os.path.exists(settings_dir):  # If settings directory does not exist either, create it too
-        os.makedirs(settings_dir)
-
-    for section, options in template.items():
-        parser.add_section(section)
-        for option in options:
-            parser.set(section, option, '')
-    parser.update()
-
-
 Settings = Settings()
-
-
-manager_settings = ManagerSettings(MANAGER_SETTINGS_FILE)
-
-SERVICE_DIR = 'C:\\Users\\bgd37885\\PycharmProjects\\HLM_PV_Import'
-SERVICE_SETTINGS_FILE = os.path.join(SERVICE_DIR, 'settings.ini')
-
-service_settings = ServiceSettings(SERVICE_SETTINGS_FILE)

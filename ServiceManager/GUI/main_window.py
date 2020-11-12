@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QLabel, QListWidget
+from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QLabel, QListWidget, QMessageBox
 from PyQt5 import uic
 import os
 from ServiceManager.GUI.about import UIAbout
@@ -54,6 +55,16 @@ class UIMainWindow(QMainWindow):
             self.general_settings_w = UIGeneralSettings()
         self.general_settings_w.show()
         self.general_settings_w.activateWindow()
+
+    def closeEvent(self, event: QCloseEvent):
+        quit_msg = "Are you sure you want to exit the program?"
+        reply = QMessageBox.question(self, 'HLM PV Import',
+                                           quit_msg, QMessageBox.Yes, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
 
 
     def pushButtonPressed(self):

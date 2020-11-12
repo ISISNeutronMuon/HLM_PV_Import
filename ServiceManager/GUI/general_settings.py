@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QPushButton, QListWidget, QLineEdit, QDialogButtonBox
 from PyQt5 import uic
-from ServiceManager.settings import general_settings_ui, service_settings
+from ServiceManager.settings import general_settings_ui, Settings
 
 
 class UIGeneralSettings(QDialog):
@@ -25,7 +25,7 @@ class UIGeneralSettings(QDialog):
         Update the widgets with the current settings.
         """
         # Update CA Addr List
-        ca_address_list = service_settings.CA.get_addr_list(as_list=True)
+        ca_address_list = Settings.Service.CA.get_addr_list(as_list=True)
         for addr in ca_address_list:
             self.addr_list.addItem(addr)
 
