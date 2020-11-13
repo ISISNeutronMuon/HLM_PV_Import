@@ -1,6 +1,6 @@
 import traceback
 import sys
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QErrorMessage
 from PyQt5.QtGui import QIcon
 from ServiceManager.GUI.main_window import UIMainWindow
 from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
@@ -42,15 +42,18 @@ class App:
         assert False
 
 
-def except_hook(exc_type, exc_value, exc_tb):
+def excepthook(exc_type, exc_value, exc_tb):
     traceback_ = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
-    print('Error caught:')
-    print("Error message:\n", traceback_)
-    QApplication.quit()  # or QtWidgets.QApplication.exit(0)
+    err_msg = f'An unhandled exception has occurred:\n {traceback_}'
+    print(err_msg)
+    error_dialog = QErrorMessage()
+    error_dialog.setWindowTitle('HLM PV Import - Error')
+    error_dialog.showMessage(err_msg)
+    error_dialog.exec()
+    # QApplication.quit()  # or QtWidgets.QApplication.exit(0)
 
 
-
-sys.excepthook = except_hook
+sys.excepthook = excepthook
 e = App()
 ret = e.app.exec_()
 print("Event loop exited.")

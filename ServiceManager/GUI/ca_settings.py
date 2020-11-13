@@ -13,7 +13,7 @@ class UICASettings(QDialog):
 
         self._settings_changed = False
 
-        # Get widgets
+        # region Get widgets
         self.addr_list = self.findChild(QListWidget, 'addressList')
         self.addr_new_btn = self.findChild(QPushButton, 'newAddress')
         self.addr_edit_btn = self.findChild(QPushButton, 'editAddress')
@@ -28,8 +28,9 @@ class UICASettings(QDialog):
         self.apply_btn = self.button_box.button(QDialogButtonBox.Apply)
         self.apply_btn.setEnabled(False)
         self.message = self.findChild(QLabel, 'message')
+        # endregion
 
-        # Connect signals to slots
+        # region Connect signals to slots
         self.addr_new_btn.clicked.connect(self.new_address)
         self.addr_edit_btn.clicked.connect(self.edit_address)
         self.addr_del_btn.clicked.connect(self.delete_address)
@@ -42,6 +43,7 @@ class UICASettings(QDialog):
         self.button_box.rejected.connect(self.on_rejected)
         self.button_box.accepted.connect(self.on_accepted)
         self.apply_btn.clicked.connect(self.on_apply)
+        # endregion
 
         # Editor delegate to emit signals when list item editing is started/finished
         self.editor_delegate = EditableListStyledItemDelegate()

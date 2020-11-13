@@ -98,6 +98,7 @@ class ServiceSettings:
     def __init__(self, service_path):
         self.config_parser = configparser.ConfigParser()
         self.config_parser.optionxform = lambda option_: option_  # preserve case for letters
+        self.service_path = service_path
         self.settings_path = os.path.join(service_path, SERVICE_SETTINGS_FILE_NAME)
 
         if not os.path.exists(self.settings_path):
@@ -109,10 +110,21 @@ class ServiceSettings:
         self.HeliumDB = self.HeliumDB(self)
         self.Info = self.Info(self)
         self.CA = self.CA(self)
+        self.Logging = self.Logging(self)
 
     def update(self):
         with open(self.settings_path, 'w') as settings_file:
             self.config_parser.write(settings_file)
+
+    class Logging:
+        def __init__(self, outer):
+            self.outer = outer
+            service_dir = self.outer.service_path
+            logs_dir = os.path.join(service_dir, 'logs')
+            self._debug_log_path = os.path.join(logs_dir, 'debug', 'debug.log')
+
+        def get_debug_log_path(self):
+            return self._debug_log_path
 
     class HeliumDB:
         def __init__(self, outer):

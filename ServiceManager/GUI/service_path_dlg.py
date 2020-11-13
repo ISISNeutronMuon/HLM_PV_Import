@@ -1,5 +1,7 @@
 from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QLineEdit, QDialogButtonBox, QFileDialog, QMessageBox
+from PyQt5.QtGui import QShowEvent
+from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QLineEdit, QDialogButtonBox, QFileDialog, QMessageBox, \
+    QApplication
 from PyQt5 import uic
 from ServiceManager.settings import service_path_dlg_ui, Settings, SERVICE_SETTINGS_FILE_NAME
 import os
@@ -78,3 +80,6 @@ class UIServicePathDialog(QDialog):
 
     def clear_message(self):
         self.message_lbl.clear()
+
+    def showEvent(self, event: QShowEvent):
+        self.update_fields()
