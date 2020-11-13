@@ -23,7 +23,10 @@ config.read(os.path.join(application_path, 'settings.ini'))
 
 class CA:
     EPICS_CA_ADDR_LIST = config['ChannelAccess']['EPICS_CA_ADDR_LIST']  # Epics channel access address list
-    CONN_TIMEOUT = config['PVConfig'].getfloat('ConnectionTimeout')
+    CONN_TIMEOUT = config['ChannelAccess'].getfloat('ConnectionTimeout')
+    STALE_AFTER = config['ChannelAccess'].getfloat('PvStaleAfter')
+    PV_PREFIX = config['ChannelAccess']['PV_PREFIX']
+    PV_DOMAIN = config['ChannelAccess']['PV_DOMAIN']
 
 
 class LoggersConst:
@@ -62,9 +65,6 @@ class Tables:
 # PV Import Configuration
 class PvImportConfig:
     LOOP_TIMER = config['PVImport'].getfloat('LoopTimer')
-    STALE_AFTER = config['PVConfig'].getfloat('PvStaleAfter')
-    PV_PREFIX = config['PVConfig']['PV_PREFIX']
-    PV_DOMAIN = config['PVConfig']['PV_DOMAIN']
 
 
 # User Configuration

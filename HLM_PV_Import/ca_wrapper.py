@@ -5,13 +5,13 @@ from caproto import CaprotoTimeoutError
 from caproto.sync.client import read
 from caproto.threading.client import Context
 from HLM_PV_Import.logger import log_ca_error, log_stale_pv_warning
-from HLM_PV_Import.constants import CA, PvImportConfig
+from HLM_PV_Import.constants import CA
 import time
 
 # Default timeout for reading a PV
 TIMEOUT = CA.CONN_TIMEOUT
 # time in s after which a PV's data is considered stale and will no longer be considered when adding a measurement
-TIME_AFTER_STALE = PvImportConfig.STALE_AFTER
+TIME_AFTER_STALE = CA.STALE_AFTER
 
 
 def get_connected_pvs(pv_list, timeout=TIMEOUT):

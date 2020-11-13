@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>492</width>
+    <width>547</width>
     <height>387</height>
    </rect>
   </property>
@@ -163,11 +163,25 @@
          <height>0</height>
         </size>
        </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+        </font>
+       </property>
        <property name="whatsThis">
         <string>The path to the service directory containing the settings, user configuration etc.</string>
        </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
        <property name="placeholderText">
         <string>Enter path to service configuration ...</string>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>false</bool>
        </property>
       </widget>
      </item>

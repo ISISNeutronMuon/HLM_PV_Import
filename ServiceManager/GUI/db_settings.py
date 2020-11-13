@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QCloseEvent
+from PyQt5.QtGui import QColor, QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QDialogButtonBox
 from PyQt5 import uic
 
@@ -117,7 +117,9 @@ class UIDBSettings(QDialog):
         """ Upon dialog close """
         set_colored_text(label=self.message, text='', color=QColor('black'))  # Remove message upon window close
         self.refresh()
-        event.accept()
+
+    def showEvent(self, event: QShowEvent):
+        self.update_fields()
 
     def refresh(self):
         """ Reset widgets to default, fetch current settings. """

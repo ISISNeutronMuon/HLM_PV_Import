@@ -13,6 +13,7 @@ about_logo_path = os.path.join(gui_dir, 'assets', 'isis-logo.png')
 about_ui = os.path.join(gui_dir, 'layouts', 'about.ui')
 db_settings_ui = os.path.join(gui_dir, 'layouts', 'DBSettings.ui')
 general_settings_ui = os.path.join(gui_dir, 'layouts', 'GeneralSettings.ui')
+ca_settings_ui = os.path.join(gui_dir, 'layouts', 'CASettings.ui')
 service_path_dlg_ui = os.path.join(gui_dir, 'layouts', 'ServicePathDialog.ui')
 
 
@@ -26,8 +27,8 @@ MANAGER_SETTINGS_TEMPLATE = {
 }
 
 SERVICE_SETTINGS_TEMPLATE = {
-    'ChannelAccess': ['EPICS_CA_ADDR_LIST', 'ConnectionTimeout'],
-    'PVImport': ['LoopTimer', 'PvStaleAfter', 'PV_PREFIX', 'PV_DOMAIN'],
+    'ChannelAccess': ['EPICS_CA_ADDR_LIST', 'ConnectionTimeout', 'PvStaleAfter', 'PV_PREFIX', 'PV_DOMAIN'],
+    'PVImport': ['LoopTimer'],
     'UserConfig': ['DIRECTORY', 'FILE', 'SCHEMA'],
     'HeRecoveryDB': ['Host', 'Name', 'DBObjectName', 'DBObjectType'],
     'Service': ['Name', 'DisplayName', 'Description'],
@@ -133,11 +134,11 @@ class ServiceSettings:
 
         def set_name(self, new_name):
             self.outer.config_parser.set('HeRecoveryDB', 'Name', new_name)
-            self.outer.update_service()
+            self.outer.update()
 
         def set_host(self, new_host):
             self.outer.config_parser.set('HeRecoveryDB', 'Host', new_host)
-            self.outer.update_service()
+            self.outer.update()
 
         def set_user(self, new_user):
             service_name = self.outer.Service.get_name()
@@ -158,7 +159,7 @@ class ServiceSettings:
         def get_name(self):
             return self.outer.config_parser['Service']['Name']
 
-    class CA:
+    class CA(object):
         def __init__(self, outer):
             self.outer = outer
 
@@ -172,7 +173,35 @@ class ServiceSettings:
             if isinstance(new_list, list):
                 new_list = ' '.join(new_list)
             self.outer.config_parser.set('ChannelAccess', 'EPICS_CA_ADDR_LIST', new_list)
-            self.outer.update_service()
+            self.outer.update()
+
+        def get_conn_timeout(self):
+            return self.outer.config_parser['ChannelAccess']['ConnectionTimeout']
+
+        def set_conn_timeout(self, new_timeout: int):
+            self.outer.config_parser.set('ChannelAccess', 'ConnectionTimeout', new_timeout)
+            self.outer.update()
+
+        def get_pv_stale_after(self):
+            return self.outer.config_parser['ChannelAccess']['PvStaleAfter']
+
+        def set_pv_stale_after(self, new_threshold: int):
+            self.outer.config_parser.set('ChannelAccess', 'PvStaleAfter', new_threshold)
+            self.outer.update()
+
+        def get_pv_prefix(self):
+            return self.outer.config_parser['ChannelAccess']['PV_PREFIX']
+
+        def set_pv_prefix(self, new_prefix: str):
+            self.outer.config_parser.set('ChannelAccess', 'PV_PREFIX', new_prefix)
+            self.outer.update()
+            
+        def get_pv_domain(self):
+            return self.outer.config_parser['ChannelAccess']['PV_DOMAIN']
+
+        def set_pv_domain(self, new_domain: str):
+            self.outer.config_parser.set('ChannelAccess', 'PV_DOMAIN', new_domain)
+            self.outer.update()
 
 
 Settings = Settings()
