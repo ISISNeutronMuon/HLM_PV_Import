@@ -33,12 +33,21 @@ class UIServicePathDialog(QDialog):
         self.help_btn = self.button_box.button(QDialogButtonBox.Help)
         self.help_btn.clicked.connect(self.on_help)
 
+        self.update_fields()
+
+    def update_fields(self):
+        curr_path = Settings.Manager.get_service_path()
+        if curr_path:
+            self.service_path.setText(curr_path)
+
     def on_accepted(self):
         path = self.service_path.text()
         if os.path.exists(path):
             settings_file = os.path.join(path, SERVICE_SETTINGS_FILE_NAME)
             if os.path.isfile(settings_file):  # setting file exists
                 Settings.Manager.set_service_path(path)
+                service_settings_path = Settings.Manager.get_service_path()
+                Settings.init_service_settings(service_settings_path)
                 self.custom_signals.showMainWindow.emit()  # emit custom signal to show main window
                 self.close()
             else:  # ask user if they want to create new settings file
@@ -49,6 +58,8 @@ class UIServicePathDialog(QDialog):
 
                 if reply == QMessageBox.Yes:
                     Settings.Manager.set_service_path(path)
+                    service_settings_path = Settings.Manager.get_service_path()
+                    Settings.init_service_settings(service_settings_path)
                     self.custom_signals.showMainWindow.emit()  # emit custom signal to show main window
                     self.close()
         else:

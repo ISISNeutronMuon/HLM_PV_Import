@@ -6,6 +6,7 @@ from ServiceManager.GUI.about import UIAbout
 from ServiceManager.GUI.db_settings import UIDBSettings
 from ServiceManager.GUI.general_settings import UIGeneralSettings
 from ServiceManager.GUI.ca_settings import UICASettings
+from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
 from ServiceManager.utilities import is_admin
 
 
@@ -18,6 +19,7 @@ class UIMainWindow(QMainWindow):
         self.db_settings_w = None
         self.general_settings_w = None
         self.ca_settings_w = None
+        self.service_dir_w = None
 
         ui_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'layouts', 'MainWindow.ui')
         uic.loadUi(ui_file_path, self)
@@ -39,6 +41,8 @@ class UIMainWindow(QMainWindow):
         self.general_settings_action.triggered.connect(self.trigger_general_settings)
         self.ca_settings_action = self.findChild(QAction, 'actionChannel_Access')
         self.ca_settings_action.triggered.connect(self.trigger_ca_settings)
+        self.service_directory_action = self.findChild(QAction, 'actionService_Directory')
+        self.service_directory_action.triggered.connect(self.trigger_service_directory)
 
         self.pv_list = self.findChild(QListWidget, 'listWidget')
 
@@ -65,6 +69,12 @@ class UIMainWindow(QMainWindow):
             self.ca_settings_w = UICASettings()
         self.ca_settings_w.show()
         self.ca_settings_w.activateWindow()
+
+    def trigger_service_directory(self):
+        if self.service_dir_w is None:
+            self.service_dir_w = UIServicePathDialog()
+        self.service_dir_w.show()
+        self.service_dir_w.activateWindow()
 
     def closeEvent(self, event: QCloseEvent):
         quit_msg = "Are you sure you want to exit the program?"

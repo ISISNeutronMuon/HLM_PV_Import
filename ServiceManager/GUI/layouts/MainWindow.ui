@@ -120,6 +120,8 @@
     <addaction name="actionChannel_Access"/>
     <addaction name="separator"/>
     <addaction name="actionDB_Connection"/>
+    <addaction name="separator"/>
+    <addaction name="actionService_Directory"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -185,6 +187,11 @@
   <action name="actionChannel_Access">
    <property name="text">
     <string>Channel Access</string>
+   </property>
+  </action>
+  <action name="actionService_Directory">
+   <property name="text">
+    <string>Service Directory</string>
    </property>
   </action>
  </widget>

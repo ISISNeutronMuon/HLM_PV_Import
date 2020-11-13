@@ -160,7 +160,11 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QLineEdit" name="pVPrefixLineEdit"/>
+          <widget class="QLineEdit" name="pVPrefixLineEdit">
+           <property name="whatsThis">
+            <string>The PV PREFIX</string>
+           </property>
+          </widget>
          </item>
          <item row="1" column="0">
           <widget class="QLabel" name="pVDomainLabel">
@@ -170,7 +174,11 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLineEdit" name="pVDomainLineEdit"/>
+          <widget class="QLineEdit" name="pVDomainLineEdit">
+           <property name="whatsThis">
+            <string>The PV DOMAIN</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -207,6 +215,9 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="whatsThis">
+            <string>The time, in seconds, after which a PV's data will be considered stale and no longer added to measurements, until the next update from Channel Access.</string>
+           </property>
           </widget>
          </item>
          <item row="1" column="0">
@@ -223,6 +234,9 @@
              <width>16777215</width>
              <height>16777215</height>
             </size>
+           </property>
+           <property name="whatsThis">
+            <string>How many seconds to wait for a PV to connect, default is 2.</string>
            </property>
           </widget>
          </item>

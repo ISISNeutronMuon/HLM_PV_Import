@@ -13,25 +13,29 @@ class App:
         self.app.setWindowIcon(QIcon(icon_path))
 
         self.window = None
+        self.main_window = None
 
-        # Set-up service path
+        # Set-up manager settings
         Settings.init_manager_settings()
-        service_settings_path = Settings.Manager.get_service_path()
-        if not service_settings_path:
 
+        # Look for the service path in manager settings
+        service_settings_path = Settings.Manager.get_service_path()
+
+        # If service path is found, initialize service settings and open main window
+        # Otherwise, open Service Path dialog and ask for the service directory path.
+        # Once a path has been provided and service settings initialized from the dialog, close it and open main window.
+        if service_settings_path:
+            Settings.init_service_settings(service_settings_path)
+            self.show_main_window()
+        else:
             self.window = UIServicePathDialog()
             self.window.show()
             self.window.custom_signals.showMainWindow.connect(self.show_main_window)
 
-        else:
-            self.show_main_window()
-
     def show_main_window(self):
-        service_settings_path = Settings.Manager.get_service_path()
-        Settings.init_service_settings(service_settings_path)
-
-        self.window = UIMainWindow()
-        self.window.show()
+        if self.main_window is None:
+            self.main_window = UIMainWindow()
+        self.main_window.show()
 
     @staticmethod
     def raise_error():

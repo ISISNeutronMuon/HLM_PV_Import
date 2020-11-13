@@ -106,7 +106,6 @@ class UICASettings(QDialog):
         self.settings_changed(False)
 
     def closeEvent(self, event: QCloseEvent):
-        self.update_fields()
         if self._settings_changed:
             quit_msg = "Any changes will be lost. Cancel anyway?"
             reply = QMessageBox.question(self, 'HLM PV Import',

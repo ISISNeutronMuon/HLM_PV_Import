@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QCloseEvent, QShowEvent
-from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QDialogButtonBox
+from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QDialogButtonBox, QMessageBox
 from PyQt5 import uic
 
 from ServiceManager.utilities import is_admin, make_bold, set_colored_text
@@ -111,17 +111,27 @@ class UIDBSettings(QDialog):
         else:
             set_colored_text(label=self.message, text='Updated DB configuration.', color=QColor('green'))
 
-        self.refresh()
+        self.reset_styles()
 
     def closeEvent(self, event: QCloseEvent):
         """ Upon dialog close """
         set_colored_text(label=self.message, text='', color=QColor('black'))  # Remove message upon window close
-        self.refresh()
+
+        if self.apply_btn.isEnabled():
+            quit_msg = "Any changes will be lost. Cancel anyway?"
+            reply = QMessageBox.question(self, 'HLM PV Import',
+                                         quit_msg, QMessageBox.Yes, QMessageBox.No)
+
+            if reply == QMessageBox.Yes:
+                event.accept()
+            else:
+                event.ignore()
 
     def showEvent(self, event: QShowEvent):
         self.update_fields()
+        self.reset_styles()
 
-    def refresh(self):
+    def reset_styles(self):
         """ Reset widgets to default, fetch current settings. """
         self.apply_btn.setEnabled(False)
 
