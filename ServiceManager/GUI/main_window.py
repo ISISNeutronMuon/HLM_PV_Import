@@ -1,10 +1,12 @@
-from PyQt5.QtCore import QTimer, QThread, QEventLoop
-from PyQt5.QtGui import QCloseEvent
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QLabel, QListWidget, QMessageBox,\
-    QPlainTextEdit
-from PyQt5 import uic
 import os
 import time
+import psutil
+from collections import deque, defaultdict
+from PyQt5.QtCore import QTimer, QThread, QEventLoop
+from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QLabel, QListWidget, QMessageBox, \
+    QPlainTextEdit, QWidget, QLineEdit
+from PyQt5 import uic
 from ServiceManager.settings import Settings
 from ServiceManager.GUI.about import UIAbout
 from ServiceManager.GUI.db_settings import UIDBSettings
@@ -51,27 +53,20 @@ class UIMainWindow(QMainWindow):
         # endregion
 
         # region Get widgets
-        self.button = self.findChild(QPushButton, 'pushButton')
-        self.button.clicked.connect(self.pushButtonPressed)
-        self.pv_list = self.findChild(QListWidget, 'listWidget')
-
+        self.service_details = self.findChild(QWidget, 'serviceDetails')
         self.service_log_txt = self.findChild(QPlainTextEdit, 'serviceLogText')
         # endregion
 
         # region Service Status Thread
-        # todo: service status
-        # self.service_status_thread = ServiceStatusCheckThread()
-        # self.service_status_thread.start()
+        # noinspection PyTypeChecker
+        self.service_status_thread = ServiceStatusCheckThread(self.service_details)
+        self.service_status_thread.start()
+        # endregion
 
         # region Service Log Thread
         self.log_updater_thread = ServiceLogUpdaterThread(self.service_log_txt)
         self.log_updater_thread.start()
         # endregion
-
-    def pushButtonPressed(self):
-        print('printButtonPressed')
-        self.pv_list.addItem('wow')
-
 
     # region Action Slots
     def trigger_about(self):
@@ -134,8 +129,10 @@ class ServiceLogUpdaterThread(QThread):
         # if log file was modified since last log widget update, update widget text
         if last_modified > self.last_widget_update:
             with open(self.debug_log_path) as file:
-                text = file.read()
+                text = ''.join(deque(file, 15))
                 self.log_widget.setPlainText(text)
+                self.log_widget.verticalScrollBar().\
+                    setValue(self.log_widget.verticalScrollBar().maximum())
                 self.last_widget_update = time.time()
 
     def __init__(self, log_widget, *args, **kwargs):
@@ -148,6 +145,7 @@ class ServiceLogUpdaterThread(QThread):
         self.debug_log_path = Settings.Service.Logging.get_debug_log_path()
 
     def run(self):
+        self.update_log()
         self.timer.start(1*1000)
         loop = QEventLoop()
         loop.exec_()
@@ -155,17 +153,56 @@ class ServiceLogUpdaterThread(QThread):
 
 class ServiceStatusCheckThread(QThread):
     def update_status(self):
-        pass
+        # Get service details
+        service = psutil.win_service_get(self.service_name)
+        service = service.as_dict()
 
-    def __init__(self, widget, *args, **kwargs):
+        main_msg = f"{service['display_name']} is {service['status'].upper()}"
+        self.main_status_msg.setText(main_msg)
+        self.style_status_msg(service['status'])
+
+        self.set_details(service)
+
+    def __init__(self, widget: QWidget, *args, **kwargs):
         QThread.__init__(self, *args, **kwargs)
-        self.widget = widget
         self.timer = QTimer()
         self.timer.moveToThread(self)
         self.timer.timeout.connect(self.update_status)
+        self.service_name = Settings.Service.Info.get_name()
+
+        # region Get widget components
+        self.widget = widget
+        self.main_status_msg = self.widget.findChild(QLabel, 'statusMessage')
+        self.name_msg = self.widget.findChild(QLineEdit, 'nameText')
+        self.status_small_msg = self.widget.findChild(QLineEdit, 'statusText')
+        self.pid_msg = self.widget.findChild(QLineEdit, 'pidText')
+        self.startup_type_msg = self.widget.findChild(QLineEdit, 'startUpTypeText')
+        self.description_msg = self.widget.findChild(QLineEdit, 'descriptionText')
+        self.username_msg = self.widget.findChild(QLineEdit, 'usernameText')
+        self.binpath_msg = self.widget.findChild(QLineEdit, 'binPathText')
+        # endregion
+
+        # region Styles
+        self.status_color = defaultdict(lambda: '#ffff00')  # electric yellow
+        self.status_color['running'] = '#90ee90'  # medium light shade of green
+        self.status_color['stopped'] = '#add8e6'  # light shade of cyan
+        # endregion
 
     def run(self):
-        self.timer.start(1*1000)
+        self.update_status()
+        self.timer.start(5*1000)
         loop = QEventLoop()
         loop.exec_()
 
+    def style_status_msg(self, status):
+        style = f'background-color: {self.status_color[status]}'
+        self.main_status_msg.setStyleSheet(style)
+
+    def set_details(self, service):
+        self.name_msg.setText(service['name'])
+        self.status_small_msg.setText(service['status'])
+        self.pid_msg.setText(service['pid'])
+        self.startup_type_msg.setText(service['start_type'])
+        self.description_msg.setText(service['description'])
+        self.username_msg.setText(service['username'])
+        self.binpath_msg.setText(service['binpath'])

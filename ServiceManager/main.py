@@ -1,7 +1,7 @@
 import traceback
 import sys
 from PyQt5.QtWidgets import QApplication, QErrorMessage
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from ServiceManager.GUI.main_window import UIMainWindow
 from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
 from ServiceManager.settings import icon_path, Settings
@@ -46,8 +46,11 @@ def excepthook(exc_type, exc_value, exc_tb):
     traceback_ = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
     err_msg = f'An unhandled exception has occurred:\n {traceback_}'
     print(err_msg)
+    err_msg = err_msg.replace('\n', '<br>')
     error_dialog = QErrorMessage()
     error_dialog.setWindowTitle('HLM PV Import - Error')
+    error_dialog.resize(600, 300)
+    error_dialog.setFont(QFont('Lucida Console', 9))
     error_dialog.showMessage(err_msg)
     error_dialog.exec()
     # QApplication.quit()  # or QtWidgets.QApplication.exit(0)
