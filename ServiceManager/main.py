@@ -5,6 +5,7 @@ from PyQt5.QtGui import QIcon, QFont
 from ServiceManager.GUI.main_window import UIMainWindow
 from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
 from ServiceManager.settings import icon_path, Settings
+from ServiceManager.logger import logger
 
 
 class App:
@@ -14,9 +15,6 @@ class App:
 
         self.window = None
         self.main_window = None
-
-        # Set-up manager settings
-        Settings.init_manager_settings()
 
         # Look for the service path in manager settings
         service_settings_path = Settings.Manager.get_service_path()
@@ -45,7 +43,7 @@ class App:
 def excepthook(exc_type, exc_value, exc_tb):
     traceback_ = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
     err_msg = f'An unhandled exception has occurred:\n {traceback_}'
-    print(err_msg)
+    logger.error(err_msg)
     err_msg = err_msg.replace('\n', '<br>')
     error_dialog = QErrorMessage()
     error_dialog.setWindowTitle('HLM PV Import - Error')

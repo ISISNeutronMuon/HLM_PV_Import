@@ -48,8 +48,8 @@ class HEDB:
     NAME = config['HeRecoveryDB']['Name']
     USER = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_USER')
     PASS = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_PASS')
-    DB_OBJ_NAME = config['PVImport']['DBObjectName']  # Helium DB PV Import object name
-    DB_OBJ_TYPE = config['PVImport']['DBObjectType']  # and its type name
+    DB_OBJ_NAME = config['HeRecoveryDB']['DBObjectName']  # Helium DB PV Import object name
+    DB_OBJ_TYPE = config['HeRecoveryDB']['DBObjectType']  # and its type name
 
 
 # Helium DB Tables

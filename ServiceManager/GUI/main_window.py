@@ -1,11 +1,12 @@
 import os
 import time
 import psutil
+import win32serviceutil
 from collections import deque, defaultdict
-from PyQt5.QtCore import QTimer, QThread, QEventLoop
+from PyQt5.QtCore import QTimer, QThread, QEventLoop, QCoreApplication
 from PyQt5.QtGui import QCloseEvent
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QLabel, QListWidget, QMessageBox, \
-    QPlainTextEdit, QWidget, QLineEdit
+    QPlainTextEdit, QWidget, QLineEdit, QApplication, QSpinBox
 from PyQt5 import uic
 from ServiceManager.settings import Settings
 from ServiceManager.GUI.about import UIAbout
@@ -38,10 +39,12 @@ class UIMainWindow(QMainWindow):
         # region Menu actions
         self.about_action = self.findChild(QAction, 'actionAbout')
         self.about_action.triggered.connect(self.trigger_about)
-        self.open_debug_log = self.findChild(QAction, 'actionDebug_log')
-        self.open_debug_log.triggered.connect(self.trigger_open_debug_log)
-        self.open_service_dir = self.findChild(QAction, 'actionService_directory')
-        self.open_service_dir.triggered.connect(self.trigger_open_service_dir)
+        self.show_manager_error_log = self.findChild(QAction, 'actionManager_Error_Log')
+        self.show_manager_error_log.triggered.connect(self.trigger_show_manager_error_log)
+        self.show_service_debug_log = self.findChild(QAction, 'actionDebug_log')
+        self.show_service_debug_log.triggered.connect(self.trigger_open_debug_log)
+        self.show_service_dir = self.findChild(QAction, 'actionService_directory')
+        self.show_service_dir.triggered.connect(self.trigger_open_service_dir)
         self.db_settings_action = self.findChild(QAction, 'actionDB_Connection')
         self.db_settings_action.triggered.connect(self.trigger_db_settings)
         self.general_settings_action = self.findChild(QAction, 'actionGeneral')
@@ -53,20 +56,67 @@ class UIMainWindow(QMainWindow):
         # endregion
 
         # region Get widgets
-        self.service_details = self.findChild(QWidget, 'serviceDetails')
-        self.service_log_txt = self.findChild(QPlainTextEdit, 'serviceLogText')
+        self.service_status_panel = self.findChild(QWidget, 'serviceDetails')
+        self.btn_service_start = self.service_status_panel.findChild(QPushButton, 'serviceStart')
+        self.btn_service_stop = self.service_status_panel.findChild(QPushButton, 'serviceStop')
+        self.btn_service_restart = self.service_status_panel.findChild(QPushButton, 'serviceRestart')
+        self.service_log = self.findChild(QWidget, 'serviceLog')
+        self.service_log_txt = self.service_log.findChild(QPlainTextEdit, 'serviceLogText')
+        self.service_log_file_open_btn = self.service_log.findChild(QPushButton, 'openLogFileButton')
+        self.service_log_scroll_down_btn = self.service_log.findChild(QPushButton, 'logScrollDownButton')
+        self.service_log_show_lines_spinbox = self.service_log.findChild(QSpinBox, 'logLinesSpinBox')
+        # endregion
+
+        # region Connect signals to slots
+        self.btn_service_start.clicked.connect(self.service_start_btn_clicked)
+        self.btn_service_stop.clicked.connect(self.service_stop_btn_clicked)
+        self.btn_service_restart.clicked.connect(self.service_restart_btn_clicked)
+
+        self.service_log_file_open_btn.clicked.connect(self.trigger_open_debug_log)
+        self.service_log_scroll_down_btn.clicked.connect(self.log_scroll_down)
         # endregion
 
         # region Service Status Thread
         # noinspection PyTypeChecker
-        self.service_status_thread = ServiceStatusCheckThread(self.service_details)
+        self.service_status_thread = ServiceStatusCheckThread(self.service_status_panel)
         self.service_status_thread.start()
         # endregion
 
         # region Service Log Thread
-        self.log_updater_thread = ServiceLogUpdaterThread(self.service_log_txt)
+        # noinspection PyTypeChecker
+        self.log_updater_thread = ServiceLogUpdaterThread(self.service_log)
         self.log_updater_thread.start()
         # endregion
+
+        # region Admin mode only buttons
+        if not is_admin():
+            self.btn_service_start.setEnabled(False)
+            self.btn_service_stop.setEnabled(False)
+            self.btn_service_restart.setEnabled(False)
+        # endregion
+
+    # region Service control buttons slots
+    @staticmethod
+    def service_start_btn_clicked():
+        service_name = Settings.Service.Info.get_name()
+        win32serviceutil.StartService(service_name)
+
+    @staticmethod
+    def service_stop_btn_clicked():
+        service_name = Settings.Service.Info.get_name()
+        win32serviceutil.StopService(service_name)
+
+    @staticmethod
+    def service_restart_btn_clicked():
+        service_name = Settings.Service.Info.get_name()
+        win32serviceutil.RestartService(service_name)
+    # endregion
+
+    # region Other buttons
+    def log_scroll_down(self):
+        self.service_log_txt.verticalScrollBar(). \
+            setValue(self.service_log_txt.verticalScrollBar().maximum())
+    # endregion
 
     # region Action Slots
     def trigger_about(self):
@@ -74,6 +124,11 @@ class UIMainWindow(QMainWindow):
             self.about_w = UIAbout()
         self.about_w.show()
         self.about_w.activateWindow()
+
+    @staticmethod
+    def trigger_show_manager_error_log():
+        error_log_file = Settings.Manager.get_error_log_path()
+        os.startfile(error_log_file)
 
     @staticmethod
     def trigger_open_debug_log():
@@ -125,24 +180,30 @@ class UIMainWindow(QMainWindow):
 
 class ServiceLogUpdaterThread(QThread):
     def update_log(self):
-        last_modified = os.path.getmtime(self.debug_log_path)
+        debug_log_path = Settings.Service.Logging.get_debug_log_path()
+        last_modified = os.path.getmtime(debug_log_path)
         # if log file was modified since last log widget update, update widget text
         if last_modified > self.last_widget_update:
-            with open(self.debug_log_path) as file:
-                text = ''.join(deque(file, 15))
-                self.log_widget.setPlainText(text)
-                self.log_widget.verticalScrollBar().\
-                    setValue(self.log_widget.verticalScrollBar().maximum())
+            with open(debug_log_path) as file:
+                show_lines_number = self.service_log_show_lines.value()
+                text = ''.join(deque(file, show_lines_number))
+                old_v_scrollbar_value = self.service_log.verticalScrollBar().value()
+                old_h_scrollbar_value = self.service_log.horizontalScrollBar().value()
+                self.service_log.setPlainText(text)
+                self.service_log.verticalScrollBar().setValue(old_v_scrollbar_value)
+                self.service_log.horizontalScrollBar().setValue(old_h_scrollbar_value)
                 self.last_widget_update = time.time()
 
-    def __init__(self, log_widget, *args, **kwargs):
+    def __init__(self, log_widget: QWidget, *args, **kwargs):
         QThread.__init__(self, *args, **kwargs)
         self.log_widget = log_widget
+        self.service_log = self.log_widget.findChild(QPlainTextEdit, 'serviceLogText')
+        self.service_log_show_lines = self.log_widget.findChild(QSpinBox, 'logLinesSpinBox')
+
         self.timer = QTimer()
         self.timer.moveToThread(self)
         self.timer.timeout.connect(self.update_log)
         self.last_widget_update = 0
-        self.debug_log_path = Settings.Service.Logging.get_debug_log_path()
 
     def run(self):
         self.update_log()
@@ -154,21 +215,24 @@ class ServiceLogUpdaterThread(QThread):
 class ServiceStatusCheckThread(QThread):
     def update_status(self):
         # Get service details
-        service = psutil.win_service_get(self.service_name)
+        service_name = Settings.Service.Info.get_name()
+        service = psutil.win_service_get(service_name)
         service = service.as_dict()
 
         main_msg = f"{service['display_name']} is {service['status'].upper()}"
         self.main_status_msg.setText(main_msg)
-        self.style_status_msg(service['status'])
+        self.update_status_title_style(service['status'])
 
-        self.set_details(service)
+        self.update_service_details(service)
+
+        if is_admin():
+            self.update_service_control_buttons(service['status'])
 
     def __init__(self, widget: QWidget, *args, **kwargs):
         QThread.__init__(self, *args, **kwargs)
         self.timer = QTimer()
         self.timer.moveToThread(self)
         self.timer.timeout.connect(self.update_status)
-        self.service_name = Settings.Service.Info.get_name()
 
         # region Get widget components
         self.widget = widget
@@ -180,6 +244,9 @@ class ServiceStatusCheckThread(QThread):
         self.description_msg = self.widget.findChild(QLineEdit, 'descriptionText')
         self.username_msg = self.widget.findChild(QLineEdit, 'usernameText')
         self.binpath_msg = self.widget.findChild(QLineEdit, 'binPathText')
+        self.btn_service_start = self.widget.findChild(QPushButton, 'serviceStart')
+        self.btn_service_stop = self.widget.findChild(QPushButton, 'serviceStop')
+        self.btn_service_restart = self.widget.findChild(QPushButton, 'serviceRestart')
         # endregion
 
         # region Styles
@@ -194,14 +261,29 @@ class ServiceStatusCheckThread(QThread):
         loop = QEventLoop()
         loop.exec_()
 
-    def style_status_msg(self, status):
-        style = f'background-color: {self.status_color[status]}'
+    def update_service_control_buttons(self, service_status):
+        if service_status == 'running':
+            self.btn_service_start.setEnabled(False)
+            self.btn_service_stop.setEnabled(True)
+            self.btn_service_restart.setEnabled(True)
+        elif service_status == 'stopped':
+            self.btn_service_start.setEnabled(True)
+            self.btn_service_stop.setEnabled(False)
+            self.btn_service_restart.setEnabled(False)
+        else:
+            self.btn_service_start.setEnabled(True)
+            self.btn_service_stop.setEnabled(True)
+            self.btn_service_restart.setEnabled(True)
+
+    def update_status_title_style(self, status):
+        style = f'background-color: {self.status_color[status]};' \
+                f'padding: 20px;'
         self.main_status_msg.setStyleSheet(style)
 
-    def set_details(self, service):
+    def update_service_details(self, service):
         self.name_msg.setText(service['name'])
         self.status_small_msg.setText(service['status'])
-        self.pid_msg.setText(service['pid'])
+        self.pid_msg.setText(f"{service['pid']}")
         self.startup_type_msg.setText(service['start_type'])
         self.description_msg.setText(service['description'])
         self.username_msg.setText(service['username'])

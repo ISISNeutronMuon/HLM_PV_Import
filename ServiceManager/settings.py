@@ -1,9 +1,15 @@
 import os
+import sys
 import configparser
 import win32serviceutil
 
 VER = '1.0.0'
 B_DATE = '10 November 2020'
+
+if getattr(sys, 'frozen', False):
+    APP_PATH = os.path.dirname(sys.executable)
+else:
+    APP_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 
 
 # Assets & Layouts
@@ -93,6 +99,16 @@ class ManagerSettings:
         self.config_parser.set('Service', 'Directory', new_path)
         self.update()
 
+    @staticmethod
+    def get_logs_dir_path():
+        log_dir = os.path.join(APP_PATH, 'logs')
+        return log_dir
+
+    def get_error_log_path(self):
+        log_dir = self.get_logs_dir_path()
+        log_file = os.path.join(log_dir, 'HLM_ErrorLog.log')
+        return log_file
+
 
 class ServiceSettings:
     def __init__(self, service_path):
@@ -137,11 +153,11 @@ class ServiceSettings:
             return self.outer.config_parser['HeRecoveryDB']['Host']
 
         def get_user(self):
-            service_name = self.outer.Service.get_name()
+            service_name = self.outer.Info.get_name()
             return win32serviceutil.GetServiceCustomOption(serviceName=service_name, option='DB_HE_USER')
 
         def get_pass(self):
-            service_name = self.outer.Service.get_name()
+            service_name = self.outer.Info.get_name()
             return win32serviceutil.GetServiceCustomOption(serviceName=service_name, option='DB_HE_PASS')
 
         def set_name(self, new_name):
@@ -217,3 +233,6 @@ class ServiceSettings:
 
 
 Settings = Settings()
+
+# Set-up manager settings
+Settings.init_manager_settings()
