@@ -28,7 +28,7 @@ class App:
         else:
             self.window = UIServicePathDialog()
             self.window.show()
-            self.window.custom_signals.showMainWindow.connect(self.show_main_window)
+            self.window.custom_signals.serviceUpdated.connect(self.show_main_window)
 
     def show_main_window(self):
         if self.main_window is None:

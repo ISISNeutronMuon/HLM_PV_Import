@@ -24,7 +24,7 @@ service_path_dlg_ui = os.path.join(gui_dir, 'layouts', 'ServicePathDialog.ui')
 
 
 # Directory for storing the manager app settings and persistent data
-MANAGER_SETTINGS_DIR = os.path.join(os.getenv('LOCALAPPDATA'), 'HLM Service Manager', '')
+MANAGER_SETTINGS_DIR = os.path.join(os.getenv('ALLUSERSPROFILE'), 'HLM Service Manager', '')
 MANAGER_SETTINGS_FILE = os.path.join(MANAGER_SETTINGS_DIR, 'settings.ini')
 SERVICE_SETTINGS_FILE_NAME = os.path.join('settings.ini')
 
@@ -67,11 +67,8 @@ def setup_settings_file(path: str, template: dict, parser: configparser.ConfigPa
 
 class Settings:
     def __init__(self):
-        self.Manager = None
-        self.Service = None
-
-    def init_manager_settings(self):
         self.Manager = ManagerSettings(MANAGER_SETTINGS_FILE)
+        self.Service = None
 
     def init_service_settings(self, service_path):
         self.Service = ServiceSettings(service_path)
@@ -101,7 +98,7 @@ class ManagerSettings:
 
     @staticmethod
     def get_logs_dir_path():
-        log_dir = os.path.join(APP_PATH, 'logs')
+        log_dir = os.path.join(MANAGER_SETTINGS_DIR, 'logs')
         return log_dir
 
     def get_error_log_path(self):
@@ -233,6 +230,3 @@ class ServiceSettings:
 
 
 Settings = Settings()
-
-# Set-up manager settings
-Settings.init_manager_settings()

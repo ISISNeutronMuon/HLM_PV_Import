@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1027</width>
+    <width>1085</width>
     <height>767</height>
    </rect>
   </property>
@@ -17,7 +17,7 @@
    <locale language="English" country="UnitedKingdom"/>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_8">
+   <layout class="QVBoxLayout" name="verticalLayout_9">
     <item>
      <widget class="QFrame" name="serviceStatusFrame">
       <property name="frameShape">
@@ -58,6 +58,12 @@
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
              <widget class="QLabel" name="statusMessage">
+              <property name="minimumSize">
+               <size>
+                <width>450</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="font">
                <font>
                 <pointsize>16</pointsize>
@@ -166,6 +172,9 @@
                   </item>
                   <item row="0" column="1">
                    <widget class="QLineEdit" name="nameText">
+                    <property name="focusPolicy">
+                     <enum>Qt::NoFocus</enum>
+                    </property>
                     <property name="autoFillBackground">
                      <bool>false</bool>
                     </property>
@@ -188,6 +197,9 @@
                   </item>
                   <item row="1" column="1">
                    <widget class="QLineEdit" name="statusText">
+                    <property name="focusPolicy">
+                     <enum>Qt::NoFocus</enum>
+                    </property>
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
@@ -207,6 +219,9 @@
                   </item>
                   <item row="2" column="1">
                    <widget class="QLineEdit" name="pidText">
+                    <property name="focusPolicy">
+                     <enum>Qt::NoFocus</enum>
+                    </property>
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
@@ -246,6 +261,9 @@
                   </item>
                   <item row="0" column="1">
                    <widget class="QLineEdit" name="startUpTypeText">
+                    <property name="focusPolicy">
+                     <enum>Qt::NoFocus</enum>
+                    </property>
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
@@ -265,6 +283,9 @@
                   </item>
                   <item row="1" column="1">
                    <widget class="QLineEdit" name="descriptionText">
+                    <property name="focusPolicy">
+                     <enum>Qt::NoFocus</enum>
+                    </property>
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
@@ -284,6 +305,9 @@
                   </item>
                   <item row="2" column="1">
                    <widget class="QLineEdit" name="usernameText">
+                    <property name="focusPolicy">
+                     <enum>Qt::NoFocus</enum>
+                    </property>
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
@@ -309,6 +333,9 @@
                 </item>
                 <item row="0" column="1">
                  <widget class="QLineEdit" name="binPathText">
+                  <property name="focusPolicy">
+                   <enum>Qt::NoFocus</enum>
+                  </property>
                   <property name="readOnly">
                    <bool>true</bool>
                   </property>
@@ -327,14 +354,63 @@
      </widget>
     </item>
     <item>
-     <spacer name="verticalSpacer">
+     <spacer name="verticalSpacer_3">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
         <width>253</width>
-        <height>265</height>
+        <height>92</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QFrame" name="frame">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_8">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QPushButton" name="refreshButton">
+           <property name="text">
+            <string>Refresh</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>253</width>
+        <height>108</height>
        </size>
       </property>
      </spacer>
@@ -554,7 +630,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1027</width>
+     <width>1085</width>
      <height>26</height>
     </rect>
    </property>
@@ -563,9 +639,7 @@
      <string>Settings</string>
     </property>
     <addaction name="actionGeneral"/>
-    <addaction name="separator"/>
     <addaction name="actionChannel_Access"/>
-    <addaction name="separator"/>
     <addaction name="actionDB_Connection"/>
     <addaction name="separator"/>
     <addaction name="actionService_Directory"/>
@@ -656,7 +730,7 @@
   </action>
   <action name="actionService_directory">
    <property name="text">
-    <string>Service directory</string>
+    <string>Open Service Directory</string>
    </property>
   </action>
   <action name="actionManager_Error_Log">
