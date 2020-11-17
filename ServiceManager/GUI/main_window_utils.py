@@ -1,4 +1,5 @@
 import os
+import threading
 import time
 import psutil
 from collections import deque, defaultdict
@@ -20,11 +21,12 @@ class ServiceLogUpdaterThread(QThread):
         try:
             last_modified = os.path.getmtime(debug_log_path)
         except FileNotFoundError as e:
+            # todo: test what happens on debug file rotate
             logger.info(e)
             self.enable_or_disable_buttons.emit(False)
             self.file_not_found.emit()
             self.last_widget_update = 0
-            self.stop_run()
+            self.stop()
             return
         # if log file was modified since last log widget update, update widget text
         if last_modified > self.last_widget_update:
@@ -39,11 +41,13 @@ class ServiceLogUpdaterThread(QThread):
         self.timer.moveToThread(self)
         self.timer.timeout.connect(self.update_log)
         self.last_widget_update = 0
-
         self.displayed_lines_no = display_lines_no
 
     def set_displayed_lines_no(self, lines_no):
         self.displayed_lines_no = lines_no
+        if self.isRunning():
+            self.last_widget_update = 0
+            self.update_log()
 
     def run(self):
         self.enable_or_disable_buttons.emit(True)
@@ -52,7 +56,7 @@ class ServiceLogUpdaterThread(QThread):
         loop = QEventLoop()
         loop.exec_()
 
-    def stop_run(self):
+    def stop(self):
         self.exit()
 
 
@@ -75,7 +79,7 @@ class ServiceStatusCheckThread(QThread):
             stylesheet = f"background-color: {self.status_color[None]}; padding: 20px;"
             self.update_status_style.emit(stylesheet)
             self.update_service_details.emit(self.none_dict)
-            self.stop_run()
+            self.stop()
             return
 
         service_info = service.as_dict()
@@ -111,5 +115,5 @@ class ServiceStatusCheckThread(QThread):
         loop = QEventLoop()
         loop.exec_()
 
-    def stop_run(self):
+    def stop(self):
         self.exit()

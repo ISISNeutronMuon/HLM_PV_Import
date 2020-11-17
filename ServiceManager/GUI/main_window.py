@@ -1,8 +1,9 @@
 import os
 import win32serviceutil
-from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QCloseEvent, QFont
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QMessageBox, QPlainTextEdit, QWidget, QSpinBox, \
-    QLineEdit, QLabel
+    QLineEdit, QLabel, QComboBox, QFrame, QTableWidget, QTableWidgetItem, QTabWidget, QApplication
 from PyQt5 import uic
 
 from ServiceManager.logger import logger
@@ -12,7 +13,7 @@ from ServiceManager.GUI.db_settings import UIDBSettings
 from ServiceManager.GUI.general_settings import UIGeneralSettings
 from ServiceManager.GUI.ca_settings import UICASettings
 from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
-from ServiceManager.utilities import is_admin
+from ServiceManager.utilities import is_admin, get_config_entries
 from ServiceManager.GUI.main_window_utils import ServiceLogUpdaterThread, ServiceStatusCheckThread
 
 
@@ -36,10 +37,6 @@ class UIMainWindow(QMainWindow):
         # endregion
 
         # region Initialize attributes
-        Settings.Service.Info.get_name()
-        Settings.Service.Logging.get_debug_log_path()
-        Settings.Manager.get_service_path()
-
         self.service_name = None
         self.service_debug_f = None
         self.service_path = None
@@ -83,8 +80,11 @@ class UIMainWindow(QMainWindow):
         self.service_log_file_open_btn = self.service_log_panel.findChild(QPushButton, 'openLogFileButton')
         self.service_log_scroll_down_btn = self.service_log_panel.findChild(QPushButton, 'logScrollDownButton')
         self.service_log_show_lines_spinbox = self.service_log_panel.findChild(QSpinBox, 'logLinesSpinBox')
+        self.service_log_font_size = self.service_log_panel.findChild(QComboBox, 'fontSizeCB')
 
+        self.table_config = self.findChild(QTableWidget, 'configTable')
         self.refresh_btn = self.findChild(QPushButton, 'refreshButton')
+        self.search_btn = self.findChild(QPushButton, 'searchButton')
         # endregion
 
         # region Connect signals to slots
@@ -97,10 +97,13 @@ class UIMainWindow(QMainWindow):
         # Emit spinner valueChanged only on return key pressed, focus lost, and arrow key pressed
         self.service_log_show_lines_spinbox.setKeyboardTracking(False)
         self.service_log_show_lines_spinbox.valueChanged.connect(self.update_log_displayed_lines_no)
+        self.service_log_font_size.currentTextChanged.connect(self.update_log_font_size)
 
-        self.refresh_btn.clicked.connect(self.refresh_main_window)
+        self.refresh_btn.clicked.connect(self.refresh_btn_clicked)
+        self.search_btn.clicked.connect(self.search_btn_clicked)
         # endregion
 
+        # region Threads
         # region Service Status Thread
         # noinspection PyTypeChecker
         self.thread_service_status = ServiceStatusCheckThread(self.service_status_panel)
@@ -120,11 +123,19 @@ class UIMainWindow(QMainWindow):
         self.thread_service_log.start()
         # endregion
 
+        # QThreads graceful exit on app close
+        QApplication.instance().aboutToQuit.connect(self.thread_service_status.stop)
+        QApplication.instance().aboutToQuit.connect(self.thread_service_log.stop)
+        # endregion
+
         # region Set buttons
         self.btn_service_start.setEnabled(False)
         self.btn_service_stop.setEnabled(False)
         self.btn_service_restart.setEnabled(False)
         # endregion
+
+        # Fill widgets with data
+        self.update_fields()
 
     # region Service control buttons slots
     def service_start_btn_clicked(self):
@@ -193,6 +204,7 @@ class UIMainWindow(QMainWindow):
         if self.service_dir_path_w is None:
             self.service_dir_path_w = UIServicePathDialog()
             self.service_dir_path_w.custom_signals.serviceUpdated.connect(self.update_service)
+            self.service_dir_path_w.custom_signals.serviceUpdated.connect(self.update_fields)
         else:
             self.service_dir_path_w.update_fields()
 
@@ -211,8 +223,50 @@ class UIMainWindow(QMainWindow):
             event.ignore()
     # endregion
 
-    def refresh_main_window(self):
-        pass
+    # region Main frame slots
+    def refresh_btn_clicked(self):
+        self.update_config_table()
+
+    def search_btn_clicked(self):
+        print('search')
+        a = self.table_config.findItems('ve', Qt.MatchContains)
+        print(a)
+        for x in a:
+            print(x.text())
+
+    def update_config_table(self):
+        self.table_config.setSortingEnabled(False)  # otherwise table will not be properly updated if columns are sorted
+        self.table_config.setRowCount(0)  # it will delete the QTableWidgetItems automatically
+
+        config_settings = Settings.Service.UserConfig
+        try:
+            config_entries = get_config_entries(config_settings)
+        except FileNotFoundError as e:
+            logger.info(e)
+            return
+
+        for entry in config_entries:
+            # store the entry data in a list
+            entry_data = [
+                entry[config_settings.RECORD],
+                entry[config_settings.LOG_PERIOD],
+                *entry[config_settings.MEAS][config_settings.PV]
+            ]
+            self.table_config.insertRow(self.table_config.rowCount())
+
+            # for each element of the entry data, add it to an item then add the item to the appropriate table cell
+            for index, elem in enumerate(entry_data):
+                item = QTableWidgetItem()
+                item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+                item.setText(elem)
+                item.setToolTip(elem)
+                self.table_config.setItem(self.table_config.rowCount() - 1, index, item)
+        self.table_config.setSortingEnabled(True)
+    # endregion
+
+    # region Update on Service Change
+    def update_fields(self):
+        self.update_config_table()
 
     def update_service(self):
         self.thread_service_log.start()
@@ -220,6 +274,7 @@ class UIMainWindow(QMainWindow):
 
         self.thread_service_status.start()
         self.thread_service_status.update_status()
+    # endregion
 
     # region Threads
 
@@ -238,6 +293,9 @@ class UIMainWindow(QMainWindow):
 
     def update_log_displayed_lines_no(self, value):
         self.thread_service_log.set_displayed_lines_no(value)
+
+    def update_log_font_size(self, value):
+        self.service_log_txt.setStyleSheet(f'font-size: {value}pt;')
 
     def update_service_log_btns(self, enabled: bool):
         self.service_log_file_open_btn.setEnabled(enabled)
@@ -279,5 +337,4 @@ class UIMainWindow(QMainWindow):
             self.btn_service_stop.setEnabled(True)
             self.btn_service_restart.setEnabled(True)
     # endregion
-
     # endregion

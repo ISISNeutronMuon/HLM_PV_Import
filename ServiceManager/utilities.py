@@ -41,17 +41,18 @@ def set_colored_text(label, text, color):
     label.setText(text)
 
 
-def _get_all_entries():
+def get_config_entries(UserConfig):
     """
     Get all user configuration entries as a dictionary.
 
+    Args:
+        UserConfig (UserConfig): The Service UserConfig settings.
     Returns:
         (dict): The PV configurations dictionary.
     """
-    config_file = UserConfigConst.PATH
-    with open(config_file, 'rb') as f:
+    config_path = UserConfig.get_path()
+    with open(config_path, 'rb') as f:
         config = xmltodict.parse(f.read(), dict_constructor=dict)
-        return_val = config[UserConfigConst.ROOT]
-
+        return_val = config[UserConfig.ROOT][UserConfig.ENTRY]
         return return_val
 

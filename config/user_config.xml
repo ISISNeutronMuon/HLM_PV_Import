@@ -7,12 +7,13 @@
 	<logging_period>60</logging_period>                # logging period for database in minutes
 	<measurements>                                     # the measurement values, min 1, max 5
 		<pv_name>MOTHER_DEWAR:HE_LEVEL</pv_name>       # PV name for Measurement Value #1
-		<pv_name>MCP1:BANK6:SPARE_STORAGE</pv_name>    # PV name for Measurement Value #2  etc. up to #5
+		<pv_name/>									   # No PV wanted for Measurement Value #2
+		<pv_name>MCP1:BANK6:SPARE_STORAGE</pv_name>    # PV name for Measurement Value #3  etc. up to #5
 	</measurements>
 </entry>
 
 Notes:
-* XML record tags cannot have an empty body (e.g. <pv_name></pv_name>)
+* XML record tags cannot have an empty body (e.g. <record_name></record_name>)
 * Record names must be unique across all entries
 
 

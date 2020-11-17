@@ -116,7 +116,7 @@ class UserConfig:
         Raises:
             ValueError: If one or more records has no measurement PVs.
         """
-        entries = self.entries[UserConfigConst.ENTRY]
+        entries = self.entries
 
         if not isinstance(entries, list):
             entries = [entries]
@@ -147,7 +147,7 @@ class UserConfig:
             config_pvs = set()
         else:
             config_pvs = []
-        entries = self.entries[UserConfigConst.ENTRY]
+        entries = self.entries
 
         if not isinstance(entries, list):
             entries = [entries]
@@ -183,7 +183,7 @@ class UserConfig:
         Returns:
             (list): The list of record measurements PVs.
         """
-        entries = self.entries[UserConfigConst.ENTRY]
+        entries = self.entries
         entry_pvs = []
         for entry in entries:
             if entry[UserConfigConst.RECORD] == record_name:
@@ -203,7 +203,7 @@ class UserConfig:
         Returns:
             (dict): The records and their logging period (int).
         """
-        entries = self.entries[UserConfigConst.ENTRY]
+        entries = self.entries
         if not isinstance(entries, list):
             entries = [entries]
         records_and_periods = {}
@@ -247,7 +247,7 @@ class UserConfig:
     @staticmethod
     def _get_all_entries():
         """
-        Get all user configuration entries.
+        Get all user configuration entries as a dictionary.
 
         Returns:
             (dict): The PV configurations dictionary.
@@ -255,7 +255,7 @@ class UserConfig:
         config_file = UserConfigConst.PATH
         with open(config_file, 'rb') as f:
             config = xmltodict.parse(f.read(), dict_constructor=dict)
-            return_val = config[UserConfigConst.ROOT]
+            return_val = config[UserConfigConst.ROOT][UserConfigConst.ENTRY]
 
             return return_val
 

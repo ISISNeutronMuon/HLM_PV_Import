@@ -153,16 +153,16 @@ class ServiceSettings:
             self.PV = 'pv_name'
             self.LOG_PERIOD = 'logging_period'
 
-        def get_config(self):
+        def get_path(self):
             config_dir = self.get_config_dir_name()
             config_file = self.get_config_file_name()
             return os.path.join(self.outer.service_path, config_dir, config_file)
 
-        def get_config_dir(self):
+        def get_dir_path(self):
             config_dir = self.get_config_dir_name()
             return os.path.join(self.outer.service_path, config_dir)
 
-        def get_schema(self):
+        def get_schema_path(self):
             config_dir = self.get_config_dir_name()
             config_schema = self.get_schema_file_name()
             return os.path.join(self.outer.service_path, config_dir, config_schema)
