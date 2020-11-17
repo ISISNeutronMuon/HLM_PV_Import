@@ -1,4 +1,6 @@
 import ctypes
+from lxml import etree
+import xmltodict
 from PyQt5.QtGui import QPalette, QColor
 
 
@@ -37,3 +39,19 @@ def set_colored_text(label, text, color):
     pal.setColor(QPalette.WindowText, color)
     label.setPalette(pal)
     label.setText(text)
+
+
+def _get_all_entries():
+    """
+    Get all user configuration entries as a dictionary.
+
+    Returns:
+        (dict): The PV configurations dictionary.
+    """
+    config_file = UserConfigConst.PATH
+    with open(config_file, 'rb') as f:
+        config = xmltodict.parse(f.read(), dict_constructor=dict)
+        return_val = config[UserConfigConst.ROOT]
+
+        return return_val
+

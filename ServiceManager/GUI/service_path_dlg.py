@@ -1,5 +1,5 @@
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtGui import QShowEvent
+from PyQt5.QtCore import QObject, pyqtSignal, QUrl
+from PyQt5.QtGui import QShowEvent, QDesktopServices
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QLineEdit, QDialogButtonBox, QFileDialog, QMessageBox
 from PyQt5 import uic
 from ServiceManager.settings import service_path_dlg_ui, Settings, SERVICE_SETTINGS_FILE_NAME
@@ -73,13 +73,16 @@ class UIServicePathDialog(QDialog):
             path = self.service_path.text()
             Settings.Manager.set_service_path(path)
             service_settings_path = Settings.Manager.get_service_path()
-            Settings.init_service_settings(service_settings_path)
+            Settings.init_service_settings(service_settings_path)  # Init/Update Service settings with path
             self.custom_signals.serviceUpdated.emit()
         # elif result == QDialog.Rejected:
         #     pass
 
-    def on_help(self):
-        print('todo: help')
+    @staticmethod
+    def on_help():
+        url = QUrl("https://github.com/ISISNeutronMuon/HLM_PV_Import/wiki")
+        # noinspection PyArgumentList
+        QDesktopServices.openUrl(url)
 
     def browse_file_dialog(self):
         dir_path = QFileDialog.getExistingDirectory(self, "Select Directory")

@@ -48,7 +48,7 @@ def setup_settings_file(path: str, template: dict, parser: configparser.ConfigPa
     blank values to it.
 
     Args:
-        path (str): The full path of the file.
+        path (str): The full path to the file.
         template (dict): The template containing sections (keys, str) and their options (values, list of str).
         parser (ConfigParser): The ConfigParser object.
     """
@@ -63,6 +63,19 @@ def setup_settings_file(path: str, template: dict, parser: configparser.ConfigPa
             parser.set(section, option, '')
     with open(path, 'w') as settings_file:
         parser.write(settings_file)
+
+
+def setup_user_config(path: str, template, schema):
+    """
+    Creates the user PV-Records XML config file and its schema, if they don't exist.
+
+    Args:
+        path (str): The full path to the file.
+        template: The XML template of the config.
+        schema: The XSD schema which will be used to validate the structure of the config.
+    """
+    # todo
+    pass
 
 
 class Settings:
@@ -124,10 +137,44 @@ class ServiceSettings:
         self.Info = self.Info(self)
         self.CA = self.CA(self)
         self.Logging = self.Logging(self)
+        self.UserConfig = self.UserConfig(self)
 
     def update(self):
         with open(self.settings_path, 'w') as settings_file:
             self.config_parser.write(settings_file)
+
+    class UserConfig:
+        def __init__(self, outer):
+            self.outer = outer
+            self.ROOT = 'configuration'
+            self.ENTRY = 'entry'
+            self.RECORD = 'record_name'
+            self.MEAS = 'measurements'
+            self.PV = 'pv_name'
+            self.LOG_PERIOD = 'logging_period'
+
+        def get_config(self):
+            config_dir = self.get_config_dir_name()
+            config_file = self.get_config_file_name()
+            return os.path.join(self.outer.service_path, config_dir, config_file)
+
+        def get_config_dir(self):
+            config_dir = self.get_config_dir_name()
+            return os.path.join(self.outer.service_path, config_dir)
+
+        def get_schema(self):
+            config_dir = self.get_config_dir_name()
+            config_schema = self.get_schema_file_name()
+            return os.path.join(self.outer.service_path, config_dir, config_schema)
+
+        def get_config_dir_name(self):
+            return self.outer.config_parser['UserConfig']['DIRECTORY']
+
+        def get_config_file_name(self):
+            return self.outer.config_parser['UserConfig']['FILE']
+
+        def get_schema_file_name(self):
+            return self.outer.config_parser['UserConfig']['SCHEMA']
 
     class Logging:
         def __init__(self, outer):
