@@ -7,18 +7,21 @@ if getattr(sys, 'frozen', False):
     # If the application is run as a bundle, the PyInstaller bootloader
     # extends the sys module by a flag frozen=True and sets the app
     # path into variable _MEIPASS'.
-    # application_path = sys._MEIPASS
+    # noinspection PyProtectedMember
+    # noinspection PyUnresolvedReferences
+    # BASE_PATH = sys._MEIPASS
 
-    # Using sys._MEIPASS does not work for one-file executables. From the docs: For a one-folder bundle, this is the
-    # path to that folder, wherever the user may have put it. For a one-file bundle, this is the path to the _MEIxxxxxx
-    # temporary folder created by the bootloader . Use sys.executable for one-file executables.
-    application_path = os.path.dirname(sys.executable)
+    # sys._MEIPASS:
+    # For a one-folder bundle, this is the path to that folder, wherever the user may have put it.
+    # For a one-file bundle, this is the path to the _MEIxxxxxx temporary folder created by the bootloader.
+    # To get the same path as the executable, use sys.executable for one-file executables.
+    BASE_PATH = os.path.dirname(sys.executable)
 else:
-    application_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+    BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 
 
 config = configparser.ConfigParser()
-config.read(os.path.join(application_path, 'settings.ini'))
+config.read(os.path.join(BASE_PATH, 'settings.ini'))
 
 
 class CA:
@@ -32,8 +35,8 @@ class CA:
 class LoggersConst:
     _config_logs_dir = config['Logging']['DirectoryPath']
     LOGS_DIR = 'logs' if not _config_logs_dir else _config_logs_dir
-    ERR_LOG_DIR = os.path.join(application_path, LOGS_DIR, 'err', '')
-    DB_LOG_DIR = os.path.join(application_path, LOGS_DIR, 'db', '')
+    ERR_LOG_DIR = os.path.join(BASE_PATH, LOGS_DIR, 'err', '')
+    DB_LOG_DIR = os.path.join(BASE_PATH, LOGS_DIR, 'db', '')
 
 
 class Service:
@@ -73,8 +76,8 @@ class UserConfigConst:
     FILE = config['UserConfig']['FILE']
     SCHEMA = config['UserConfig']['SCHEMA']
 
-    PATH = os.path.join(application_path, CONFIG_DIR, FILE)
-    SCHEMA_PATH = os.path.join(application_path, CONFIG_DIR, SCHEMA)
+    PATH = os.path.join(BASE_PATH, CONFIG_DIR, FILE)
+    SCHEMA_PATH = os.path.join(BASE_PATH, CONFIG_DIR, SCHEMA)
     ROOT = 'configuration'
     ENTRY = 'entry'
     RECORD = 'record_name'

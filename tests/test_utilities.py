@@ -1,6 +1,6 @@
 import unittest
 from HLM_PV_Import import utilities
-from HLM_PV_Import.constants import PvConfig
+from HLM_PV_Import.constants import CA
 from parameterized import parameterized
 
 
@@ -27,7 +27,7 @@ class TestUtilities(unittest.TestCase):
         self.assertEqual(exp_val, result)
 
     @parameterized.expand([
-        (f'{PvConfig.PV_PREFIX}:{PvConfig.PV_DOMAIN}:NAME1', 'NAME1'),
+        (f'{CA.PV_PREFIX}:{CA.PV_DOMAIN}:NAME1', 'NAME1'),
         ('NAME1', 'NAME1')
     ])
     def test_GIVEN_pv_name_WHEN_get_short_name_THEN_name_without_domain_is_returned(self, input_val, exp_val):
@@ -38,18 +38,18 @@ class TestUtilities(unittest.TestCase):
         self.assertEqual(exp_val, result)
 
     @parameterized.expand([
-        ('MOTHER_DEWAR:HE_LEVEL', f'{PvConfig.PV_PREFIX}:{PvConfig.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'),
+        ('MOTHER_DEWAR:HE_LEVEL', f'{CA.PV_PREFIX}:{CA.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'),
         (
-            f'{PvConfig.PV_PREFIX}:{PvConfig.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL',
-            f'{PvConfig.PV_PREFIX}:{PvConfig.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'
+            f'{CA.PV_PREFIX}:{CA.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL',
+            f'{CA.PV_PREFIX}:{CA.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'
         ),
         (
-            f'{PvConfig.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL',
-            f'{PvConfig.PV_PREFIX}:{PvConfig.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'
+            f'{CA.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL',
+            f'{CA.PV_PREFIX}:{CA.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'
         ),
         (
-            f'{PvConfig.PV_PREFIX}:MOTHER_DEWAR:HE_LEVEL',
-            f'{PvConfig.PV_PREFIX}:{PvConfig.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'
+            f'{CA.PV_PREFIX}:MOTHER_DEWAR:HE_LEVEL',
+            f'{CA.PV_PREFIX}:{CA.PV_DOMAIN}:MOTHER_DEWAR:HE_LEVEL'
         )
     ])
     def test_GIVEN_pv_name_WHEN_get_full_name_THEN_return_full_name(self, input_val, exp_val):
@@ -94,8 +94,8 @@ class TestUtilities(unittest.TestCase):
 
     def test_GIVEN_pv_names_WHEN_remove_raw_and_sim_pvs_THEN_correct_list_returned(self):
         # Arrange
-        prefix = self.utilities.PvConfig.PV_PREFIX
-        domain = self.utilities.PvConfig.PV_DOMAIN
+        prefix = self.utilities.CA.PV_PREFIX
+        domain = self.utilities.CA.PV_DOMAIN
 
         pv_names = [
             f'{prefix}:{domain}:230ABC:ALARM',

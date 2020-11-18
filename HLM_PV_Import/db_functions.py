@@ -22,14 +22,15 @@ def get_object_id(object_name):
     Returns:
         (int): The object ID.
     """
-    search = f"WHERE `OB_NAME` LIKE '{object_name}'"
-    result = _select(table=Tables.OBJECT, columns='OB_ID', filters=search, f_elem=True)
+    search = 'WHERE `OB_NAME` LIKE %s'
+    search_data = (object_name,)
+    result = _select(table=Tables.OBJECT, columns='OB_ID', filters=search, filters_args=search_data, f_elem=True)
     return result
 
 
 def add_measurement(record_name, mea_values: dict, mea_valid=0):
     """
-    Adds a measurement (and its relationship) to the database.
+    Adds a measurement to the database.
 
     Args:
         record_name (str): Record name of the object the measurement is for.
@@ -72,8 +73,6 @@ def add_measurement(record_name, mea_values: dict, mea_valid=0):
     db_logger.log_new_measurement(record_no=last_id, obj_id=object_id,
                                   obj_name=record_name, values=mea_values, print_msg=True)
 
-    add_relationship(assigned=object_id, removal_date=mea_date)
-
 
 def add_relationship(assigned, start_date=None, removal_date=None):
     """
@@ -106,10 +105,10 @@ def _create_pv_import_object_if_not_exist():
     Creates the HLM PV Import object if it doesn't exist in the DB yet.
     """
     # CREATE OBJECT IF IT DOES NOT EXIST
-    results = _select(table=Tables.OBJECT, filters=f"WHERE OB_NAME LIKE '{IMPORT_OBJECT}'")
+    results = _select(table=Tables.OBJECT, filters='WHERE OB_NAME LIKE %s', filters_args=(IMPORT_OBJECT,))
     if not results:
-        pv_import_type_id = _select(table=Tables.OBJECT_TYPE, columns='OT_ID',
-                                    filters=f"WHERE OT_NAME LIKE '{IMPORT_OBJECT_TYPE}'", f_elem=True)
+        pv_import_type_id = _select(table=Tables.OBJECT_TYPE, columns='OT_ID', filters='WHERE OT_NAME LIKE %s',
+                                    filters_args=(IMPORT_OBJECT_TYPE,), f_elem=True)
         if not pv_import_type_id:
             raise Exception(f'Could not find type with name "{IMPORT_OBJECT_TYPE}" in the database.')
 
@@ -141,11 +140,11 @@ def _get_object_type(object_id, name_only=False):
         (str/dict): The type name/record of the object.
     """
 
-    type_id = _select(table=Tables.OBJECT, columns='OB_OBJECTTYPE_ID', filters=f'WHERE OB_ID LIKE {object_id}',
-                      f_elem=True)
+    type_id = _select(table=Tables.OBJECT, columns='OB_OBJECTTYPE_ID', filters='WHERE OB_ID LIKE %s',
+                      filters_args=(object_id,), f_elem=True)
 
     columns = 'OT_NAME' if name_only else '*'
-    record = _select(table=Tables.OBJECT_TYPE, columns=columns, filters=f'WHERE OT_ID LIKE {type_id}')
+    record = _select(table=Tables.OBJECT_TYPE, columns=columns, filters='WHERE OT_ID LIKE %s', filters_args=(type_id,))
     if name_only:
         record = record[0]
 
@@ -166,7 +165,8 @@ def _get_object_class(object_id, name_only=False):
     type_record = _get_object_type(object_id)
     class_id = type_record[0][1]
     columns = 'OC_NAME' if name_only else '*'
-    record = _select(table=Tables.OBJECT_CLASS, columns=columns, filters=f'WHERE OC_ID LIKE {class_id}')
+    record = _select(table=Tables.OBJECT_CLASS, columns=columns, filters='WHERE OC_ID LIKE %s',
+                     filters_args=(class_id,))
     if name_only:
         record = record[0]
 
@@ -216,14 +216,15 @@ def _get_table_columns(table, names_only=False):
                 connection.close()
 
 
-def _select(table, columns='*', filters=None, f_elem=False):
+def _select(table, columns='*', filters=None, filters_args=None, f_elem=False):
     """
     Returns the list of records from the given table.
 
     Args:
         table (str): The table to look in.
         columns (str, optional): The columns to be fetched, Defaults to '*' (all).
-        filters (str, optional): Search conditions, e.g. 'WHERE type LIKE "cat"', Defaults to None
+        filters (str, optional): Search conditions, e.g. 'WHERE type LIKE %s', Defaults to None
+        filters_args (tuple, optional): Search conditions data, e.g. ('cat',)
         f_elem (boolean, optional): If a list/tuple of one element is returned, return only the element,
             Defaults to False.
 
@@ -245,7 +246,7 @@ def _select(table, columns='*', filters=None, f_elem=False):
             if filters:
                 query += f' {filters}'
 
-            cursor.execute(query)
+            cursor.execute(query, filters_args)
             records = cursor.fetchall()
 
             # If records are made of single-element tuples, convert to list of strings
@@ -320,7 +321,8 @@ def _get_object_name(object_id):
     Returns:
         (str): The object name.
     """
-    object_name = _select(table=Tables.OBJECT, columns='OB_NAME', filters=f'WHERE OB_ID LIKE {object_id}', f_elem=True)
+    object_name = _select(table=Tables.OBJECT, columns='OB_NAME', filters='WHERE OB_ID LIKE %s',
+                          filters_args=(object_id,), f_elem=True)
 
     return object_name
 
@@ -332,9 +334,9 @@ def _get_primary_key_column(table):
     Returns:
         (str): The PK column name.
     """
-    sql = f"WHERE TABLE_NAME = '{table}'AND CONSTRAINT_NAME = 'PRIMARY'"
-    table = 'information_schema.KEY_COLUMN_USAGE'
-    pk_column = _select(table=table, columns='COLUMN_NAME', filters=sql, f_elem=True)
+    sql = "WHERE TABLE_NAME = %s AND CONSTRAINT_NAME = 'PRIMARY'"
+    info_schema = 'information_schema.KEY_COLUMN_USAGE'
+    pk_column = _select(table=info_schema, columns='COLUMN_NAME', filters=sql, filters_args=(table,), f_elem=True)
 
     return pk_column
 
@@ -361,7 +363,7 @@ def _get_pv_import_object_id():
     Returns:
         (int): The PV Import object ID.
     """
-    search = f"WHERE OB_NAME LIKE '{IMPORT_OBJECT}'"
-    result = _select(table=Tables.OBJECT, columns='OB_ID', filters=search, f_elem=True)
+    search = "WHERE OB_NAME LIKE %s"
+    result = _select(table=Tables.OBJECT, columns='OB_ID', filters=search, filters_args=(IMPORT_OBJECT,), f_elem=True)
 
     return result

@@ -37,38 +37,32 @@ class TestUserConfig(unittest.TestCase):
 
     def test_GIVEN_records_with_pvs_WHEN_check_if_records_have_measurement_pvs_THEN_no_exception(self):
         config = UserConfig()
-        config.entries = {
-            'entry': [
+        config.entries = [
                 {'record_name': 'record_one', 'measurements': {'pv_name': 'one_one'}},
                 {'record_name': 'record_two', 'measurements': {'pv_name': ['two_one', 'two_two']}},
                 {'record_name': 'record_three', 'measurements': {'pv_name': ['three_one', 'one_one']}}
             ]
-        }
         config._check_records_have_at_least_one_measurement_pv()
 
     def test_GIVEN_record_with_no_pvs_WHEN_check_if_records_have_measurement_pvs_THEN_exception_raised(self):
         with patch('HLM_PV_Import.user_config.log_error'):
             config = UserConfig()
-            config.entries = {
-                'entry': [
+            config.entries = [
                     {'record_name': 'record_one', 'measurements': {'pv_name': 'one_one'}},
                     {'record_name': 'record_two', 'measurements': {'pv_name': None}},
                     {'record_name': 'record_three', 'measurements': {'pv_name': ['three_one', 'one_one']}}
                 ]
-            }
             with self.assertRaises(UserConfigurationException):
                 config._check_records_have_at_least_one_measurement_pv()
 
     def test_GIVEN_records_with_no_pvs_WHEN_check_if_records_have_measurement_pvs_THEN_exception_raised(self):
         with patch('HLM_PV_Import.user_config.log_error'):
             config = UserConfig()
-            config.entries = {
-                'entry': [
+            config.entries = [
                     {'record_name': 'record_one', 'measurements': {'pv_name': None}},
                     {'record_name': 'record_two', 'measurements': {'pv_name': None}},
                     {'record_name': 'record_three', 'measurements': {'pv_name': None}}
                 ]
-            }
             with self.assertRaises(UserConfigurationException):
                 config._check_records_have_at_least_one_measurement_pv()
 
@@ -111,13 +105,11 @@ class TestUserConfig(unittest.TestCase):
     def test_GIVEN_entries_WHEN_get_measurement_pvs_THEN_pvs_returned(self):
         # Arrange
         config = UserConfig()
-        config.entries = {
-            'entry': [
+        config.entries = [
                 {'record_name': 'record_one', 'measurements': {'pv_name': 'one_one'}},
                 {'record_name': 'record_two', 'measurements': {'pv_name': ['two_one', 'two_two']}},
                 {'record_name': 'record_three', 'measurements': {'pv_name': ['three_one', 'one_one']}}
             ]
-        }
         expected_value = ['one_one', 'two_one', 'two_two', 'three_one']
 
         # Act
@@ -131,11 +123,9 @@ class TestUserConfig(unittest.TestCase):
     def test_GIVEN_entry_WHEN_get_measurement_pvs_THEN_pvs_returned(self):
         # Arrange
         config = UserConfig()
-        config.entries = {
-            'entry': [
+        config.entries = [
                 {'record_name': 'record_one', 'measurements': {'pv_name': 'one_one'}},
             ]
-        }
         expected_value = ['one_one']
 
         # Act
@@ -147,13 +137,11 @@ class TestUserConfig(unittest.TestCase):
     def test_GIVEN_entries_WHEN_get_measurement_pvs_with_duplicates_THEN_pvs_returned(self):
         # Arrange
         config = UserConfig()
-        config.entries = {
-            'entry': [
+        config.entries = [
                 {'record_name': 'record_one', 'measurements': {'pv_name': 'one_one'}},
                 {'record_name': 'record_two', 'measurements': {'pv_name': ['two_one', 'two_two']}},
                 {'record_name': 'record_three', 'measurements': {'pv_name': ['three_one', 'one_one']}}
             ]
-        }
         expected_value = ['one_one', 'two_one', 'two_two', 'three_one', 'one_one']
 
         # Act
@@ -165,13 +153,12 @@ class TestUserConfig(unittest.TestCase):
     def test_GIVEN_entries_with_empty_measurements_WHEN_get_measurement_pvs_THEN_pvs_returned(self):
         # Arrange
         config = UserConfig()
-        config.entries = {
-            'entry': [
+        config.entries = [
                 {'record_name': 'record_one', 'measurements': {'pv_name': 'one_one'}},
                 {'record_name': 'record_two', 'measurements': {'pv_name': ['two_one', 'two_two']}},
                 {'record_name': 'record_three', 'measurements': {'pv_name': None}}
             ]
-        }
+
         expected_value = ['one_one', 'two_one', 'two_two']
 
         # Act
@@ -269,13 +256,11 @@ class TestUserConfig(unittest.TestCase):
     def test_GIVEN_entry_with_single_pv_WHEN_get_record_measurement_pvs_THEN_pvs_returned(self):
         # Arrange
         config = UserConfig()
-        config.entries = {
-            'entry': [
+        config.entries = [
                 {'record_name': 'record_one', 'measurements': {'pv_name': 'one_one'}},
                 {'record_name': 'record_two', 'measurements': {'pv_name': ['two_one', 'two_two']}},
                 {'record_name': 'record_three', 'measurements': {'pv_name': ['three_one', 'one_one']}}
             ]
-        }
         record_name = 'record_one'
         expected_value = ['one_one']
 
@@ -288,13 +273,11 @@ class TestUserConfig(unittest.TestCase):
     def test_GIVEN_entry_with_multiple_pvs_WHEN_get_record_measurement_pvs_THEN_pvs_returned(self):
         # Arrange
         config = UserConfig()
-        config.entries = {
-            'entry': [
+        config.entries = [
                 {'record_name': 'record_one', 'measurements': {'pv_name': 'one_one'}},
                 {'record_name': 'record_two', 'measurements': {'pv_name': ['two_one', 'two_two']}},
                 {'record_name': 'record_three', 'measurements': {'pv_name': ['three_one', 'one_one']}}
             ]
-        }
         record_name = 'record_two'
         expected_value = ['two_one', 'two_two']
 
@@ -307,14 +290,12 @@ class TestUserConfig(unittest.TestCase):
     def test_GIVEN_entries_WHEN_get_logging_periods_THEN_records_and_periods_returned(self):
         # Arrange
         config = UserConfig()
-        config.entries = {
-            'entry': [
+        config.entries = [
                 {'record_name': 'record_one', 'logging_period': 60, 'measurements': {'pv_name': 'one_one'}},
                 {'record_name': 'record_two', 'logging_period': 1, 'measurements': {'pv_name': ['two_one', 'two_two']}},
                 {'record_name': 'record_three', 'logging_period': 40, 'measurements': {
                     'pv_name': ['three_one', 'one_one']}}
             ]
-        }
         expected_value = {'record_one': 60, 'record_two': 1, 'record_three': 40}
 
         # Act
