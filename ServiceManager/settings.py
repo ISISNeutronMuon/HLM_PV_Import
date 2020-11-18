@@ -7,15 +7,19 @@ VER = '1.0.0'
 B_DATE = '10 November 2020'
 
 if getattr(sys, 'frozen', False):
-    APP_PATH = os.path.dirname(sys.executable)
+    # BASE_PATH = os.path.dirname(sys.executable)
+    # noinspection PyProtectedMember
+    # noinspection PyUnresolvedReferences
+    BASE_PATH = sys._MEIPASS
 else:
-    APP_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+    BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Assets & Layouts
-gui_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'GUI')
+gui_dir = os.path.join(BASE_PATH, 'GUI')
 icon_path = os.path.join(gui_dir, 'assets', 'icon.svg')
 about_logo_path = os.path.join(gui_dir, 'assets', 'isis-logo.png')
+main_window_ui = os.path.join(gui_dir, 'layouts', 'MainWindow.ui')
 about_ui = os.path.join(gui_dir, 'layouts', 'about.ui')
 db_settings_ui = os.path.join(gui_dir, 'layouts', 'DBSettings.ui')
 general_settings_ui = os.path.join(gui_dir, 'layouts', 'GeneralSettings.ui')
@@ -24,7 +28,7 @@ service_path_dlg_ui = os.path.join(gui_dir, 'layouts', 'ServicePathDialog.ui')
 
 
 # Directory for storing the manager app settings and persistent data
-MANAGER_SETTINGS_DIR = os.path.join(os.getenv('ALLUSERSPROFILE'), 'HLM Service Manager', '')
+MANAGER_SETTINGS_DIR = os.path.join(os.getenv('LOCALAPPDATA'), 'HLM Service Manager', '')
 MANAGER_SETTINGS_FILE = os.path.join(MANAGER_SETTINGS_DIR, 'settings.ini')
 SERVICE_SETTINGS_FILE_NAME = os.path.join('settings.ini')
 

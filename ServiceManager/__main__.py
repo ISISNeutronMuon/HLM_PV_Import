@@ -54,9 +54,14 @@ def excepthook(exc_type, exc_value, exc_tb):
     # QApplication.quit()  # or QtWidgets.QApplication.exit(0)
 
 
-sys.excepthook = excepthook
-e = App()
-ret = e.app.exec_()
-print("Event loop exited.")
-e.app.quit()
-sys.exit(ret)
+def main():
+    sys.excepthook = excepthook
+    e = App()
+    ret = e.app.exec_()
+    print("Event loop exited.")
+    e.app.quit()
+    sys.exit(ret)
+
+
+if __name__ == '__main__':
+    main()

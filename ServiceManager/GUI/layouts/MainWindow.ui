@@ -392,14 +392,14 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="searchButton">
+            <widget class="QPushButton" name="filterButton">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
-              <string>Search</string>
+              <string>Filter</string>
              </property>
             </widget>
            </item>
@@ -488,6 +488,9 @@
               <widget class="QTableWidget" name="configTable">
                <property name="alternatingRowColors">
                 <bool>false</bool>
+               </property>
+               <property name="selectionBehavior">
+                <enum>QAbstractItemView::SelectRows</enum>
                </property>
                <property name="sortingEnabled">
                 <bool>true</bool>

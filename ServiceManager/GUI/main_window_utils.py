@@ -39,6 +39,7 @@ class ServiceLogUpdaterThread(QThread):
         QThread.__init__(self, *args, **kwargs)
         self.timer = QTimer()
         self.timer.moveToThread(self)
+        self.finished.connect(self.timer.stop)  # When thread is finished, stop timer
         self.timer.timeout.connect(self.update_log)
         self.last_widget_update = 0
         self.displayed_lines_no = display_lines_no
@@ -99,6 +100,7 @@ class ServiceStatusCheckThread(QThread):
         QThread.__init__(self, *args, **kwargs)
         self.timer = QTimer()
         self.timer.moveToThread(self)
+        self.finished.connect(self.timer.stop)  # When thread is finished, stop timer
         self.timer.timeout.connect(self.update_status)
 
         # region Styles

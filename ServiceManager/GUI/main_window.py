@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QMessageBox, QPla
 from PyQt5 import uic
 
 from ServiceManager.logger import logger
-from ServiceManager.settings import Settings
+from ServiceManager.settings import Settings, main_window_ui
 from ServiceManager.GUI.about import UIAbout
 from ServiceManager.GUI.db_settings import UIDBSettings
 from ServiceManager.GUI.general_settings import UIGeneralSettings
@@ -20,9 +20,7 @@ from ServiceManager.GUI.main_window_utils import ServiceLogUpdaterThread, Servic
 class UIMainWindow(QMainWindow):
     def __init__(self):
         super(UIMainWindow, self).__init__()
-
-        ui_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'layouts', 'MainWindow.ui')
-        uic.loadUi(ui_file_path, self)
+        uic.loadUi(main_window_ui, self)
 
         # Update title if app running with admin privileges
         if is_admin():
@@ -40,6 +38,8 @@ class UIMainWindow(QMainWindow):
         self.service_name = None
         self.service_debug_f = None
         self.service_path = None
+
+        self.config_data = []
         # endregion
 
         # region Menu actions
@@ -82,9 +82,9 @@ class UIMainWindow(QMainWindow):
         self.service_log_show_lines_spinbox = self.service_log_panel.findChild(QSpinBox, 'logLinesSpinBox')
         self.service_log_font_size = self.service_log_panel.findChild(QComboBox, 'fontSizeCB')
 
-        self.table_config = self.findChild(QTableWidget, 'configTable')
+        self.config_table = self.findChild(QTableWidget, 'configTable')
         self.refresh_btn = self.findChild(QPushButton, 'refreshButton')
-        self.search_btn = self.findChild(QPushButton, 'searchButton')
+        self.filter_btn = self.findChild(QPushButton, 'filterButton')
         # endregion
 
         # region Connect signals to slots
@@ -100,7 +100,7 @@ class UIMainWindow(QMainWindow):
         self.service_log_font_size.currentTextChanged.connect(self.update_log_font_size)
 
         self.refresh_btn.clicked.connect(self.refresh_btn_clicked)
-        self.search_btn.clicked.connect(self.search_btn_clicked)
+        self.filter_btn.clicked.connect(self.filter_btn_clicked)
         # endregion
 
         # region Threads
@@ -224,26 +224,35 @@ class UIMainWindow(QMainWindow):
     # endregion
 
     # region Main frame slots
-    def refresh_btn_clicked(self):
-        self.update_config_table()
-
-    def search_btn_clicked(self):
-        print('search')
-        a = self.table_config.findItems('ve', Qt.MatchContains)
-        print(a)
-        for x in a:
-            print(x.text())
-
-    def update_config_table(self):
-        self.table_config.setSortingEnabled(False)  # otherwise table will not be properly updated if columns are sorted
-        self.table_config.setRowCount(0)  # it will delete the QTableWidgetItems automatically
-
+    def update_config_data(self):
         config_settings = Settings.Service.UserConfig
         try:
-            config_entries = get_config_entries(config_settings)
+            self.config_data = get_config_entries(config_settings)
         except FileNotFoundError as e:
             logger.info(e)
+            self.config_data = []
             return
+
+    def refresh_btn_clicked(self):
+        self.update_config_data()
+        self.update_config_table()
+
+    def filter_btn_clicked(self):
+        results = self.config_table.findItems('Epics', Qt.MatchContains)
+        rows = set(item.row() for item in results)
+
+        for index in range(self.config_table.rowCount()):
+            self.config_table.setRowHidden(index, True)
+
+        for row in rows:
+            self.config_table.setRowHidden(row, False)
+
+    def update_config_table(self):
+        self.config_table.setSortingEnabled(False)  # otherwise table will not be properly updated if columns are sorted
+        self.config_table.setRowCount(0)  # it will delete the QTableWidgetItems automatically
+
+        config_settings = Settings.Service.UserConfig
+        config_entries = self.config_data
 
         for entry in config_entries:
             # store the entry data in a list
@@ -252,7 +261,7 @@ class UIMainWindow(QMainWindow):
                 entry[config_settings.LOG_PERIOD],
                 *entry[config_settings.MEAS][config_settings.PV]
             ]
-            self.table_config.insertRow(self.table_config.rowCount())
+            self.config_table.insertRow(self.config_table.rowCount())
 
             # for each element of the entry data, add it to an item then add the item to the appropriate table cell
             for index, elem in enumerate(entry_data):
@@ -260,12 +269,13 @@ class UIMainWindow(QMainWindow):
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
                 item.setText(elem)
                 item.setToolTip(elem)
-                self.table_config.setItem(self.table_config.rowCount() - 1, index, item)
-        self.table_config.setSortingEnabled(True)
+                self.config_table.setItem(self.config_table.rowCount() - 1, index, item)
+        self.config_table.setSortingEnabled(True)
     # endregion
 
     # region Update on Service Change
     def update_fields(self):
+        self.update_config_data()
         self.update_config_table()
 
     def update_service(self):

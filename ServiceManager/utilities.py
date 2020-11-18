@@ -56,3 +56,6 @@ def get_config_entries(UserConfig):
         return_val = config[UserConfig.ROOT][UserConfig.ENTRY]
         return return_val
 
+
+# def add_config_entry
+    # todo
