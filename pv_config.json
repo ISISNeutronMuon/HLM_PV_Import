@@ -1,0 +1,23 @@
+{
+    "records": [
+        {
+            "object_id": 64,
+            "logging_period": 1,
+            "measurements": {
+                "1": "MOTHER_DEWAR:HE_LEVEL",
+                "2": "MCP1:BANK6:SPARE_STORAGE"
+            }
+        },
+        {
+            "object_id": 62,
+            "logging_period": 1,
+            "measurements": {
+                "1": null,
+                "2": "MOTHER_DEWAR:HE_LEVEL",
+                "3": null,
+                "4": "MCP1:BANK6:SPARE_STORAGE",
+                "5": null
+            }
+        }
+    ]
+}

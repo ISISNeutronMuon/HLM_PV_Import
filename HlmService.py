@@ -8,11 +8,11 @@ import win32service
 import win32serviceutil
 from service_logging import logger, log_exception
 
-from HLM_PV_Import.constants import Service
+from HLM_PV_Import.settings import Service
 from HLM_PV_Import.ca_wrapper import PvMonitors
 from HLM_PV_Import.user_config import UserConfig
 from HLM_PV_Import.pv_import import PvImport
-from HLM_PV_Import.constants import CA
+from HLM_PV_Import.settings import CA
 
 
 class PVImportService(win32serviceutil.ServiceFramework):

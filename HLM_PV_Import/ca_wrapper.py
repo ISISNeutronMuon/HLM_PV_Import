@@ -5,7 +5,7 @@ from caproto import CaprotoTimeoutError
 from caproto.sync.client import read
 from caproto.threading.client import Context
 from HLM_PV_Import.logger import log_ca_error, log_stale_pv_warning
-from HLM_PV_Import.constants import CA
+from HLM_PV_Import.settings import CA
 import time
 
 # Default timeout for reading a PV
@@ -82,6 +82,9 @@ class PvMonitors:
 
     def get_data(self):
         return self._pv_data
+
+    def get_pv_data(self, pv_name):
+        return self._pv_data[pv_name]
 
     def _callback_f(self, sub, response):
         """

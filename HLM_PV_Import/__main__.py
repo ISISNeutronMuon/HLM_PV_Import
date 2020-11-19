@@ -5,18 +5,19 @@ Helium Level Monitoring Project - HeRecovery Database PV Import
 from HLM_PV_Import.ca_wrapper import PvMonitors
 from HLM_PV_Import.user_config import UserConfig
 from HLM_PV_Import.pv_import import PvImport
-from HLM_PV_Import.constants import CA
+from HLM_PV_Import.settings import CA
 import os
 
 
 def main():
     # Setup the channel access address list in order to connect to PVs
     os.environ['EPICS_CA_ADDR_LIST'] = CA.EPICS_CA_ADDR_LIST
+    from HLM_PV_Import.ca_wrapper import get_pv_value
 
     # Get the user configuration and the list of measurement PVs
     config = UserConfig()
     pv_list = config.get_measurement_pvs(no_duplicates=True, full_names=True)
-    print(pv_list)
+    print(f'PVs to monitor: {pv_list}')
 
     # Initialize the PV monitoring and set up the monitors for each measurement PV from the user config
     pv_monitors = PvMonitors(pv_list)

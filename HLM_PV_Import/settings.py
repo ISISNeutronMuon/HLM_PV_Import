@@ -71,16 +71,10 @@ class PvImportConfig:
 
 
 # User Configuration
-class UserConfigConst:
-    CONFIG_DIR = config['UserConfig']['DIRECTORY']
-    FILE = config['UserConfig']['FILE']
-    SCHEMA = config['UserConfig']['SCHEMA']
-
-    PATH = os.path.join(BASE_PATH, CONFIG_DIR, FILE)
-    SCHEMA_PATH = os.path.join(BASE_PATH, CONFIG_DIR, SCHEMA)
-    ROOT = 'configuration'
-    ENTRY = 'entry'
-    RECORD = 'record_name'
+class PVConfigConst:
+    FILE = config['PVConfig']['FILE']
+    PATH = os.path.join(BASE_PATH, FILE)
+    ROOT = 'records'
+    OBJ = 'object_id'
     MEAS = 'measurements'
-    PV = 'pv_name'
     LOG_PERIOD = 'logging_period'

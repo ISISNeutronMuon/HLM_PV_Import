@@ -1,7 +1,7 @@
 """
 Various utility functions
 """
-from HLM_PV_Import.constants import CA
+from HLM_PV_Import.settings import CA
 from collections import Counter
 
 
@@ -24,16 +24,6 @@ def single_tuples_to_strings(tuple_list):
         else:
             string_list.append(elem)
     return string_list
-
-
-def get_types_list(values):
-    """
-    Given a list of values, returns a list of their types, one entry per type.
-    """
-    types = set()
-    for value in values:
-        types.add(type(value))
-    return types
 
 
 def pv_name_without_prefix_and_domain(name):
@@ -64,51 +54,6 @@ def get_full_pv_name(name):
     name = pv_name_without_prefix_and_domain(name)
     name = f'{CA.PV_PREFIX}:{CA.PV_DOMAIN}:{name}'
     return name
-
-
-def list_add_blank_values(list_, size):
-    """
-    Adds None values to a list until the desired size is reached.
-
-    Args:
-        list_ (list): The list.
-        size (int): The desired length/size of the list.
-
-    """
-    if size < len(list_):
-        raise ValueError("Desired size cannot be lower than current size.")
-    blank_values = [None] * (size - len(list_))
-    list_.extend(blank_values)
-    return list_
-
-
-def get_blank_measurements_dict():
-    """
-    Returns a blank (None values) measurements dict.
-    """
-    dict_ = {
-        1: None,
-        2: None,
-        3: None,
-        4: None,
-        5: None
-    }
-    return dict_
-
-
-def meas_values_dict_valid(dict_):
-    """
-    Checks whether the given measurements values dictionary is valid (5 keys named from 1 to 5).
-
-    Args:
-        dict_ (dict): The measurements/mea_values dictionary.
-
-    Returns:
-        (boolean): True if valid, else False
-    """
-    keys = list(dict_.keys())
-    expected_keys = [1, 2, 3, 4, 5]
-    return Counter(keys) == Counter(expected_keys)
 
 
 def remove_raw_and_sim_pvs(pv_names):

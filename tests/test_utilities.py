@@ -1,6 +1,6 @@
 import unittest
 from HLM_PV_Import import utilities
-from HLM_PV_Import.constants import CA
+from HLM_PV_Import.settings import CA
 from parameterized import parameterized
 
 
@@ -58,39 +58,6 @@ class TestUtilities(unittest.TestCase):
 
         # Assert
         self.assertEqual(exp_val, result)
-
-    @parameterized.expand([
-        ([], 5, [None, None, None, None, None]),
-        ([1, 2], 5, [1, 2, None, None, None]),
-        ([1, 2, 3, 4, 5], 5, [1, 2, 3, 4, 5]),
-    ])
-    def test_GIVEN_list_WHEN_add_list_blank_values_THEN_return_correct_list_size(self, list_, size, expected):
-        # Act
-        result = self.utilities.list_add_blank_values(list_, size)
-
-        # Assert
-        self.assertEqual(expected, result)
-
-    def test_GIVEN_list_bigger_size_WHEN_add_list_blank_values_THEN_return_correct_list_size(self):
-        # Arrange
-        list_ = [1, 2, 3, 4, 5]
-        size = 4
-
-        # Assert
-        with self.assertRaises(ValueError):
-            self.utilities.list_add_blank_values(list_, size)
-
-    @parameterized.expand([
-        (True, {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}),
-        (False, {1: 1, 2: 2, 3: 3, 4: 4}),
-        (False, {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6}),
-        (False, {1: 1, 2: 2, 6: 3, 4: 4, 5: 5}),
-        (False, {}),
-        (True, {1: None, 2: None, 3: None, 4: None, 5: None})
-    ])
-    def test_GIVEN_measurements_dict_WHEN_check_meas_dict_valid_THEN_return_validity(self, expected, meas_dict):
-        result = self.utilities.meas_values_dict_valid(meas_dict)
-        self.assertEqual(expected, result)
 
     def test_GIVEN_pv_names_WHEN_remove_raw_and_sim_pvs_THEN_correct_list_returned(self):
         # Arrange

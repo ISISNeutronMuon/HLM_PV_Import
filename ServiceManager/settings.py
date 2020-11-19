@@ -39,7 +39,7 @@ MANAGER_SETTINGS_TEMPLATE = {
 SERVICE_SETTINGS_TEMPLATE = {
     'ChannelAccess': ['EPICS_CA_ADDR_LIST', 'ConnectionTimeout', 'PvStaleAfter', 'PV_PREFIX', 'PV_DOMAIN'],
     'PVImport': ['LoopTimer'],
-    'UserConfig': ['DIRECTORY', 'FILE', 'SCHEMA'],
+    'PVConfig': ['FILE'],
     'HeRecoveryDB': ['Host', 'Name', 'DBObjectName', 'DBObjectType'],
     'Service': ['Name', 'DisplayName', 'Description'],
     'Logging': ['DirectoryPath']
@@ -141,44 +141,26 @@ class ServiceSettings:
         self.Info = self.Info(self)
         self.CA = self.CA(self)
         self.Logging = self.Logging(self)
-        self.UserConfig = self.UserConfig(self)
+        self.PVConfig = self.PVConfig(self)
 
     def update(self):
         with open(self.settings_path, 'w') as settings_file:
             self.config_parser.write(settings_file)
 
-    class UserConfig:
+    class PVConfig:
         def __init__(self, outer):
             self.outer = outer
-            self.ROOT = 'configuration'
-            self.ENTRY = 'entry'
-            self.RECORD = 'record_name'
+            self.ROOT = 'records'
+            self.OBJ = 'object_id'
             self.MEAS = 'measurements'
-            self.PV = 'pv_name'
             self.LOG_PERIOD = 'logging_period'
 
         def get_path(self):
-            config_dir = self.get_config_dir_name()
             config_file = self.get_config_file_name()
-            return os.path.join(self.outer.service_path, config_dir, config_file)
-
-        def get_dir_path(self):
-            config_dir = self.get_config_dir_name()
-            return os.path.join(self.outer.service_path, config_dir)
-
-        def get_schema_path(self):
-            config_dir = self.get_config_dir_name()
-            config_schema = self.get_schema_file_name()
-            return os.path.join(self.outer.service_path, config_dir, config_schema)
-
-        def get_config_dir_name(self):
-            return self.outer.config_parser['UserConfig']['DIRECTORY']
+            return os.path.join(self.outer.service_path, config_file)
 
         def get_config_file_name(self):
-            return self.outer.config_parser['UserConfig']['FILE']
-
-        def get_schema_file_name(self):
-            return self.outer.config_parser['UserConfig']['SCHEMA']
+            return self.outer.config_parser['PVConfig']['FILE']
 
     class Logging:
         def __init__(self, outer):
@@ -281,3 +263,13 @@ class ServiceSettings:
 
 
 Settings = Settings()
+
+
+# Helium DB Tables
+class Tables:
+    MEASUREMENT = 'gam_measurement'
+    OBJECT = 'gam_object'
+    OBJECT_TYPE = 'gam_objecttype'
+    OBJECT_CLASS = 'gam_objectclass'
+    OBJECT_RELATION = 'gam_objectrelation'
+    FUNCTION = 'gam_function'

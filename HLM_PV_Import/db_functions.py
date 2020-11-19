@@ -2,10 +2,10 @@
 Contains functions for working with the HeRecovery database.
 """
 import mysql.connector
-from HLM_PV_Import.utilities import single_tuples_to_strings, meas_values_dict_valid
+from HLM_PV_Import.utilities import single_tuples_to_strings
 from datetime import datetime
-from HLM_PV_Import.logger import log_db_error, log_error, DBLogger
-from HLM_PV_Import.constants import HEDB, Tables
+from HLM_PV_Import.logger import log_db_error, DBLogger
+from HLM_PV_Import.settings import HEDB, Tables
 
 IMPORT_OBJECT = HEDB.DB_OBJ_NAME  # The database PV Import object name
 IMPORT_OBJECT_TYPE = HEDB.DB_OBJ_TYPE
@@ -13,6 +13,17 @@ IMPORT_OBJECT_TYPE = HEDB.DB_OBJ_TYPE
 # setup the database events logger
 db_logger = DBLogger()
 db_logger.make_log()
+
+
+def get_object(object_id):
+    """
+    Gets the record of the object with the given ID.
+
+    Returns:
+
+    """
+    result = _select(table=Tables.OBJECT, filters='WHERE `OB_ID` = %s', filters_args=(object_id, ))
+    return result
 
 
 def get_object_id(object_name):
@@ -28,24 +39,16 @@ def get_object_id(object_name):
     return result
 
 
-def add_measurement(record_name, mea_values: dict, mea_valid=0):
+def add_measurement(object_id, mea_values: dict, mea_valid=True):
     """
     Adds a measurement to the database.
 
     Args:
-        record_name (str): Record name of the object the measurement is for.
-        mea_values (dict): A dict of the measurement values, max 5. (e.g. {1: 'val', 2: 'val2', ...} or {1: None,
-            2: 'val2', 3: None, ...})
+        object_id (int): Record/Object id of the object the measurement is for.
+        mea_values (dict): A dict of the measurement values, max 5, in measurement_number(str)/pv_value pairs.
         mea_valid (boolean, optional): True if the measurement is valid, Defaults to False.
     """
-
-    if not meas_values_dict_valid(mea_values):
-        err_msg = f'Measurement values dictionary invalid: {mea_values}'
-        log_error(err_msg)
-        raise ValueError(err_msg)
-
-    object_id = get_object_id(object_name=record_name)
-
+    record_name = _get_object_name(object_id)
     mea_obj_type = _get_object_type(object_id, name_only=True)
     mea_obj_class = _get_object_class(object_id, name_only=True)
     mea_comment = f'"{record_name}" ({mea_obj_type} - {mea_obj_class}) via {IMPORT_OBJECT}'
@@ -58,11 +61,11 @@ def add_measurement(record_name, mea_values: dict, mea_valid=0):
         'MEA_DATE2': mea_date,
         # 'MEA_STATUS': ,
         'MEA_COMMENT': mea_comment,
-        'MEA_VALUE1': mea_values[1],
-        'MEA_VALUE2': mea_values[2],
-        'MEA_VALUE3': mea_values[3],
-        'MEA_VALUE4': mea_values[4],
-        'MEA_VALUE5': mea_values[5],
+        'MEA_VALUE1': mea_values['1'],
+        'MEA_VALUE2': mea_values['2'],
+        'MEA_VALUE3': mea_values['3'],
+        'MEA_VALUE4': mea_values['4'],
+        'MEA_VALUE5': mea_values['5'],
         'MEA_VALID': 1 if mea_valid is True else 0,
         'MEA_BOOKINGCODE': 0,  # 0 = measurement is not from the balance program
     }

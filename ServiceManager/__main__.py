@@ -2,10 +2,10 @@ import traceback
 import sys
 from PyQt5.QtWidgets import QApplication, QErrorMessage
 from PyQt5.QtGui import QIcon, QFont
-from ServiceManager.GUI.main_window import UIMainWindow
-from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
 from ServiceManager.settings import icon_path, Settings
 from ServiceManager.logger import logger
+from ServiceManager.GUI.main_window import UIMainWindow
+from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
 
 
 class App:

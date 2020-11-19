@@ -27,8 +27,11 @@ class StreamToLogger:
 def get_logger():
     formatter = logging.Formatter('%(asctime)s %(process)d:%(thread)d %(name)s %(levelname)-8s %(message)s')
 
-    app_path = os.path.dirname(sys.executable)
-    log_dir = os.path.join(app_path, 'logs', 'debug')
+    if getattr(sys, 'frozen', False):
+        base_path = os.path.dirname(sys.executable)
+    else:
+        base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+    log_dir = os.path.join(base_path, 'logs', 'debug')
     log_file = os.path.join(log_dir, 'debug.log')
 
     logger_ = logging.getLogger()

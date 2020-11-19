@@ -2,7 +2,7 @@
 import os
 import sys
 import time
-from HLM_PV_Import.constants import UserConfigConst, LoggersConst
+from HLM_PV_Import.settings import PVConfigConst, LoggersConst
 
 ERR_LOG_DIR = LoggersConst.ERR_LOG_DIR
 DB_LOG_DIR = LoggersConst.DB_LOG_DIR
@@ -53,7 +53,7 @@ def log_stale_pv_warning(pv_name, time_since_last_update, print_err=False):
         sys.stderr.write(f'{err_msg}\n')
 
 
-def log_config_error(pv_name, config_file=UserConfigConst.FILE, print_err=False):
+def log_config_error(pv_name, config_file=PVConfigConst.FILE, print_err=False):
     """
     Logs a configuration error to the error log file.
 

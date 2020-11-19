@@ -2,7 +2,7 @@ import unittest
 from mock import patch, DEFAULT
 from parameterized import parameterized
 from HLM_PV_Import import db_functions
-from HLM_PV_Import.constants import Tables, HEDB
+from HLM_PV_Import.settings import Tables, HEDB
 from datetime import datetime
 
 
@@ -202,100 +202,30 @@ class TestAddMeasurement(unittest.TestCase):
     def setUp(self):
         patcher = patch.multiple('HLM_PV_Import.db_functions', datetime=DEFAULT, db_logger=DEFAULT,
                                  _get_table_last_id=DEFAULT, add_relationship=DEFAULT, _insert=DEFAULT,
-                                 _get_object_class=DEFAULT, _get_object_type=DEFAULT, get_object_id=DEFAULT,
-                                 log_error=DEFAULT, log_db_error=DEFAULT)
+                                 _get_object_class=DEFAULT, _get_object_type=DEFAULT, _get_object_name=DEFAULT,
+                                 log_db_error=DEFAULT)
         self.addCleanup(patcher.stop)
         self.mocks = patcher.start()
-
-    def test_GIVEN_valid_values_WHEN_add_measurement_THEN_correct_insert_query(self):
-        # Arrange
-        mock_obj_id = self.mocks['get_object_id']
-        mock_obj_type = self.mocks['_get_object_type']
-        mock_obj_class = self.mocks['_get_object_class']
-        mock_datetime = self.mocks['datetime']
-        mock_insert_query = self.mocks['_insert']
-
-        record_name = 'record_name'
-        mea_values = {1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e'}
-        mea_valid = True
-
-        mock_obj_id.return_value = 0
-        mock_datetime.now.return_value = datetime(1, 2, 3, 4, 5, 6)
-        mock_obj_type.return_value = 'obj_type_name'
-        mock_obj_class.return_value = 'obj_class_name'
-
-        expected_comment = f'"record_name" (obj_type_name - obj_class_name) via {HEDB.DB_OBJ_NAME}'
-        expected_dict = {
-            'MEA_OBJECT_ID': 0,
-            'MEA_DATE': '0001-02-03 04:05:06',
-            'MEA_DATE2': '0001-02-03 04:05:06',
-            'MEA_COMMENT': expected_comment,
-            'MEA_VALUE1': 'a',
-            'MEA_VALUE2': 'b',
-            'MEA_VALUE3': 'c',
-            'MEA_VALUE4': 'd',
-            'MEA_VALUE5': 'e',
-            'MEA_VALID': 1,
-            'MEA_BOOKINGCODE': 0
-        }
-
-        # Act
-        db_functions.add_measurement(record_name, mea_values, mea_valid)
-
-        # Assert
-        mock_insert_query.assert_called_with(Tables.MEASUREMENT, data=expected_dict)
-
-    def test_GIVEN_invalid_dict_WHEN_add_measurement_THEN_error_raised(self):
-        # Arrange
-        record_name = 'record_name'
-        mea_values = {1: 'a', 2: 'b', 3: 'c', 4: 'd', 'a': 'n'}
-        mea_valid = True
-
-        # Act & Assert
-        with self.assertRaises(ValueError):
-            db_functions.add_measurement(record_name, mea_values, mea_valid)
-
-    # def test_WHEN_add_measurement_THEN_relationship_added(self):
-    #     # Arrange
-    #     mock_add_relationship = self.mocks['add_relationship']
-    #     mock_obj_id = self.mocks['get_object_id']
-    #     mock_datetime = self.mocks['datetime']
-    #
-    #     mock_obj_id.return_value = 0
-    #     mock_datetime.now.return_value = datetime(1, 2, 3, 4, 5, 6)
-    #
-    #     expected_obj = 0
-    #     expected_date = '0001-02-03 04:05:06'
-    #
-    #     record_name = 'record_name'
-    #     mea_values = {1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e'}
-    #     mea_valid = True
-    #
-    #     # Act
-    #     db_functions.add_measurement(record_name, mea_values, mea_valid)
-    #
-    #     # Assert
-    #     mock_add_relationship.assert_called_with(assigned=expected_obj, or_date=expected_date)
 
     def test_WHEN_add_measurement_THEN_logger_called_correctly(self):
         # Arrange
         mock_logger = self.mocks['db_logger']
-        mock_obj_id = self.mocks['get_object_id']
+        mock_obj_name = self.mocks['_get_object_name']
         mock_last_id = self.mocks['_get_table_last_id']
-        mock_obj_id.return_value = 0
+        mock_obj_name.return_value = 'name'
         mock_last_id.return_value = 1
 
-        record_name = 'record_name'
-        mea_values = {1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e'}
+        record_id = 1
+        mea_values = {'1': 'a', '2': 'b', '3': 'c', '4': 'd', '5': 'e'}
         mea_valid = True
 
         exp_last_id = 1
-        exp_obj_id = 0
-        exp_record_name = 'record_name'
-        exp_mea_values = {1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e'}
+        exp_obj_id = 1
+        exp_record_name = 'name'
+        exp_mea_values = {'1': 'a', '2': 'b', '3': 'c', '4': 'd', '5': 'e'}
 
         # Act
-        db_functions.add_measurement(record_name, mea_values, mea_valid)
+        db_functions.add_measurement(record_id, mea_values, mea_valid)
 
         # Assert
         mock_logger.log_new_measurement.assert_called_with(record_no=exp_last_id, obj_id=exp_obj_id,

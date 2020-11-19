@@ -1,12 +1,11 @@
-from lxml import etree
-import xmltodict
 from iteration_utilities import duplicates, unique_everseen
 from HLM_PV_Import.logger import log_config_error
-from HLM_PV_Import.constants import UserConfigConst
-from HLM_PV_Import.db_functions import get_object_id
+from HLM_PV_Import.settings import PVConfigConst
+from HLM_PV_Import.db_functions import get_object
 from HLM_PV_Import.logger import log_error
 from HLM_PV_Import.utilities import get_full_pv_name
 from HLM_PV_Import.ca_wrapper import get_connected_pvs
+import json
 
 
 class UserConfig:
@@ -16,35 +15,16 @@ class UserConfig:
     """
 
     def __init__(self):
-        self._validate_config_with_schema()
         self.entries = self._get_all_entries()
         self.records = self._get_all_entry_records()
         self.logging_periods = self._get_logging_periods()
 
     def run_checks(self):
-        self._check_config_records_tag_not_empty()
+        self._check_config_records_id_is_not_empty()
         self._check_records_have_at_least_one_measurement_pv()
         self._check_config_records_unique()
         self._check_config_records_exist()
         self._check_measurement_pvs_connect()
-
-    @staticmethod
-    def _validate_config_with_schema():
-
-        schema_file = UserConfigConst.SCHEMA_PATH
-        with open(schema_file, 'rb') as f:
-            schema_root = etree.XML(f.read())
-
-        schema = etree.XMLSchema(schema_root)
-        xml_parser = etree.XMLParser(schema=schema)
-
-        config_file = UserConfigConst.PATH
-        try:
-            with open(config_file, 'rb') as f:
-                etree.fromstring(f.read(), xml_parser)
-            return True
-        except etree.XMLSchemaError:
-            return False
 
     def _check_config_records_unique(self):
         """
@@ -57,9 +37,9 @@ class UserConfig:
         if duplicate_records:
             err_msg = f'User configuration contains duplicate entry record names: {duplicate_records}'
             log_error(err_msg)
-            raise UserConfigurationException(err_msg)
+            raise PVConfigurationException(err_msg)
 
-    def _check_config_records_tag_not_empty(self):
+    def _check_config_records_id_is_not_empty(self):
         """
         Throws error if a tag in the user configuration has an empty body (value None).
 
@@ -70,7 +50,7 @@ class UserConfig:
             if not record:
                 err_msg = 'One or more elements in the user configuration is empty/null/None.'
                 log_error('One or more elements in the user configuration is empty/null/None.')
-                raise UserConfigurationException(err_msg)
+                raise PVConfigurationException(err_msg)
 
     def _check_config_records_exist(self):
         """
@@ -81,14 +61,14 @@ class UserConfig:
         """
         not_found = []
         for record in self.records:
-            result = get_object_id(record)
+            result = get_object(record)
             if not result:
                 not_found.append(record)
 
         if not_found:
-            err_msg = f'User configuration contains record names that were not found in the DB: {not_found}'
+            err_msg = f'User configuration contains records IDs that were not found in the DB: {not_found}'
             log_error(err_msg)
-            raise UserConfigurationException(err_msg)
+            raise PVConfigurationException(err_msg)
 
     def _check_measurement_pvs_connect(self):
         """
@@ -97,7 +77,7 @@ class UserConfig:
         Raises:
             ValueError: If one or more PVs were not found.
         """
-        print('UserConfig: Checking measurement PVs...')
+        print('PVConfig: Checking measurement PVs...')
         config_pvs = self.get_measurement_pvs(no_duplicates=True, full_names=True)
         connected_pvs = get_connected_pvs(config_pvs)
         not_connected = set(config_pvs) ^ set(connected_pvs)
@@ -105,9 +85,9 @@ class UserConfig:
         if not_connected:
             err_msg = f'Could not connect to one or more measurement PVs: {not_connected}'
             log_error(err_msg)
-            raise UserConfigurationException(err_msg)
+            raise PVConfigurationException(err_msg)
         else:
-            print('UserConfig: All measurement PVs connected.')
+            print('PVConfig: All measurement PVs connected.')
 
     def _check_records_have_at_least_one_measurement_pv(self):
         """
@@ -116,24 +96,24 @@ class UserConfig:
         Raises:
             ValueError: If one or more records has no measurement PVs.
         """
-        entries = self.entries
-
-        if not isinstance(entries, list):
-            entries = [entries]
-
+        records = self._get_all_entry_records()
         records_with_no_pvs = []
-        for entry in entries:
-            if not entry[UserConfigConst.MEAS][UserConfigConst.PV]:
-                records_with_no_pvs.append(entry[UserConfigConst.RECORD])
+        for record_id in records:
+            try:
+                pvs = self.get_record_measurement_pvs(record_id)
+            except KeyError:
+                pvs = None
+            if not pvs:
+                records_with_no_pvs.append(record_id)
 
         if records_with_no_pvs:
             err_msg = f'Records {records_with_no_pvs} have no measurement PVs.'
             log_error(err_msg)
-            raise UserConfigurationException(err_msg)
+            raise PVConfigurationException(err_msg)
 
     def get_measurement_pvs(self, no_duplicates=True, full_names=False):
         """
-        Gets a list of the measurement PVs, ignoring empty measurements.
+        Gets a list of the measurement PVs, ignoring empty/null measurements.
 
         Args:
             no_duplicates (boolean, optional): If one PV is present in multiple measurements/records, add it to the list
@@ -149,20 +129,14 @@ class UserConfig:
             config_pvs = []
         entries = self.entries
 
-        if not isinstance(entries, list):
-            entries = [entries]
-
         for entry in entries:
-            if entry[UserConfigConst.MEAS][UserConfigConst.PV]:
-                entry_pvs = entry[UserConfigConst.MEAS][UserConfigConst.PV]
-                if not isinstance(entry_pvs, list):
-                    entry_pvs = [entry_pvs]
-                for pv_name in entry_pvs:
-                    if pv_name:
-                        if no_duplicates:
-                            config_pvs.add(pv_name)
-                        else:
-                            config_pvs.append(pv_name)
+            record_measurements = entry[PVConfigConst.MEAS]
+            for measurement_no, pv_name in record_measurements.items():
+                if pv_name:
+                    if no_duplicates:
+                        config_pvs.add(pv_name)
+                    else:
+                        config_pvs.append(pv_name)
 
         if isinstance(config_pvs, set):
             config_pvs = list(config_pvs)
@@ -172,117 +146,99 @@ class UserConfig:
 
         return config_pvs
 
-    def get_record_measurement_pvs(self, record_name, full_names=False):
+    def get_record_measurement_pvs(self, record_id, full_names=False):
         """
-        Get the list of measurement PVs of the given record.
+        Get the measurement PVs of the given record, ignoring empty/null ones.
 
         Args:
-            record_name (str): The record name.
+            record_id (str): The record ID.
             full_names (boolean, optional): Get the PV names with their prefix and domain, Defaults to False.
 
         Returns:
-            (list): The list of record measurements PVs.
+            (dict): The measurements PVs, in measurement number/pv name pairs.
         """
         entries = self.entries
-        entry_pvs = []
-        for entry in entries:
-            if entry[UserConfigConst.RECORD] == record_name:
-                if entry[UserConfigConst.MEAS][UserConfigConst.PV]:
-                    entry_pvs = entry[UserConfigConst.MEAS][UserConfigConst.PV]
-                    if not isinstance(entry_pvs, list):
-                        entry_pvs = [entry_pvs]
+        record = next((item for item in entries if item[PVConfigConst.OBJ] == record_id), None)
+        record_meas = record[PVConfigConst.MEAS]
         if full_names:
-            entry_pvs = [get_full_pv_name(pv) for pv in entry_pvs]
+            record_meas = {key: get_full_pv_name(val) for key, val in record_meas.items() if val}
+        else:
+            record_meas = {key: val for key, val in record_meas.items() if val}
 
-        return entry_pvs
+        return record_meas
 
     def _get_logging_periods(self):
         """
-        Gets a dictionary of records and their database logging period from the user configuration.
+        Gets the record IDs and their respective logging period from the configuration.
 
         Returns:
-            (dict): The records and their logging period (int).
+            (dict): The record IDs and their logging period.
         """
         entries = self.entries
-        if not isinstance(entries, list):
-            entries = [entries]
-        records_and_periods = {}
-        for entry in entries:
-            record_name = entry[UserConfigConst.RECORD]
-            log_period = int(entry[UserConfigConst.LOG_PERIOD])
-            records_and_periods[record_name] = log_period
+        log_periods = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in entries }
+        return log_periods
 
-        return records_and_periods
-
-    @staticmethod
-    def _get_pv_config(pv_name):
+    def _get_pv_config(self, pv_name):
         """
-        Get the configuration of given PV. If PV is used as a measurement in multiple records, return each
-        of those records in a list.
+        Get the records containing the given PV as a measurement, as a list.
 
         Args:
             pv_name (str): Name of the PV
 
         Returns:
-            (dict/list): The PV user configuration(s).
+            (list): The records having the PV as a measurement.
         """
-        return_val = []
-        config_file = UserConfigConst.PATH
-        with open(config_file, 'rb') as f:
-            config = xmltodict.parse(f.read(), dict_constructor=dict)
+        entries = self.entries
 
-            for entry in config[UserConfigConst.ROOT][UserConfigConst.ENTRY]:
-                if entry[UserConfigConst.MEAS][UserConfigConst.PV]:
-                    if pv_name in entry[UserConfigConst.MEAS][UserConfigConst.PV]:
-                        return_val.append(entry)
+        records = []
+        for entry in entries:
+            measurements = entry[PVConfigConst.MEAS]
+            for mea_no, mea_pv in measurements.items():
+                if mea_pv == pv_name:
+                    records.append(entry)
 
-            if not return_val:
-                log_config_error(pv_name=f'{pv_name}', config_file=UserConfigConst.FILE, print_err=True)
+        if not records:
+            log_config_error(pv_name=f'{pv_name}', config_file=PVConfigConst.FILE, print_err=True)
 
-            if isinstance(return_val, list) and len(return_val) == 1:
-                return_val = return_val[0]
-
-            return return_val
+        return records
 
     @staticmethod
     def _get_all_entries():
         """
-        Get all user configuration entries as a dictionary.
+        Get all records PV config as a dictionary.
 
         Returns:
-            (dict): The PV configurations dictionary.
-        """
-        config_file = UserConfigConst.PATH
-        with open(config_file, 'rb') as f:
-            config = xmltodict.parse(f.read(), dict_constructor=dict)
-            return_val = config[UserConfigConst.ROOT][UserConfigConst.ENTRY]
+            (dict): The records PV configurations.
 
-            return return_val
-
-    @staticmethod
-    def _get_all_entry_records():
+        Raises:
+            PVConfigurationException: If the config file is empty or does not have at least one entry.
         """
-        Get the record names of all entries from the user configurations.
+        config_file = PVConfigConst.PATH
+        with open(config_file) as f:
+            data = json.load(f)
+            data = data[PVConfigConst.ROOT]
+
+            if not data:
+                raise PVConfigurationException('The configuration file has no entries.')
+
+            return data
+
+    def _get_all_entry_records(self):
+        """
+        Get the IDs of all records from the PV config as a list.
 
         Returns:
             (list): The record names.
         """
-        config_file = UserConfigConst.PATH
-        with open(config_file, 'rb') as f:
-            config = xmltodict.parse(f.read(), dict_constructor=dict)
-            records = []
-            entries = config[UserConfigConst.ROOT][UserConfigConst.ENTRY]
-            if not isinstance(entries, list):
-                entries = [entries]
-            for entry in entries:
-                records.append(entry[UserConfigConst.RECORD])
+        entries = self.entries
+        records = [entry[PVConfigConst.OBJ] for entry in entries]
 
-            return records
+        return records
 
 
-class UserConfigurationException(ValueError):
+class PVConfigurationException(ValueError):
     """
-    There is a problem with the user configuration.
+    There is a problem with the PV configuration.
     """
     def __init__(self, err_msg):
-        super(UserConfigurationException, self).__init__(err_msg)
+        super(PVConfigurationException, self).__init__(err_msg)

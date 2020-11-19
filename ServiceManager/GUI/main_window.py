@@ -1,5 +1,6 @@
 import os
 import win32serviceutil
+from collections import defaultdict
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCloseEvent, QFont
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QMessageBox, QPlainTextEdit, QWidget, QSpinBox, \
@@ -39,7 +40,7 @@ class UIMainWindow(QMainWindow):
         self.service_debug_f = None
         self.service_path = None
 
-        self.config_data = []
+        self.pv_config_data = []
         # endregion
 
         # region Menu actions
@@ -137,6 +138,10 @@ class UIMainWindow(QMainWindow):
         # Fill widgets with data
         self.update_fields()
 
+        # todo
+        # from ServiceManager.utilities import add_config_entry
+        # add_config_entry({})
+
     # region Service control buttons slots
     def service_start_btn_clicked(self):
         service_name = Settings.Service.Info.get_name()
@@ -225,12 +230,11 @@ class UIMainWindow(QMainWindow):
 
     # region Main frame slots
     def update_config_data(self):
-        config_settings = Settings.Service.UserConfig
         try:
-            self.config_data = get_config_entries(config_settings)
+            self.pv_config_data = get_config_entries()
         except FileNotFoundError as e:
             logger.info(e)
-            self.config_data = []
+            self.pv_config_data = []
             return
 
     def refresh_btn_clicked(self):
@@ -251,24 +255,27 @@ class UIMainWindow(QMainWindow):
         self.config_table.setSortingEnabled(False)  # otherwise table will not be properly updated if columns are sorted
         self.config_table.setRowCount(0)  # it will delete the QTableWidgetItems automatically
 
-        config_settings = Settings.Service.UserConfig
-        config_entries = self.config_data
+        pv_config_data = self.pv_config_data
 
-        for entry in config_entries:
+        for entry in pv_config_data:
+            mea_values = defaultdict(lambda: None)
+            mea_values = {key: val for key, val in entry[Settings.Service.PVConfig.MEAS].items()}
+
             # store the entry data in a list
             entry_data = [
-                entry[config_settings.RECORD],
-                entry[config_settings.LOG_PERIOD],
-                *entry[config_settings.MEAS][config_settings.PV]
+                entry[Settings.Service.PVConfig.OBJ],
+                entry[Settings.Service.PVConfig.LOG_PERIOD],
+                *[mea_values.get(x) for x in ['1', '2', '3', '4', '5']]
             ]
+
             self.config_table.insertRow(self.config_table.rowCount())
 
             # for each element of the entry data, add it to an item then add the item to the appropriate table cell
             for index, elem in enumerate(entry_data):
                 item = QTableWidgetItem()
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
-                item.setText(elem)
-                item.setToolTip(elem)
+                item.setData(Qt.DisplayRole, elem)
+                item.setToolTip(f'{elem}')
                 self.config_table.setItem(self.config_table.rowCount() - 1, index, item)
         self.config_table.setSortingEnabled(True)
     # endregion

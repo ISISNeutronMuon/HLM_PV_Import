@@ -1,7 +1,8 @@
 import ctypes
-from lxml import etree
-import xmltodict
+import json
 from PyQt5.QtGui import QPalette, QColor
+from ServiceManager.settings import Settings
+from ServiceManager.logger import logger
 
 
 def is_admin():
@@ -41,21 +42,51 @@ def set_colored_text(label, text, color):
     label.setText(text)
 
 
-def get_config_entries(UserConfig):
+def single_tuples_to_strings(tuple_list):
+    """
+    Given a list of tuples, convert all single-element tuples into a string of the first element. Tuples in the list
+    with multiple elements will not be affected.
+
+    Args:
+        tuple_list (list): the list of tuples to convert
+    Returns:
+        (list) the list of strings made from the first element of the tuples
+
+    """
+
+    string_list = []
+    for elem in tuple_list:
+        if len(elem) == 1:
+            string_list.append(elem[0])
+        else:
+            string_list.append(elem)
+    return string_list
+
+
+def get_config_entries():
     """
     Get all user configuration entries as a dictionary.
 
-    Args:
-        UserConfig (UserConfig): The Service UserConfig settings.
     Returns:
         (dict): The PV configurations dictionary.
     """
-    config_path = UserConfig.get_path()
-    with open(config_path, 'rb') as f:
-        config = xmltodict.parse(f.read(), dict_constructor=dict)
-        return_val = config[UserConfig.ROOT][UserConfig.ENTRY]
-        return return_val
+    config_file = Settings.Service.PVConfig.get_path()
+    with open(config_file) as f:
+        data = json.load(f)
+        data = data[Settings.Service.PVConfig.ROOT]
+
+        if not data:
+            logger.info('PV configuration file is empty.')
+        return data
 
 
-# def add_config_entry
-    # todo
+def add_config_entry(new_entry: dict):
+    """
+    Add a new record config entry to PV Config.
+
+    Args:
+        new_entry  (dict): The record config.
+    """
+    config_file = Settings.Service.PVConfig.get_path()
+    data = get_config_entries()
+    print(data)
