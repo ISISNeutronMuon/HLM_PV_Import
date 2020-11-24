@@ -14,16 +14,16 @@ def get_object(object_id):
     Returns:
 
     """
-    result = _select(table=Tables.OBJECT, filters='WHERE `OB_ID` = %s', filters_args=(object_id, ))
+    result = _select(table=Tables.OBJECT, filters='WHERE `OB_ID` = %s', filters_args=(object_id,))
     return result
 
 
-def get_object_id(object_name):
+def get_object_id(object_name: str):
     """
     Get the ID of the object with the given name.
 
     Returns:
-        (int): The object ID.
+        (int/list): The object ID, empty list if it wasn't found.
     """
     search = 'WHERE `OB_NAME` LIKE %s'
     search_data = (object_name,)
@@ -31,7 +31,7 @@ def get_object_id(object_name):
     return result
 
 
-def _get_object_name(object_id):
+def get_object_name(object_id):
     """
     Gets the DB object name corresponding to the record ID.
 
@@ -45,6 +45,17 @@ def _get_object_name(object_id):
                           filters_args=(object_id,), f_elem=True)
 
     return object_name
+
+
+def get_all_object_names():
+    """
+    Get a list of all object names in the Helium DB.
+
+    Returns:
+        (list): The PV names.
+    """
+    object_names = _select(table=Tables.OBJECT, columns='OB_NAME')
+    return object_names
 
 
 def _select(table, columns='*', filters=None, filters_args=None, f_elem=False):
@@ -169,3 +180,48 @@ def _get_table_last_id(table):
     last_id = _select(table=table, columns=f'MAX({pk_column})', f_elem=True)
 
     return last_id
+
+
+def get_object_type(object_id, name_only=False):
+    """
+    Returns the type DB record of the given object.
+
+    Args:
+        object_id (int): The DB ID of the object.
+        name_only (boolean, optional): Get only the type name, Defaults to False.
+
+    Returns:
+        (str/dict): The type name/record of the object.
+    """
+
+    type_id = _select(table=Tables.OBJECT, columns='OB_OBJECTTYPE_ID', filters='WHERE OB_ID LIKE %s',
+                      filters_args=(object_id,), f_elem=True)
+
+    columns = 'OT_NAME' if name_only else '*'
+    record = _select(table=Tables.OBJECT_TYPE, columns=columns, filters='WHERE OT_ID LIKE %s', filters_args=(type_id,))
+    if name_only:
+        record = record[0]
+
+    return record
+
+
+def get_object_class(object_id, name_only=False):
+    """
+    Returns the class DB record of the given object.
+
+    Args:
+        object_id (int): The DB ID of the object.
+        name_only (boolean, optional): Get only the class name, Defaults to False.
+
+    Returns:
+        (str/dict): The class name/record of the object.
+    """
+    type_record = get_object_type(object_id)
+    class_id = type_record[0][1]
+    columns = 'OC_NAME' if name_only else '*'
+    record = _select(table=Tables.OBJECT_CLASS, columns=columns, filters='WHERE OC_ID LIKE %s',
+                     filters_args=(class_id,))
+    if name_only:
+        record = record[0]
+
+    return record

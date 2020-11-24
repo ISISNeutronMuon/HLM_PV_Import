@@ -1,7 +1,6 @@
 import ctypes
 import json
 from PyQt5.QtGui import QPalette, QColor
-from ServiceManager.settings import Settings
 from ServiceManager.logger import logger
 
 
@@ -61,32 +60,3 @@ def single_tuples_to_strings(tuple_list):
         else:
             string_list.append(elem)
     return string_list
-
-
-def get_config_entries():
-    """
-    Get all user configuration entries as a dictionary.
-
-    Returns:
-        (dict): The PV configurations dictionary.
-    """
-    config_file = Settings.Service.PVConfig.get_path()
-    with open(config_file) as f:
-        data = json.load(f)
-        data = data[Settings.Service.PVConfig.ROOT]
-
-        if not data:
-            logger.info('PV configuration file is empty.')
-        return data
-
-
-def add_config_entry(new_entry: dict):
-    """
-    Add a new record config entry to PV Config.
-
-    Args:
-        new_entry  (dict): The record config.
-    """
-    config_file = Settings.Service.PVConfig.get_path()
-    data = get_config_entries()
-    print(data)

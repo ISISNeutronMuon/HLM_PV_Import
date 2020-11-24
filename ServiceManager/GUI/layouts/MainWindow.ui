@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1085</width>
+    <width>1204</width>
     <height>768</height>
    </rect>
   </property>
@@ -178,6 +178,9 @@
                     <property name="autoFillBackground">
                      <bool>false</bool>
                     </property>
+                    <property name="styleSheet">
+                     <string notr="true">background-color: #F0F0F0;</string>
+                    </property>
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
@@ -203,6 +206,9 @@
                     <property name="focusPolicy">
                      <enum>Qt::NoFocus</enum>
                     </property>
+                    <property name="styleSheet">
+                     <string notr="true">background-color: #F0F0F0;</string>
+                    </property>
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
@@ -225,6 +231,12 @@
                   </item>
                   <item row="2" column="1">
                    <widget class="QLineEdit" name="pidText">
+                    <property name="focusPolicy">
+                     <enum>Qt::NoFocus</enum>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">background-color: #F0F0F0;</string>
+                    </property>
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
@@ -267,6 +279,12 @@
                   </item>
                   <item row="0" column="1">
                    <widget class="QLineEdit" name="startUpTypeText">
+                    <property name="focusPolicy">
+                     <enum>Qt::NoFocus</enum>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">background-color: #F0F0F0;</string>
+                    </property>
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
@@ -289,6 +307,12 @@
                   </item>
                   <item row="1" column="1">
                    <widget class="QLineEdit" name="descriptionText">
+                    <property name="focusPolicy">
+                     <enum>Qt::NoFocus</enum>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">background-color: #F0F0F0;</string>
+                    </property>
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
@@ -311,6 +335,12 @@
                   </item>
                   <item row="2" column="1">
                    <widget class="QLineEdit" name="usernameText">
+                    <property name="focusPolicy">
+                     <enum>Qt::NoFocus</enum>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">background-color: #F0F0F0;</string>
+                    </property>
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
@@ -339,6 +369,12 @@
                 </item>
                 <item row="0" column="1">
                  <widget class="QLineEdit" name="binPathText">
+                  <property name="focusPolicy">
+                   <enum>Qt::NoFocus</enum>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">background-color: #F0F0F0;</string>
+                  </property>
                   <property name="readOnly">
                    <bool>true</bool>
                   </property>
@@ -400,6 +436,13 @@
              </property>
              <property name="text">
               <string>Filter</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_9">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
             </widget>
            </item>
@@ -506,7 +549,12 @@
                </attribute>
                <column>
                 <property name="text">
-                 <string>Object</string>
+                 <string>Object ID</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Object Name</string>
                 </property>
                </column>
                <column>
@@ -930,7 +978,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1085</width>
+     <width>1204</width>
      <height>26</height>
     </rect>
    </property>

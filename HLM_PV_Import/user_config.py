@@ -205,10 +205,10 @@ class UserConfig:
     @staticmethod
     def _get_all_entries():
         """
-        Get all records PV config as a dictionary.
+        Get all record PV configs as a list.
 
         Returns:
-            (dict): The records PV configurations.
+            (list): The records' PV configurations.
 
         Raises:
             PVConfigurationException: If the config file is empty or does not have at least one entry.

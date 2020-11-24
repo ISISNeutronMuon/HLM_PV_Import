@@ -1,6 +1,5 @@
 import os
 import win32serviceutil
-from collections import defaultdict
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCloseEvent, QFont
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QMessageBox, QPlainTextEdit, QWidget, QSpinBox, \
@@ -14,8 +13,10 @@ from ServiceManager.GUI.db_settings import UIDBSettings
 from ServiceManager.GUI.general_settings import UIGeneralSettings
 from ServiceManager.GUI.ca_settings import UICASettings
 from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
-from ServiceManager.utilities import is_admin, get_config_entries
+from ServiceManager.GUI.config_entry import UIConfigEntryDialog
+from ServiceManager.utilities import is_admin
 from ServiceManager.GUI.main_window_utils import ServiceLogUpdaterThread, ServiceStatusCheckThread
+from ServiceManager.db_utilities import get_object_name
 
 
 class UIMainWindow(QMainWindow):
@@ -33,9 +34,10 @@ class UIMainWindow(QMainWindow):
         self.general_settings_w = None
         self.ca_settings_w = None
         self.service_dir_path_w = None
+        self.add_config_w = None
         # endregion
 
-        # region Initialize attributes
+        # region Attributes
         self.service_name = None
         self.service_debug_f = None
         self.service_path = None
@@ -86,6 +88,9 @@ class UIMainWindow(QMainWindow):
         self.config_table = self.findChild(QTableWidget, 'configTable')
         self.refresh_btn = self.findChild(QPushButton, 'refreshButton')
         self.filter_btn = self.findChild(QPushButton, 'filterButton')
+        self.new_config_btn = self.findChild(QPushButton, 'newButton')
+        self.edit_config_btn = self.findChild(QPushButton, 'editButton')
+        self.delete_config_btn = self.findChild(QPushButton, 'deleteButton')
         # endregion
 
         # region Connect signals to slots
@@ -102,6 +107,9 @@ class UIMainWindow(QMainWindow):
 
         self.refresh_btn.clicked.connect(self.refresh_btn_clicked)
         self.filter_btn.clicked.connect(self.filter_btn_clicked)
+        self.new_config_btn.clicked.connect(self.new_config_btn_clicked)
+        self.edit_config_btn.clicked.connect(self.edit_config_btn_clicked)
+        self.delete_config_btn.clicked.connect(self.delete_config_btn_clicked)
         # endregion
 
         # region Threads
@@ -231,7 +239,7 @@ class UIMainWindow(QMainWindow):
     # region Main frame slots
     def update_config_data(self):
         try:
-            self.pv_config_data = get_config_entries()
+            self.pv_config_data = Settings.Service.PVConfig.get_entries()
         except FileNotFoundError as e:
             logger.info(e)
             self.pv_config_data = []
@@ -251,6 +259,20 @@ class UIMainWindow(QMainWindow):
         for row in rows:
             self.config_table.setRowHidden(row, False)
 
+    def new_config_btn_clicked(self):
+        if self.add_config_w is None:
+            self.add_config_w = UIConfigEntryDialog()
+        self.add_config_w.show()
+        self.add_config_w.activateWindow()
+
+    def edit_config_btn_clicked(self):
+        print('edit clicked')
+        # todo
+
+    def delete_config_btn_clicked(self):
+        print('del clicked')
+        # todo
+
     def update_config_table(self):
         self.config_table.setSortingEnabled(False)  # otherwise table will not be properly updated if columns are sorted
         self.config_table.setRowCount(0)  # it will delete the QTableWidgetItems automatically
@@ -258,14 +280,13 @@ class UIMainWindow(QMainWindow):
         pv_config_data = self.pv_config_data
 
         for entry in pv_config_data:
-            mea_values = defaultdict(lambda: None)
-            mea_values = {key: val for key, val in entry[Settings.Service.PVConfig.MEAS].items()}
 
             # store the entry data in a list
             entry_data = [
                 entry[Settings.Service.PVConfig.OBJ],
+                get_object_name(entry[Settings.Service.PVConfig.OBJ]),
                 entry[Settings.Service.PVConfig.LOG_PERIOD],
-                *[mea_values.get(x) for x in ['1', '2', '3', '4', '5']]
+                *[entry[Settings.Service.PVConfig.MEAS].get(x) for x in ['1', '2', '3', '4', '5']]
             ]
 
             self.config_table.insertRow(self.config_table.rowCount())
