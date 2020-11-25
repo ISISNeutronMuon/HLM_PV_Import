@@ -1,7 +1,7 @@
-
 import os
 import sys
 import time
+from collections import defaultdict
 from HLM_PV_Import.settings import PVConfigConst, LoggersConst
 
 ERR_LOG_DIR = LoggersConst.ERR_LOG_DIR
@@ -132,6 +132,9 @@ class DBLogger:
             values (dict/list): The values of the measurement.
             print_msg (boolean, optional): Whether to print the log message to the console, Defaults to False.
         """
+        if isinstance(values, defaultdict):
+            values = dict(values)  # so only the keys and values are logged, without type
+
         msg = f'Added measurement {record_no} for {obj_name} ({obj_id}) with values: {values}'
 
         if print_msg:

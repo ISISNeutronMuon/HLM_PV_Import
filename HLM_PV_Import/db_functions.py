@@ -15,6 +15,12 @@ db_logger = DBLogger()
 db_logger.make_log()
 
 
+connection = mysql.connector.connect(host=HEDB.HOST,
+                                     database=HEDB.NAME,
+                                     user=HEDB.USER,
+                                     password=HEDB.PASS)
+
+
 def get_object(object_id):
     """
     Gets the record of the object with the given ID.
@@ -67,7 +73,7 @@ def add_measurement(object_id, mea_values: dict, mea_valid=True):
         'MEA_VALUE4': mea_values['4'],
         'MEA_VALUE5': mea_values['5'],
         'MEA_VALID': 1 if mea_valid is True else 0,
-        'MEA_BOOKINGCODE': 0,  # 0 = measurement is not from the balance program
+        'MEA_BOOKINGCODE': 0,  # 0 = measurement is not from the balance program (HZB)
     }
 
     _insert(Tables.MEASUREMENT, data=measurement_dict)
@@ -234,14 +240,8 @@ def _select(table, columns='*', filters=None, filters_args=None, f_elem=False):
     Returns:
         (list/str): The list of records, or a string if single element list and to_str set to True.
     """
-    connection = None
     cursor = None
     try:
-        connection = mysql.connector.connect(host=HEDB.HOST,
-                                             database=HEDB.NAME,
-                                             user=HEDB.USER,
-                                             password=HEDB.PASS)
-
         if connection.is_connected():
             cursor = connection.cursor()
             columns = '*' if columns is None else columns
@@ -265,10 +265,8 @@ def _select(table, columns='*', filters=None, filters_args=None, f_elem=False):
     except mysql.connector.Error as e:
         log_db_error(f'{e}', print_err=True)
     finally:
-        if connection and cursor:
-            if connection.is_connected():
-                cursor.close()
-                connection.close()
+        if cursor:
+            cursor.close()
 
 
 def _insert(table, data):
@@ -279,13 +277,8 @@ def _insert(table, data):
         table (str): The table to insert into.
         data (dict): The values to be inserted, in a Column Name/Value dictionary.
     """
-    connection = None
     cursor = None
     try:
-        connection = mysql.connector.connect(host=HEDB.HOST,
-                                             database=HEDB.NAME,
-                                             user=HEDB.USER,
-                                             password=HEDB.PASS)
         if connection.is_connected():
             cursor = connection.cursor()
 
@@ -308,10 +301,8 @@ def _insert(table, data):
     except mysql.connector.Error as e:
         log_db_error(f'{e}', print_err=True)
     finally:
-        if connection and cursor:
-            if connection.is_connected():
-                cursor.close()
-                connection.close()
+        if cursor:
+            cursor.close()
 
 
 def _get_object_name(object_id):
