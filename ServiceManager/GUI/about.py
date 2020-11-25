@@ -2,7 +2,7 @@ from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QIcon, QDesktopServices
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton
 from PyQt5 import uic
-from ServiceManager.settings import VER, B_DATE, about_ui, about_logo_path
+from ServiceManager.constants import VER, B_DATE, about_ui, about_logo_path
 
 
 class UIAbout(QDialog):

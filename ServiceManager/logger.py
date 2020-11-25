@@ -5,7 +5,10 @@ import sys
 import logging
 import logging.handlers
 import os
-from ServiceManager.settings import Settings
+from ServiceManager.constants import MANAGER_SETTINGS_DIR
+
+log_dir = os.path.join(MANAGER_SETTINGS_DIR, 'logs')
+log_file = os.path.join(log_dir, 'HLM_ErrorLog.log')
 
 
 class StreamToLogger:
@@ -27,9 +30,6 @@ class StreamToLogger:
 
 def get_logger():
     formatter = logging.Formatter('%(asctime)s %(process)d:%(thread)d %(name)s %(levelname)-8s %(message)s')
-
-    log_dir = Settings.Manager.get_logs_dir_path()
-    log_file = Settings.Manager.get_error_log_path()
 
     if not os.path.exists(log_file):
         if not os.path.exists(log_dir):  # If settings directory does not exist either, create it too

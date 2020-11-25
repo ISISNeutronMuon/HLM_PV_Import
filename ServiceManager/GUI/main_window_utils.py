@@ -1,5 +1,4 @@
 import os
-import threading
 import time
 import psutil
 from collections import deque, defaultdict

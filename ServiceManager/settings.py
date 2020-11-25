@@ -1,55 +1,10 @@
 import json
 import os
-import sys
 import configparser
 import win32serviceutil
-
-VER = '1.0.0'
-B_DATE = '10 November 2020'
-
-if getattr(sys, 'frozen', False):
-    # BASE_PATH = os.path.dirname(sys.executable)
-    # noinspection PyProtectedMember
-    # noinspection PyUnresolvedReferences
-    BASE_PATH = sys._MEIPASS
-else:
-    BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-
-
-# region Assets & Layouts
-gui_dir = os.path.join(BASE_PATH, 'GUI')
-icon_path = os.path.join(gui_dir, 'assets', 'icon.svg')
-about_logo_path = os.path.join(gui_dir, 'assets', 'isis-logo.png')
-main_window_ui = os.path.join(gui_dir, 'layouts', 'MainWindow.ui')
-about_ui = os.path.join(gui_dir, 'layouts', 'about.ui')
-db_settings_ui = os.path.join(gui_dir, 'layouts', 'DBSettings.ui')
-general_settings_ui = os.path.join(gui_dir, 'layouts', 'GeneralSettings.ui')
-ca_settings_ui = os.path.join(gui_dir, 'layouts', 'CASettings.ui')
-service_path_dlg_ui = os.path.join(gui_dir, 'layouts', 'ServicePathDialog.ui')
-config_entry_ui = os.path.join(gui_dir, 'layouts', 'ConfigEntry.ui')
-# endregion
-
-
-# Directory for storing the manager app settings and persistent data
-MANAGER_SETTINGS_DIR = os.path.join(os.getenv('LOCALAPPDATA'), 'HLM Service Manager', '')
-MANAGER_SETTINGS_FILE = os.path.join(MANAGER_SETTINGS_DIR, 'settings.ini')
-SERVICE_SETTINGS_FILE_NAME = 'settings.ini'
-
-
-# region Settings Files Templates
-MANAGER_SETTINGS_TEMPLATE = {
-    'Service': ['Directory']
-}
-
-SERVICE_SETTINGS_TEMPLATE = {
-    'ChannelAccess': ['EPICS_CA_ADDR_LIST', 'ConnectionTimeout', 'PvStaleAfter', 'PV_PREFIX', 'PV_DOMAIN'],
-    'PVImport': ['LoopTimer'],
-    'PVConfig': ['FILE'],
-    'HeRecoveryDB': ['Host', 'Name', 'DBObjectName', 'DBObjectType'],
-    'Service': ['Name', 'DisplayName', 'Description'],
-    'Logging': ['DirectoryPath']
-}
-# endregion
+from ServiceManager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEMPLATE, SERVICE_SETTINGS_FILE_NAME, \
+    SERVICE_SETTINGS_TEMPLATE
+from ServiceManager.db_utilities import DBUtils
 
 
 def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):
@@ -75,13 +30,17 @@ def setup_settings_file(path: str, template: dict, parser: configparser.ConfigPa
         parser.write(settings_file)
 
 
-class Settings:
+class _Settings:
     def __init__(self):
         self.Manager = ManagerSettings(MANAGER_SETTINGS_FILE)
         self.Service = None
 
     def init_service_settings(self, service_path):
         self.Service = ServiceSettings(service_path)
+        DBUtils.make_connection(host=Settings.Service.HeliumDB.get_host(),
+                                database=Settings.Service.HeliumDB.get_name(),
+                                user=Settings.Service.HeliumDB.get_user(),
+                                password=Settings.Service.HeliumDB.get_pass())
 
 
 class ManagerSettings:
@@ -105,16 +64,6 @@ class ManagerSettings:
     def set_service_path(self, new_path):
         self.config_parser.set('Service', 'Directory', new_path)
         self.update()
-
-    @staticmethod
-    def get_logs_dir_path():
-        log_dir = os.path.join(MANAGER_SETTINGS_DIR, 'logs')
-        return log_dir
-
-    def get_error_log_path(self):
-        log_dir = self.get_logs_dir_path()
-        log_file = os.path.join(log_dir, 'HLM_ErrorLog.log')
-        return log_file
 
 
 class ServiceSettings:
@@ -318,16 +267,4 @@ class _CA:
 # endregion
 
 
-Settings = Settings()
-
-
-# region Constant settings
-class Tables:
-    """ Helium DB Tables# Helium DB Tables """
-    MEASUREMENT = 'gam_measurement'
-    OBJECT = 'gam_object'
-    OBJECT_TYPE = 'gam_objecttype'
-    OBJECT_CLASS = 'gam_objectclass'
-    OBJECT_RELATION = 'gam_objectrelation'
-    FUNCTION = 'gam_function'
-# endregion
+Settings = _Settings()

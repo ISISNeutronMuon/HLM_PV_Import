@@ -1,7 +1,5 @@
 import ctypes
-import json
 from PyQt5.QtGui import QPalette, QColor
-from ServiceManager.logger import logger
 
 
 def is_admin():

@@ -3,7 +3,9 @@ from PyQt5.QtGui import QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QDialog, QPushButton, QListWidget, QLineEdit, QDialogButtonBox, QLabel, QListWidgetItem, \
     QAbstractItemView, QStyledItemDelegate, QWidget, QStyleOptionViewItem, QMessageBox
 from PyQt5 import uic
-from ServiceManager.settings import ca_settings_ui, Settings
+
+from ServiceManager.constants import ca_settings_ui
+from ServiceManager.settings import Settings
 
 
 class UICASettings(QDialog):

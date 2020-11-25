@@ -1,13 +1,14 @@
 import os
 import win32serviceutil
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCloseEvent, QFont
+from PyQt5.QtGui import QCloseEvent
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QMessageBox, QPlainTextEdit, QWidget, QSpinBox, \
-    QLineEdit, QLabel, QComboBox, QFrame, QTableWidget, QTableWidgetItem, QTabWidget, QApplication
+    QLineEdit, QLabel, QComboBox, QTableWidget, QTableWidgetItem, QApplication
 from PyQt5 import uic
 
 from ServiceManager.logger import logger
-from ServiceManager.settings import Settings, main_window_ui
+from ServiceManager.settings import Settings
+from ServiceManager.constants import main_window_ui
 from ServiceManager.GUI.about import UIAbout
 from ServiceManager.GUI.db_settings import UIDBSettings
 from ServiceManager.GUI.general_settings import UIGeneralSettings
@@ -16,7 +17,7 @@ from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
 from ServiceManager.GUI.config_entry import UIConfigEntryDialog
 from ServiceManager.utilities import is_admin
 from ServiceManager.GUI.main_window_utils import ServiceLogUpdaterThread, ServiceStatusCheckThread
-from ServiceManager.db_utilities import get_object_name
+from ServiceManager.db_utilities import DBUtils
 
 
 class UIMainWindow(QMainWindow):
@@ -284,7 +285,7 @@ class UIMainWindow(QMainWindow):
             # store the entry data in a list
             entry_data = [
                 entry[Settings.Service.PVConfig.OBJ],
-                get_object_name(entry[Settings.Service.PVConfig.OBJ]),
+                DBUtils.get_object_name(entry[Settings.Service.PVConfig.OBJ]),
                 entry[Settings.Service.PVConfig.LOG_PERIOD],
                 *[entry[Settings.Service.PVConfig.MEAS].get(x) for x in ['1', '2', '3', '4', '5']]
             ]

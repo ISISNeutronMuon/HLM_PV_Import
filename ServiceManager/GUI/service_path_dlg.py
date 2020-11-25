@@ -1,9 +1,12 @@
+import os
+
 from PyQt5.QtCore import QObject, pyqtSignal, QUrl
 from PyQt5.QtGui import QShowEvent, QDesktopServices
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QLineEdit, QDialogButtonBox, QFileDialog, QMessageBox
 from PyQt5 import uic
-from ServiceManager.settings import service_path_dlg_ui, Settings, SERVICE_SETTINGS_FILE_NAME
-import os
+
+from ServiceManager.constants import SERVICE_SETTINGS_FILE_NAME, service_path_dlg_ui
+from ServiceManager.settings import Settings
 
 
 class CustomSignals(QObject):

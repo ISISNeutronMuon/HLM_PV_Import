@@ -3,8 +3,9 @@ from PyQt5.QtGui import QColor, QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QDialogButtonBox, QMessageBox
 from PyQt5 import uic
 
+from ServiceManager.constants import db_settings_ui
 from ServiceManager.utilities import is_admin, make_bold, set_colored_text
-from ServiceManager.settings import db_settings_ui, Settings
+from ServiceManager.settings import Settings
 
 
 class UIDBSettings(QDialog):

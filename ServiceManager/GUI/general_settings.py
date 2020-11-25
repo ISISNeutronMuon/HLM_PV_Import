@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QDialog, QLineEdit
+from PyQt5.QtWidgets import QDialog
 from PyQt5 import uic
-from ServiceManager.settings import general_settings_ui
+from ServiceManager.constants import general_settings_ui
 
 
 class UIGeneralSettings(QDialog):
