@@ -7,6 +7,37 @@ from ServiceManager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEM
 from ServiceManager.db_utilities import DBUtils
 
 
+def pv_name_without_prefix_and_domain(name):
+    """
+    Given a PV name, remove the prefix and domain and return only the PV name.
+
+    Args:
+        name(str): the full PV name
+    Returns:
+        name(str): the PV name without prefix and domain
+    """
+    name = name.replace(f'{Settings.Service.CA.get_pv_prefix()}:', '') \
+               .replace(f'{Settings.Service.CA.get_pv_domain()}:', '')
+    return name
+
+
+def get_full_pv_name(name):
+    """
+    Adds the prefix and domain to the PV if it doesn't have them.
+
+    Args:
+        name (str): The PV name.
+
+    Returns:
+        (str) The full PV name.
+    """
+    if not name:
+        return None
+    name = pv_name_without_prefix_and_domain(name)
+    name = f'{Settings.Service.CA.get_pv_prefix()}:{Settings.Service.CA.get_pv_domain()}:{name}'
+    return name
+
+
 def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):
     """
     Creates the settings file and its directory, if it doesn't exist, and writes the given config template with
@@ -224,8 +255,10 @@ class _CA:
     def __init__(self, config_parser, update):
         self.config_parser = config_parser
         self.update = update
+        # Setup the channel access address list in order to connect to PVs
+        os.environ['EPICS_CA_ADDR_LIST'] = self.get_addr_list()
 
-    def get_addr_list(self, as_list: bool):
+    def get_addr_list(self, as_list: bool = False):
         addr_list = self.config_parser['ChannelAccess']['EPICS_CA_ADDR_LIST']
         if as_list:
             addr_list = addr_list.split(' ')
@@ -264,6 +297,8 @@ class _CA:
     def set_pv_domain(self, new_domain: str):
         self.config_parser.set('ChannelAccess', 'PV_DOMAIN', new_domain)
         self.update()
+
+
 # endregion
 
 

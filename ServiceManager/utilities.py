@@ -1,5 +1,37 @@
 import ctypes
 from PyQt5.QtGui import QPalette, QColor
+from ServiceManager.logger import logger
+from caproto import CaprotoTimeoutError
+from caproto.sync.client import read
+
+
+def get_pv_value(name: str, timeout: int = 1):
+    """
+    Get the current value of the PV.
+
+    Args:
+        name (str): The PV.
+        timeout (int, optional): PV connection timeout in seconds, Defaults to 1.
+
+    Returns:
+        (str): The PV value.
+
+    Raises:
+        CaprotoTimeoutError: If establishing the connection to the PV timed out.
+    """
+
+    try:
+        res = read(pv_name=name, timeout=timeout)
+    except CaprotoTimeoutError as e:
+        logger.info(e)
+        raise
+
+    value = res.data[0]
+
+    if isinstance(value, bytes):
+        value = value.decode('utf-8')
+
+    return value
 
 
 def is_admin():
@@ -7,7 +39,7 @@ def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
     except Exception as e:
-        print(e)
+        logger.warning(e)
         return False
 
 

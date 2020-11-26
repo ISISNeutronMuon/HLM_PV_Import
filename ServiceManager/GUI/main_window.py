@@ -116,7 +116,7 @@ class UIMainWindow(QMainWindow):
         # region Threads
         # region Service Status Thread
         # noinspection PyTypeChecker
-        self.thread_service_status = ServiceStatusCheckThread(self.service_status_panel)
+        self.thread_service_status = ServiceStatusCheckThread()
         self.thread_service_status.update_status_title.connect(self.update_status_title)
         self.thread_service_status.update_status_style.connect(self.update_status_style)
         self.thread_service_status.update_service_details.connect(self.update_service_details)

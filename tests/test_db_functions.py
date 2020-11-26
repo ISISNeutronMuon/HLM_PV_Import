@@ -138,9 +138,9 @@ class TestDbFunctions(unittest.TestCase):
 class TestSelectAndInsert(unittest.TestCase):
 
     def setUp(self):
-        patcher = patch('mysql.connector.connect')
+        patcher = patch('HLM_PV_Import.db_functions.connection')
         self.addCleanup(patcher.stop)
-        self.mock_connect = patcher.start()
+        self.mock_connection = patcher.start()
 
     @parameterized.expand([
         ('tbl_name', 'col1, col2', 'WHERE %s LIKE %s', ('a', 'b'), 'SELECT col1, col2 FROM tbl_name WHERE %s LIKE %s'),
@@ -149,8 +149,7 @@ class TestSelectAndInsert(unittest.TestCase):
         ('tbl_name', None, None, None, 'SELECT * FROM tbl_name')
     ])
     def test_GIVEN_args_WHEN_select_query_THEN_correct_query_created(self, table, columns, search, args, expected):
-        connection = self.mock_connect.return_value
-        cursor = connection.cursor.return_value
+        cursor = self.mock_connection.cursor.return_value
 
         db_functions._select(table=table, columns=columns, filters=search, filters_args=args)
         cursor.execute.assert_called_with(expected, args)
@@ -165,8 +164,7 @@ class TestSelectAndInsert(unittest.TestCase):
     ])
     def test_GIVEN_records_and_settings_WHEN_get_select_records_THEN_prepared_records_returned(self, f_elem, records,
                                                                                                expected):
-        connection = self.mock_connect.return_value
-        cursor = connection.cursor.return_value
+        cursor = self.mock_connection.cursor.return_value
 
         cursor.fetchall.return_value = records
 
@@ -191,8 +189,7 @@ class TestSelectAndInsert(unittest.TestCase):
         ),
     ])
     def test_GIVEN_data_WHEN_insert_query_THEN_correct_query_and_values(self, data, exp_query, exp_values):
-        connection = self.mock_connect.return_value
-        cursor = connection.cursor.return_value
+        cursor = self.mock_connection.cursor.return_value
         db_functions._insert('table', data)
         cursor.execute.assert_called_with(exp_query, exp_values)
 

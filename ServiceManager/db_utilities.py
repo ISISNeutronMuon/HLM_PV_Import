@@ -74,7 +74,8 @@ class DatabaseUtilities:
         object_names = self._select(table=Tables.OBJECT, columns='OB_NAME')
         return object_names
 
-    def _select(self, table, columns='*', filters=None, filters_args=None, f_elem=False):
+    def _select(self, table: str, columns: str = '*', filters: str = None, filters_args: tuple = None,
+                f_elem: bool = False):
         """
         Returns the list of records from the given table.
 
@@ -97,7 +98,6 @@ class DatabaseUtilities:
                 query = f"SELECT {columns} FROM {table}"
                 if filters:
                     query += f' {filters}'
-
                 cursor.execute(query, filters_args)
                 records = cursor.fetchall()
 
@@ -117,7 +117,7 @@ class DatabaseUtilities:
             if cursor:
                 cursor.close()
 
-    def _insert(self, table, data):
+    def _insert(self, table: str, data: dict):
         """
         Adds the given values into the specified columns of the table.
 
@@ -152,7 +152,7 @@ class DatabaseUtilities:
             if cursor:
                 cursor.close()
 
-    def _get_primary_key_column(self, table):
+    def _get_primary_key_column(self, table: str):
         """
         Gets the column name of the primary key in the given table.
 
@@ -180,7 +180,7 @@ class DatabaseUtilities:
 
         return last_id
 
-    def get_object_type(self, object_id, name_only=False):
+    def get_object_type(self, object_id: int, name_only: bool = False):
         """
         Returns the type DB record of the given object.
 
@@ -203,7 +203,7 @@ class DatabaseUtilities:
 
         return record
 
-    def get_object_class(self, object_id, name_only=False):
+    def get_object_class(self, object_id: int, name_only=False):
         """
         Returns the class DB record of the given object.
 
@@ -224,7 +224,7 @@ class DatabaseUtilities:
 
         return record
 
-    def get_object_function(self, object_id, name_only=False):
+    def get_object_function(self, object_id: int, name_only=False):
         """
         Returns the function DB record of the given object.
 
@@ -245,7 +245,7 @@ class DatabaseUtilities:
 
         return record
 
-    def get_object_sld(self, object_id):
+    def get_object_sld(self, object_id: int):
         """
         Searches the relations table to find the Software Level Device of the given object and return its record.
 
@@ -265,6 +265,26 @@ class DatabaseUtilities:
             ob_assigned_type_id = ob_assigned[0][1]
             if ob_assigned_type_id == 18:
                 return ob_assigned
+
+    def get_class_measurement_types(self, class_id: int):
+        """
+        Returns the measurement types of the given class.
+
+        Args:
+            class_id (int): The class ID.
+
+        Returns:
+            (dict): The measurement types as a dict (Mea. No. / Type pairs).
+        """
+        mea_types = {}
+        cols = 'OC_MEASURETYPE1, OC_MEASURETYPE2, OC_MEASURETYPE3, OC_MEASURETYPE4, OC_MEASURETYPE5'
+        filter_ = 'WHERE OC_ID = %s'
+        result = self._select(table=Tables.OBJECT_CLASS, columns=cols, filters=filter_, filters_args=(class_id,))
+
+        for index, type_ in enumerate(result[0]):
+            mea_types[index+1] = type_
+
+        return mea_types
 
 
 DBUtils = DatabaseUtilities()

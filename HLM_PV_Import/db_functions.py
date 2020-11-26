@@ -15,10 +15,8 @@ db_logger = DBLogger()
 db_logger.make_log()
 
 
-connection = mysql.connector.connect(host=HEDB.HOST,
-                                     database=HEDB.NAME,
-                                     user=HEDB.USER,
-                                     password=HEDB.PASS)
+# Establish the database connection
+connection = mysql.connector.connect(host=HEDB.HOST, database=HEDB.NAME, user=HEDB.USER, password=HEDB.PASS)
 
 
 def get_object(object_id):
@@ -193,13 +191,8 @@ def _get_table_columns(table, names_only=False):
     Returns:
         (list): A list of columns
     """
-    connection = None
     cursor = None
     try:
-        connection = mysql.connector.connect(host=HEDB.HOST,
-                                             database=HEDB.NAME,
-                                             user=HEDB.USER,
-                                             password=HEDB.PASS)
         if connection.is_connected():
             cursor = connection.cursor()
 
@@ -219,10 +212,8 @@ def _get_table_columns(table, names_only=False):
     except mysql.connector.Error as e:
         log_db_error(f'{e}', print_err=True)
     finally:
-        if connection and cursor:
-            if connection.is_connected():
-                cursor.close()
-                connection.close()
+        if cursor:
+            cursor.close()
 
 
 def _select(table, columns='*', filters=None, filters_args=None, f_elem=False):
@@ -242,6 +233,7 @@ def _select(table, columns='*', filters=None, filters_args=None, f_elem=False):
     """
     cursor = None
     try:
+        print(connection)
         if connection.is_connected():
             cursor = connection.cursor()
             columns = '*' if columns is None else columns
