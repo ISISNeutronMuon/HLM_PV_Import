@@ -5,10 +5,7 @@ import sys
 import logging
 import logging.handlers
 import os
-from ServiceManager.constants import MANAGER_SETTINGS_DIR
-
-log_dir = os.path.join(MANAGER_SETTINGS_DIR, 'logs')
-log_file = os.path.join(log_dir, 'HLM_ErrorLog.log')
+from ServiceManager.constants import MANAGER_LOGS_FILE, MANAGER_LOGS_DIR
 
 
 class StreamToLogger:
@@ -31,10 +28,10 @@ class StreamToLogger:
 def get_logger():
     formatter = logging.Formatter('%(asctime)s %(process)d:%(thread)d %(name)s %(levelname)-8s %(message)s')
 
-    if not os.path.exists(log_file):
-        if not os.path.exists(log_dir):  # If settings directory does not exist either, create it too
-            os.makedirs(log_dir)
-        with open(log_file, 'w') as f:
+    if not os.path.exists(MANAGER_LOGS_FILE):
+        if not os.path.exists(MANAGER_LOGS_DIR):  # If settings directory does not exist either, create it too
+            os.makedirs(MANAGER_LOGS_DIR)
+        with open(MANAGER_LOGS_FILE, 'w') as f:
             pass
 
     logger_ = logging.getLogger()
@@ -45,7 +42,7 @@ def get_logger():
     handler.setFormatter(formatter)
     logger_.addHandler(handler)
 
-    handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=10*1024**2, backupCount=10)
+    handler = logging.handlers.RotatingFileHandler(MANAGER_LOGS_FILE, maxBytes=10*1024**2, backupCount=10)
     handler.setLevel(logging.NOTSET)
     handler.setFormatter(formatter)
     logger_.addHandler(handler)

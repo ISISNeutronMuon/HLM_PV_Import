@@ -416,6 +416,25 @@
          <item>
           <layout class="QVBoxLayout" name="mainButtons">
            <item>
+            <widget class="QPushButton" name="expandTableButton">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Placeholder</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_10">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="refreshButton">
              <property name="font">
               <font>
@@ -1000,12 +1019,17 @@
    </widget>
    <widget class="QMenu" name="menuOpen">
     <property name="title">
-     <string>Show</string>
+     <string>Debug</string>
     </property>
     <addaction name="actionManager_Error_Log"/>
-    <addaction name="actionDebug_log"/>
+    <addaction name="actionManager_Settings"/>
+    <addaction name="actionManager_Data_Dir"/>
     <addaction name="separator"/>
+    <addaction name="actionDebug_log"/>
     <addaction name="actionService_directory"/>
+    <addaction name="actionService_Settings"/>
+    <addaction name="separator"/>
+    <addaction name="actionPV_Config"/>
    </widget>
    <addaction name="menuSettings"/>
    <addaction name="menuOpen"/>
@@ -1073,17 +1097,37 @@
   </action>
   <action name="actionDebug_log">
    <property name="text">
-    <string>Service Debug Log</string>
+    <string>Service Log</string>
    </property>
   </action>
   <action name="actionService_directory">
    <property name="text">
-    <string>Open Service Directory</string>
+    <string>Service Directory</string>
    </property>
   </action>
   <action name="actionManager_Error_Log">
    <property name="text">
-    <string>Manager Error Log</string>
+    <string>Manager Log</string>
+   </property>
+  </action>
+  <action name="actionManager_Settings">
+   <property name="text">
+    <string>Manager Settings</string>
+   </property>
+  </action>
+  <action name="actionService_Settings">
+   <property name="text">
+    <string>Service Settings</string>
+   </property>
+  </action>
+  <action name="actionManager_Data_Dir">
+   <property name="text">
+    <string>Manager Data Dir.</string>
+   </property>
+  </action>
+  <action name="actionPV_Config">
+   <property name="text">
+    <string>PV Config</string>
    </property>
   </action>
  </widget>

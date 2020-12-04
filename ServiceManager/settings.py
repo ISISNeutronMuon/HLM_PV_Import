@@ -3,7 +3,7 @@ import os
 import configparser
 import win32serviceutil
 from ServiceManager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEMPLATE, SERVICE_SETTINGS_FILE_NAME, \
-    SERVICE_SETTINGS_TEMPLATE
+    SERVICE_SETTINGS_TEMPLATE, MANAGER_SETTINGS_DIR, MANAGER_LOGS_FILE
 from ServiceManager.db_utilities import DBUtils
 
 
@@ -56,7 +56,7 @@ def setup_settings_file(path: str, template: dict, parser: configparser.ConfigPa
     for section, options in template.items():
         parser.add_section(section)
         for option in options:
-            parser.set(section, option, '')
+            parser[f'{section}'][f'{option}'] = ''
     with open(path, 'w') as settings_file:
         parser.write(settings_file)
 
@@ -92,8 +92,34 @@ class ManagerSettings:
     def get_service_path(self):
         return self.config_parser['Service']['Directory']
 
-    def set_service_path(self, new_path):
+    def set_service_path(self, new_path: str):
         self.config_parser.set('Service', 'Directory', new_path)
+        self.update()
+
+    @staticmethod
+    def get_log_path():
+        return MANAGER_LOGS_FILE
+
+    @staticmethod
+    def get_manager_settings_path():
+        return MANAGER_SETTINGS_FILE
+
+    @staticmethod
+    def get_manager_settings_dir():
+        return MANAGER_SETTINGS_DIR
+
+    def get_default_meas_update_interval(self):
+        return self.config_parser['Defaults'].getint('MeasurementsUpdateInterval')
+
+    def set_default_meas_update_interval(self, new_val: int):
+        self.config_parser['Defaults']['MeasurementsUpdateInterval'] = f'{new_val}'
+        self.update()
+
+    def get_new_entry_auto_pv_check(self):
+        return self.config_parser['General'].getboolean('AutoPVConnectionCheck')
+
+    def set_new_entry_auto_pv_check(self, checked: bool):
+        self.config_parser['General']['AutoPVConnectionCheck'] = f'{checked}'
         self.update()
 
 
@@ -171,21 +197,61 @@ class _PVConfig:
                 print('PV configuration file is empty.')
             return data
 
-    def add_entry(self, new_entry: dict):
+    def get_entry_with_id(self, obj_id: int):
+        """
+        Gets entry matching the given object ID.
+
+        Args:
+            obj_id (int): The object ID.
+
+        Returns:
+            (dict): The object config, or None if it was not found.
+        """
+        entries = self.get_entries()
+        for entry in entries:
+            if entry[self.OBJ] == obj_id:
+                return entry
+
+    def get_entry_object_ids(self):
+        """
+        Get a list of existing object IDs from the PV config.
+
+        Returns:
+            (list): List of object IDs.
+        """
+        object_ids = []
+        entries = self.get_entries()
+        for entry in entries:
+            object_ids.append(entry[self.OBJ])
+
+        return object_ids
+
+    def add_entry(self, new_entry: dict, overwrite: bool = False):
         """
         Add a new record config entry to PV Config.
 
         Args:
-            new_entry  (dict): The record config.
+            new_entry (dict): The record config.
+            overwrite (bool, optional): If True, overwrites the entry that matches the object ID, Defaults to False.
         """
         file_path = self.get_path()
         data = self.get_entries()
-        data.append(new_entry)
+        if overwrite:
+            overwritten = False
+            for index, entry in enumerate(data):
+                if entry[self.OBJ] == new_entry[self.OBJ]:
+                    data[index] = new_entry
+                    overwritten = True
+                    break
+            if not overwritten:
+                print(f'WARNING: Entry with object ID {new_entry[self.OBJ]} should have been overwritten but was not.')
+        else:
+            data.append(new_entry)
         data = {self.ROOT: data}
 
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
-
+        print(file_path)
         print(f'Added new PV configuration entry: {new_entry}')
 
 
@@ -220,12 +286,12 @@ class _HeliumDB:
         service_name = Settings.Service.Info.get_name()
         return win32serviceutil.GetServiceCustomOption(serviceName=service_name, option='DB_HE_PASS')
 
-    def set_name(self, new_name):
-        self.config_parser.set('HeRecoveryDB', 'Name', new_name)
+    def set_name(self, new_name: str):
+        self.config_parser['HeRecoveryDB']['Name'] = new_name
         self.update()
 
-    def set_host(self, new_host):
-        self.config_parser.set('HeRecoveryDB', 'Host', new_host)
+    def set_host(self, new_host: str):
+        self.config_parser['HeRecoveryDB']['Host'] = new_host
         self.update()
 
     @staticmethod
@@ -267,35 +333,35 @@ class _CA:
     def set_addr_list(self, new_list):
         if isinstance(new_list, list):
             new_list = ' '.join(new_list)
-        self.config_parser.set('ChannelAccess', 'EPICS_CA_ADDR_LIST', new_list)
+        self.config_parser['ChannelAccess']['EPICS_CA_ADDR_LIST'] = new_list
         self.update()
 
     def get_conn_timeout(self):
         return self.config_parser['ChannelAccess']['ConnectionTimeout']
 
     def set_conn_timeout(self, new_timeout: int):
-        self.config_parser.set('ChannelAccess', 'ConnectionTimeout', new_timeout)
+        self.config_parser['ChannelAccess']['ConnectionTimeout'] = f'{new_timeout}'
         self.update()
 
     def get_pv_stale_after(self):
         return self.config_parser['ChannelAccess']['PvStaleAfter']
 
     def set_pv_stale_after(self, new_threshold: int):
-        self.config_parser.set('ChannelAccess', 'PvStaleAfter', new_threshold)
+        self.config_parser['ChannelAccess']['PvStaleAfter'] = f'{new_threshold}'
         self.update()
 
     def get_pv_prefix(self):
         return self.config_parser['ChannelAccess']['PV_PREFIX']
 
     def set_pv_prefix(self, new_prefix: str):
-        self.config_parser.set('ChannelAccess', 'PV_PREFIX', new_prefix)
+        self.config_parser['ChannelAccess']['PV_PREFIX'] = new_prefix
         self.update()
 
     def get_pv_domain(self):
         return self.config_parser['ChannelAccess']['PV_DOMAIN']
 
     def set_pv_domain(self, new_domain: str):
-        self.config_parser.set('ChannelAccess', 'PV_DOMAIN', new_domain)
+        self.config_parser['ChannelAccess']['PV_DOMAIN'] = new_domain
         self.update()
 
 

@@ -49,12 +49,18 @@ class UIMainWindow(QMainWindow):
         # region Menu actions
         self.about_action = self.findChild(QAction, 'actionAbout')
         self.about_action.triggered.connect(self.trigger_about)
-        self.show_manager_error_log = self.findChild(QAction, 'actionManager_Error_Log')
-        self.show_manager_error_log.triggered.connect(self.trigger_show_manager_error_log)
-        self.show_service_debug_log = self.findChild(QAction, 'actionDebug_log')
-        self.show_service_debug_log.triggered.connect(self.trigger_open_debug_log)
+        self.manager_log_action = self.findChild(QAction, 'actionManager_Error_Log')
+        self.manager_log_action.triggered.connect(self.open_manager_log)
+        self.manager_settings_action = self.findChild(QAction, 'actionManager_Settings')
+        self.manager_settings_action.triggered.connect(self.open_manager_settings)
+        self.manager_settings_dir_action = self.findChild(QAction, 'actionManager_Data_Dir')
+        self.manager_settings_dir_action.triggered.connect(self.open_manager_settings_dir)
+        self.show_service_log = self.findChild(QAction, 'actionDebug_log')
+        self.show_service_log.triggered.connect(self.open_service_log)
         self.show_service_dir = self.findChild(QAction, 'actionService_directory')
         self.show_service_dir.triggered.connect(self.trigger_open_service_dir)
+        self.show_service_settings = self.findChild(QAction, 'actionService_Settings')
+        self.show_service_settings.triggered.connect(self.trigger_open_service_settings_file)
         self.db_settings_action = self.findChild(QAction, 'actionDB_Connection')
         self.db_settings_action.triggered.connect(self.trigger_db_settings)
         self.general_settings_action = self.findChild(QAction, 'actionGeneral')
@@ -63,6 +69,8 @@ class UIMainWindow(QMainWindow):
         self.ca_settings_action.triggered.connect(self.trigger_ca_settings)
         self.service_directory_action = self.findChild(QAction, 'actionService_Directory')
         self.service_directory_action.triggered.connect(self.trigger_service_directory)
+        self.open_pv_config_action = self.findChild(QAction, 'actionPV_Config')
+        self.open_pv_config_action.triggered.connect(self.trigger_open_pv_config)
         # endregion
 
         # region Get widgets
@@ -87,6 +95,7 @@ class UIMainWindow(QMainWindow):
         self.service_log_font_size = self.service_log_panel.findChild(QComboBox, 'fontSizeCB')
 
         self.config_table = self.findChild(QTableWidget, 'configTable')
+        self.expand_table_btn = self.findChild(QPushButton, 'expandTableButton')
         self.refresh_btn = self.findChild(QPushButton, 'refreshButton')
         self.filter_btn = self.findChild(QPushButton, 'filterButton')
         self.new_config_btn = self.findChild(QPushButton, 'newButton')
@@ -99,13 +108,14 @@ class UIMainWindow(QMainWindow):
         self.btn_service_stop.clicked.connect(self.service_stop_btn_clicked)
         self.btn_service_restart.clicked.connect(self.service_restart_btn_clicked)
 
-        self.service_log_file_open_btn.clicked.connect(self.trigger_open_debug_log)
+        self.service_log_file_open_btn.clicked.connect(self.open_service_log)
         self.service_log_scroll_down_btn.clicked.connect(self.log_scroll_down)
         # Emit spinner valueChanged only on return key pressed, focus lost, and arrow key pressed
         self.service_log_show_lines_spinbox.setKeyboardTracking(False)
         self.service_log_show_lines_spinbox.valueChanged.connect(self.update_log_displayed_lines_no)
         self.service_log_font_size.currentTextChanged.connect(self.update_log_font_size)
 
+        # self.expand_table_btn.clicked.connect() #todo
         self.refresh_btn.clicked.connect(self.refresh_btn_clicked)
         self.filter_btn.clicked.connect(self.filter_btn_clicked)
         self.new_config_btn.clicked.connect(self.new_config_btn_clicked)
@@ -182,12 +192,22 @@ class UIMainWindow(QMainWindow):
         self.about_w.activateWindow()
 
     @staticmethod
-    def trigger_show_manager_error_log():
-        error_log_file = Settings.Manager.get_error_log_path()
-        os.startfile(error_log_file)
+    def open_manager_log():
+        log_file = Settings.Manager.get_log_path()
+        os.startfile(log_file)
 
     @staticmethod
-    def trigger_open_debug_log():
+    def open_manager_settings():
+        settings_file = Settings.Manager.get_manager_settings_path()
+        os.startfile(settings_file)
+
+    @staticmethod
+    def open_manager_settings_dir():
+        settings_dir = Settings.Manager.get_manager_settings_dir()
+        os.startfile(settings_dir)
+
+    @staticmethod
+    def open_service_log():
         debug_file_path = Settings.Service.Logging.get_debug_log_path()
         os.startfile(debug_file_path)
 
@@ -195,6 +215,11 @@ class UIMainWindow(QMainWindow):
     def trigger_open_service_dir():
         service_dir_path = Settings.Manager.get_service_path()
         os.startfile(service_dir_path)
+
+    @staticmethod
+    def trigger_open_service_settings_file():
+        settings_file = Settings.Service.settings_path
+        os.startfile(settings_file)
 
     def trigger_db_settings(self):
         if self.db_settings_w is None:
@@ -223,6 +248,11 @@ class UIMainWindow(QMainWindow):
             self.service_dir_path_w.update_fields()
 
         self.service_dir_path_w.exec_()
+
+    @staticmethod
+    def trigger_open_pv_config():
+        path = Settings.Service.PVConfig.get_path()
+        os.startfile(path)
     # endregion
 
     # region Events
@@ -233,6 +263,7 @@ class UIMainWindow(QMainWindow):
 
         if reply == QMessageBox.Yes:
             event.accept()
+            QApplication.quit()
         else:
             event.ignore()
     # endregion

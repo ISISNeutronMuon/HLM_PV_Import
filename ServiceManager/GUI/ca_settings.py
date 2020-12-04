@@ -28,7 +28,6 @@ class UICASettings(QDialog):
 
         self.button_box = self.findChild(QDialogButtonBox, 'buttonBox')
         self.apply_btn = self.button_box.button(QDialogButtonBox.Apply)
-        self.apply_btn.setEnabled(False)
         self.message = self.findChild(QLabel, 'message')
         # endregion
 
@@ -52,11 +51,6 @@ class UICASettings(QDialog):
         self.editor_delegate.editStarted.connect(self.edit_started)
         self.editor_delegate.editFinished.connect(self.edit_finished)
         self.addr_list.setItemDelegate(self.editor_delegate)
-
-        # Fill widgets with current settings
-        self.update_fields()
-
-        self.settings_changed(False)
 
     def apply_new_settings(self):
         # Epics CA Addr. List
@@ -97,8 +91,11 @@ class UICASettings(QDialog):
         self.pv_stale_ln.setText(pv_stale)
         self.pv_timeout_ln.setText(pv_timeout)
 
+        self.message.clear()
+
     def on_accepted(self):
-        self.on_apply()
+        if self._settings_changed:
+            self.on_apply()
         self.close()
 
     def on_rejected(self):
@@ -108,6 +105,7 @@ class UICASettings(QDialog):
         self.apply_new_settings()
         self.update_fields()
         self.settings_changed(False)
+        self.message.setText('Settings updated.')
 
     def closeEvent(self, event: QCloseEvent):
         if self._settings_changed:
@@ -158,9 +156,9 @@ class UICASettings(QDialog):
         self.addr_del_btn.setEnabled(True)
         self.settings_changed()
 
-    def settings_changed(self, _=True):
-        self._settings_changed = _
-        self.apply_btn.setEnabled(_)
+    def settings_changed(self, changed=True):
+        self._settings_changed = changed
+        self.apply_btn.setEnabled(changed)
 
 
 class EditableListStyledItemDelegate(QStyledItemDelegate):

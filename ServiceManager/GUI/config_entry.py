@@ -1,7 +1,8 @@
-from PyQt5.QtCore import QObject, pyqtSignal, QEvent, QThread
+from PyQt5.QtCore import QObject, pyqtSignal, QEvent, QThread, Qt
 from PyQt5.QtGui import QShowEvent, QCloseEvent
 from PyQt5.QtWidgets import QDialog, QPushButton, QLineEdit, QDialogButtonBox, QFrame, \
-    QLayout, QComboBox, QLabel, QProgressBar
+    QLayout, QComboBox, QLabel, QProgressBar, QSpinBox, QMessageBox, QApplication, QHBoxLayout, QWidget, QVBoxLayout, \
+    QCheckBox
 from PyQt5 import uic
 
 from ServiceManager.constants import config_entry_ui
@@ -13,43 +14,29 @@ from ServiceManager.logger import logger
 from caproto import CaprotoTimeoutError
 
 
-class CustomSignals(QObject):
-    serviceUpdated = pyqtSignal()
-
-
-class FocusOutFilter(QObject):
-
-    focusOut = pyqtSignal()
-
-    def eventFilter(self, widget, event):
-        # FocusOut event
-        if event.type() == QEvent.FocusOut:
-            # Custom actions
-            self.focusOut.emit()
-            # return False so that the widget will also handle the event
-            # otherwise it won't focus out
-            return False
-        else:
-            return False   # don't care about other events
-
-
 class UIConfigEntryDialog(QDialog):
     def __init__(self):
         super(UIConfigEntryDialog, self).__init__()
         uic.loadUi(uifile=config_entry_ui, baseinstance=self)
 
         # region Attributes
+        self._settings_changed = None
         self.last_details_update_obj = None
         self.check_pvs_btn_default_text = None
+        self.loading_msg = LoadingPopupWindow()
         # endregion
 
         # region Get widgets
         self.obj_details_btn = self.findChild(QPushButton, 'objectDetailsButton')
         self.obj_details_frame = self.findChild(QFrame, 'detailsFrame')
 
+        self.obj_name_label = self.findChild(QLabel, 'objectNameLabel')
         self.obj_name_cb = self.findChild(QComboBox, 'objectNameCB')
         self.obj_name_cb.lineEdit().setPlaceholderText('Please enter the object name')
         self.obj_name_cb.setInsertPolicy(QComboBox.NoInsert)
+        self.obj_name_frame = self.findChild(QFrame, 'objectNameFrame')
+
+        self.log_interval_sb = self.findChild(QSpinBox, 'logIntervalSpinBox')
 
         self.obj_detail_name = self.findChild(QLineEdit, 'objectNameDetailsLineEdit')
         self.obj_detail_id = self.findChild(QLineEdit, 'objectIdLineEdit')
@@ -68,6 +55,7 @@ class UIConfigEntryDialog(QDialog):
         self.mea_pv_names = [
             self.mea_pv_name_1, self.mea_pv_name_2, self.mea_pv_name_3, self.mea_pv_name_4, self.mea_pv_name_5
         ]
+        self.mea_pvs_frame = self.findChild(QFrame, 'measurementsPVNamesFrame')
 
         self.mea_type_lbl_1 = self.findChild(QLabel, 'mea1TypeLabel')
         self.mea_type_lbl_2 = self.findChild(QLabel, 'mea2TypeLabel')
@@ -93,22 +81,41 @@ class UIConfigEntryDialog(QDialog):
         self.check_pvs_btn = self.findChild(QPushButton, 'checkPvsButton')
         self.check_pvs_btn_default_text = self.check_pvs_btn.text()
 
+        self.message_lbl = self.findChild(QLabel, 'message_lbl')
+
+        self.ok_btn = self.findChild(QPushButton, 'dialog_btn_ok')
+        self.cancel_btn = self.findChild(QPushButton, 'dialog_btn_cancel')
+        self.help_btn = self.findChild(QPushButton, 'dialog_btn_help')
         # endregion
 
         # region Basic signals to slots
-        self.obj_details_btn.clicked.connect(self.object_details_clicked)
+        self.obj_details_btn.clicked.connect(self.object_details_btn_clicked)
 
-        self.obj_name_cb.lineEdit().returnPressed.connect(self.update_details)
-        self.obj_name_cb.currentIndexChanged.connect(self.update_details)
-        self.focus_out_filter = FocusOutFilter()  # instantiate event filter which signals upon widget focus out event
-        self.obj_name_cb.installEventFilter(self.focus_out_filter)  # install filter to widget
-        self.focus_out_filter.focusOut.connect(self.update_details)  # connect filter custom signal to slot
+        self.obj_name_cb.lineEdit().returnPressed.connect(self.update_data)
+        self.obj_name_cb.currentIndexChanged.connect(self.update_data)
+        self.obj_name_cb.lineEdit().textChanged.connect(lambda _: self.settings_changed(True))
+        self.obj_name_cb.lineEdit().textChanged.connect(
+            lambda: self.obj_name_frame.setStyleSheet(f'QFrame#{self.obj_name_frame.objectName()} {{}}')
+        )
+
+        self.object_name_filter = ObjectNameCBFilter()  # instantiate event filter with custom signals
+        self.obj_name_cb.installEventFilter(self.object_name_filter)  # install filter to widget
+        self.object_name_filter.focusOut.connect(self.update_data)  # connect filter custom signal to slot
+
+        self.log_interval_sb.valueChanged.connect(lambda _: self.settings_changed(True))
 
         # For each PV Name line edit, on text change, clear the PV connection status label text
         for index, mea_pv_name in enumerate(self.mea_pv_names):
             mea_pv_name.textChanged.connect(lambda _, i=index: self.measurement_pv_text_changed(i))
+            mea_pv_name.textChanged.connect(
+                lambda: self.mea_pvs_frame.setStyleSheet(f'QFrame#{self.mea_pvs_frame.objectName()} {{}}')
+            )
 
-        self.check_pvs_btn.clicked.connect(self.check_measurement_pvs)
+        self.check_pvs_btn.clicked.connect(self.start_measurement_pvs_check)
+
+        self.ok_btn.clicked.connect(self.on_accepted)
+        self.cancel_btn.clicked.connect(self.on_cancel)
+        self.help_btn.clicked.connect(self.on_help)
         # endregion
 
         # region Threads
@@ -122,6 +129,7 @@ class UIConfigEntryDialog(QDialog):
         )
         self.pvs_connection_thread.started.connect(self.pvs_connection_check_started)
         self.pvs_connection_thread.finished.connect(self.pvs_connection_check_finished)
+        self.pvs_connection_thread.finished_check_before_add_config.connect(lambda: print('aaaaaa'))
         # endregion
 
         # region Events
@@ -129,18 +137,16 @@ class UIConfigEntryDialog(QDialog):
         self.obj_details_frame.hideEvent = lambda x: self.obj_details_btn.setText('Show details')
         # endregion
 
-    def object_details_clicked(self):
-        if self.obj_details_frame.isHidden():
-            self.obj_details_frame.show()
-        else:
-            self.obj_details_frame.hide()
-
+    # region Override events
     def showEvent(self, e: QShowEvent):
         self.update_fields()
 
     def closeEvent(self, e: QCloseEvent):
         self.pvs_connection_thread.stop()
 
+    # endregion
+
+    # region Widget refresh & updates
     def update_fields(self):
         names_list = DBUtils.get_all_object_names()
 
@@ -149,10 +155,141 @@ class UIConfigEntryDialog(QDialog):
         self.obj_name_cb.addItem(None)
         self.obj_name_cb.addItems(names_list)
 
+        self.log_interval_sb.setValue(Settings.Manager.get_default_meas_update_interval())
+
         self.clear_details()
         self.clear_pvs_connection_status()
         self.clear_measurement_type_labels()
         self.clear_measurement_pv_names()
+
+        self.message_lbl.clear()
+        self.obj_name_frame.setStyleSheet(f'QFrame#{self.obj_name_frame.objectName()} {{}}')
+        self.mea_pvs_frame.setStyleSheet(f'QFrame#{self.mea_pvs_frame.objectName()} {{}}')
+
+        self.enable_or_disable_check_pvs_btn()
+
+        self.settings_changed(False)
+        self.connection_results = None
+
+    def settings_changed(self, changed=True):
+        self._settings_changed = changed
+
+    def measurements_have_pv(self):
+        # True if at least one measurement line edit widget is not empty.
+        enabled = False
+        for line_edit in self.mea_pv_names:
+            if line_edit.text():
+                enabled = True
+                break
+
+        return enabled
+
+    # endregion
+
+    # region Accept, Reject, Save
+    def on_accepted(self):
+
+        # Validate and display invalid input message + red highlight relevant frames if invalid
+        if not self.input_fields_valid():
+            return
+
+        object_name = self.obj_name_cb.lineEdit().text()
+        object_id = DBUtils.get_object_id(object_name)
+
+        # Object not in DB, ask if create with default vals
+        if not object_id:
+            # todo: dialog asking if create obj with default values. Type must be specified from combo box. Types will
+            # todo: be fetched from the default values settings file in Manager
+            # todo: Types and their default values should be configurable through general settings.
+            print('Not exist - create with default vals?')
+            return
+
+        # Test PV connections if auto-check is enabled
+        auto_pv_check_enabled = Settings.Manager.get_new_entry_auto_pv_check()
+        if auto_pv_check_enabled:
+            self.start_measurement_pvs_check(check_before_add_config=True)
+            self.loading_msg.show()
+            QThread.wait(self.pvs_connection_thread)
+            self.loading_msg.close()
+            failed_connections = self.pvs_connection_thread.results['failed']
+            if failed_connections:
+                msg_box = QMessageBox.warning(self, 'PV Connection Failed',
+                                              'Could not establish connection to one or more PVs.\n'
+                                              'Add configuration anyway? (not recommended)',
+                                              QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Cancel)
+                if msg_box != QMessageBox.Yes:
+                    return
+
+        # Check if object already has a PV configuration
+        existing_ids = Settings.Service.PVConfig.get_entry_object_ids()
+        already_exists = False
+        if object_id in existing_ids:  # if it does, ask if overwrite
+            already_exists = True
+            msg_box = OverwriteMessageBox(object_id, object_name)
+            resp = msg_box.exec()
+            if resp != QMessageBox.Ok:
+                return
+
+        self.add_entry(object_id=object_id, overwrite=already_exists)
+
+    def add_entry(self, object_id: int, overwrite: bool):
+        """
+        Prepare the config data to add a new entry or overwrites an existing one.
+
+        Args:
+            object_id (int): The object ID.
+            overwrite (bool): If object already has config, overwrite entry. If False, append as normal.
+        """
+        log_period = self.log_interval_sb.value()
+        mea_pv_names_text = [x.text() for x in self.mea_pv_names]
+        measurement_pvs = {}
+        for index, pv_name in enumerate(mea_pv_names_text):
+            measurement_pvs[f'{index + 1}'] = pv_name if pv_name else None
+
+        config_data = {
+            Settings.Service.PVConfig.OBJ: object_id,
+            Settings.Service.PVConfig.LOG_PERIOD: log_period,
+            Settings.Service.PVConfig.MEAS: measurement_pvs
+        }
+
+        if overwrite:
+            Settings.Service.PVConfig.add_entry(config_data, overwrite=True)
+        else:
+            Settings.Service.PVConfig.add_entry(config_data)
+
+    def input_fields_valid(self):
+        invalid_input = False
+        # if no object name
+        if not self.obj_name_cb.lineEdit().text():
+            self.message_lbl.setStyleSheet('color: red;')
+            self.message_lbl.setText('Object name is required.\n')
+            self.obj_name_frame.setStyleSheet(f'QFrame#{self.obj_name_frame.objectName()} {{border: 1px solid red;}}')
+            invalid_input = True
+
+        # if no measurement PV (at least one)
+        if not self.measurements_have_pv():
+            self.message_lbl.setStyleSheet('color: red;')
+            self.message_lbl.setText(f'{self.message_lbl.text()}At least one measurement is required.\n')
+            self.mea_pvs_frame.setStyleSheet(f'QFrame#{self.mea_pvs_frame.objectName()} {{border: 1px solid red;}}')
+            invalid_input = True
+
+        return False if invalid_input else True
+
+    def on_cancel(self):
+        self.close()
+
+    def on_help(self):
+        # todo
+        pass
+
+    # endregion
+
+    # region Object details
+    def object_details_btn_clicked(self):
+        if self.obj_details_frame.isHidden():
+            self.obj_details_frame.show()
+        else:
+            self.obj_details_frame.hide()
 
     def clear_details(self):
         self.obj_detail_name.clear()
@@ -166,22 +303,9 @@ class UIConfigEntryDialog(QDialog):
 
         self.last_details_update_obj = None
 
-    def clear_pvs_connection_status(self):
-        for status_lbl in self.mea_status_labels:
-            status_lbl.clear()
-            status_lbl.setStyleSheet('')
-
-    def clear_measurement_type_labels(self):
-        for label in self.mea_type_labels:
-            label.clear()
-
-    def clear_measurement_pv_names(self):
-        for line_edit in self.mea_pv_names:
-            line_edit.clear()
-
-    def update_details(self, *args):
+    def update_data(self, *args):
         current_object = self.obj_name_cb.currentText()
-        # If no name or object already has details, return
+        # If no name or object data already displayed, return
         if not current_object or current_object == self.last_details_update_obj:
             return
 
@@ -190,6 +314,13 @@ class UIConfigEntryDialog(QDialog):
         if not obj_id:
             return
 
+        self.clear_details()
+        self.update_details(obj_id, current_object)
+
+        self.clear_measurement_pv_names()
+        self.update_measurements(obj_id)
+
+    def update_details(self, obj_id: int, current_object: str):
         obj_record = DBUtils.get_object(obj_id)
         obj_class_record = DBUtils.get_object_class(object_id=obj_id)
         self.obj_detail_comment.setText(obj_record[0][4])
@@ -210,25 +341,65 @@ class UIConfigEntryDialog(QDialog):
         mea_types = DBUtils.get_class_measurement_types(class_id=obj_class_record[0][0])
         self.update_measurement_types(mea_types)
 
+    def update_measurements(self, obj_id: int):
+        obj_entry = Settings.Service.PVConfig.get_entry_with_id(obj_id)
+        if not obj_entry:
+            return
+        mea_pvs = obj_entry[Settings.Service.PVConfig.MEAS]
+        for index, pv_name_line_edit in enumerate(self.mea_pv_names):
+            try:
+                pv_name_line_edit.setText(mea_pvs[f'{index+1}'])
+            except KeyError:
+                continue
+
+    # endregion
+
+    # region Measurement PVs
+    def clear_pvs_connection_status(self):
+        for status_lbl in self.mea_status_labels:
+            status_lbl.clear()
+            status_lbl.setStyleSheet('')
+
+    def clear_measurement_type_labels(self):
+        for label in self.mea_type_labels:
+            label.clear()
+
+    def clear_measurement_pv_names(self):
+        for line_edit in self.mea_pv_names:
+            line_edit.clear()
+
     def update_measurement_types(self, mea_types: dict):
         # mea_type_labels = list of QLabel widgets
         # mea_types (arg) = dictionary containing [Mea. Number/Type Description] pairs (e.g. {1: 'Temperature (K)', ...}
         for index, type_lbl in enumerate(self.mea_type_labels):
-            type_lbl.setText(mea_types[index+1])
+            type_lbl.setText(mea_types[index + 1])
 
-    def update_check_pvs_btn(self, pvs_check_running: bool):
+    def update_check_pvs_widgets(self, pvs_check_running: bool):
         if pvs_check_running:
             self.check_pvs_btn.setText('Checking connections ...')
             self.check_pvs_btn.setEnabled(False)
+            for line_edit in self.mea_pv_names:
+                line_edit.setEnabled(False)
+            self.obj_name_cb.setEnabled(False)
         else:
             self.check_pvs_btn.setText(self.check_pvs_btn_default_text)
             self.check_pvs_btn.setEnabled(True)
+            for line_edit in self.mea_pv_names:
+                line_edit.setEnabled(True)
+            self.obj_name_cb.setEnabled(True)
 
-    def check_measurement_pvs(self):
+    def start_measurement_pvs_check(self, check_before_add_config: bool = False):
         """
-        Check all line edits. If no text, skip. If text, take PV name (should accept both FULL and PARTIAL names),
-        and try to connect and get value. If success, change label and set green, if timeout set red etc.
+        Check all line edits. If no text, skip. If text, take PV name (should accept both FULL and PARTIAL names).
+        Starts the PV connection check thread.
+        For each PV, thread tries to connect and get value. If success, change label and set green,
+        if timeout set red etc.
         While loading, change label text or add loading animation
+
+        Args:
+            check_before_add_config (bool): Whether to emit the signal to add configuration on finish or not.
+                This is used when the check is started automatically by the Add Configuration button,
+                if automatic PV check is enabled in general settings.
         """
         names = []
         for pv_name in self.mea_pv_names:
@@ -238,6 +409,7 @@ class UIConfigEntryDialog(QDialog):
                 names.append(full_name)
             else:
                 names.append(None)
+        self.pvs_connection_thread.check_before_add_config(check_before_add_config)
         self.pvs_connection_thread.set_pv_names(pv_names=names)
         self.pvs_connection_thread.start()
 
@@ -252,26 +424,80 @@ class UIConfigEntryDialog(QDialog):
 
     def measurement_pv_text_changed(self, mea_no: int):
         self.mea_status_labels[mea_no].clear()
+        self.settings_changed(True)
+        self.enable_or_disable_check_pvs_btn()
+        self.message_lbl.clear()
+
+    def enable_or_disable_check_pvs_btn(self):
+        self.check_pvs_btn.setEnabled(False)
+        for line_edit in self.mea_pv_names:
+            if line_edit.text():
+                self.check_pvs_btn.setEnabled(True)
+                break
 
     def pvs_connection_check_started(self):
-        self.update_check_pvs_btn(pvs_check_running=True)
+        self.update_check_pvs_widgets(pvs_check_running=True)
         self.clear_pvs_connection_status()
+        self.ok_btn.setEnabled(False)
+        self.message_lbl.setText('Checking measurement PVs ...')
+        self.message_lbl.setStyleSheet('color: green;')
 
     def pvs_connection_check_finished(self):
-        self.update_check_pvs_btn(pvs_check_running=False)
+        self.update_check_pvs_widgets(pvs_check_running=False)
+        self.ok_btn.setEnabled(True)
+
+        results = self.pvs_connection_thread.results
+        failed_pvs = len(results['failed'])
+        if not failed_pvs:
+            self.message_lbl.setStyleSheet('color: green;')
+            self.message_lbl.setText('PV connection test finished.\n'
+                                     'All PVs connected.')
+        else:
+            self.message_lbl.setStyleSheet('color: red;')
+            self.message_lbl.setText('PV connection test finished.\n'
+                                     f'{failed_pvs} PVs failed to connect.')
+
+    # endregion Measurement PVs
+
+
+class CustomSignals(QObject):
+    serviceUpdated = pyqtSignal()
+
+
+class ObjectNameCBFilter(QObject):
+    focusOut = pyqtSignal()
+    focusIn = pyqtSignal()
+
+    def eventFilter(self, widget, event):
+        # FocusOut event
+        if event.type() == QEvent.FocusOut:
+            # Custom actions
+            self.focusOut.emit()
+        elif event.type() == QEvent.FocusIn:
+            self.focusIn.emit()
+
+        # return False so that the widget will also handle the event
+        return False
 
 
 class CheckPVsThread(QThread):
-
     mea_status_update = pyqtSignal(int, bool)
     progress_bar_update = pyqtSignal(int)
     display_progress_bar = pyqtSignal(bool)
+    finished_check_before_add_config = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
         QThread.__init__(self, *args, **kwargs)
         self.finished.connect(self.clear_progress_bar)
+        self.finished.connect(lambda: self.finished_check_before_add_config.emit() if self._add_config else None)
         self.pv_names = None
         self._running = None
+        self.results = None
+
+        # Whether to emit the signal to add configuration on finish or not. This is used
+        # when the check is started automatically by the Add Configuration button, if
+        # automatic PV check is enabled in general settings.
+        self._add_config = None
 
     def __del__(self):
         self.wait()
@@ -302,10 +528,12 @@ class CheckPVsThread(QThread):
                     self.mea_status_update.emit(index, False)
                     failed.append(pv_name)
 
-            self.progress_bar_update.emit(index+1)
+            self.progress_bar_update.emit(index + 1)
 
         if self._running:
             logger.info(f'PV connection check finished. Connected: {connected}. Failed: {failed}')
+
+        self.results = {'connected': connected, 'failed': failed}
 
     def set_pv_names(self, pv_names: list):
         self.pv_names = pv_names
@@ -313,3 +541,37 @@ class CheckPVsThread(QThread):
     def clear_progress_bar(self):
         self.progress_bar_update.emit(0)
         self.display_progress_bar.emit(False)
+
+    def check_before_add_config(self, add_config: bool):
+        self._add_config = add_config
+
+
+class LoadingPopupWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setFixedSize(200, 100)
+        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.CustomizeWindowHint)
+
+        layout = QVBoxLayout()
+
+        self.label_msg = QLabel(self)
+        self.label_msg.setText('Checking PVs ...')
+
+        layout.addWidget(self.label_msg)
+
+        self.setLayout(layout)
+
+
+class OverwriteMessageBox(QMessageBox):
+    def __init__(self, object_name, object_id):
+        super().__init__()
+
+        self.setWindowTitle('Configuration already exists')
+        self.setText(f'{object_name} (ID: {object_id}) already has a PV configuration.\n'
+                     f'Overwrite existing configuration?')
+        self.setIcon(QMessageBox.Warning)
+        self.addButton(QMessageBox.Ok)
+        ok_btn = self.button(QMessageBox.Ok)
+        ok_btn.setText('Overwrite')
+        self.addButton(QMessageBox.Cancel)
+        self.setDefaultButton(QMessageBox.Cancel)
