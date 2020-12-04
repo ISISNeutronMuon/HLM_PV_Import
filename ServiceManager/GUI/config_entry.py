@@ -1,11 +1,11 @@
-from PyQt5.QtCore import QObject, pyqtSignal, QEvent, QThread, Qt
-from PyQt5.QtGui import QShowEvent, QCloseEvent
+from PyQt5.QtCore import QObject, pyqtSignal, QEvent, QThread, Qt, QSize
+from PyQt5.QtGui import QShowEvent, QCloseEvent, QFont, QMovie
 from PyQt5.QtWidgets import QDialog, QPushButton, QLineEdit, QDialogButtonBox, QFrame, \
     QLayout, QComboBox, QLabel, QProgressBar, QSpinBox, QMessageBox, QApplication, QHBoxLayout, QWidget, QVBoxLayout, \
     QCheckBox
 from PyQt5 import uic
 
-from ServiceManager.constants import config_entry_ui
+from ServiceManager.constants import config_entry_ui, loading_animation
 from ServiceManager.settings import Settings, get_full_pv_name
 from ServiceManager.utilities import get_pv_value
 from ServiceManager.db_utilities import DBUtils
@@ -24,6 +24,8 @@ class UIConfigEntryDialog(QDialog):
         self.last_details_update_obj = None
         self.check_pvs_btn_default_text = None
         self.loading_msg = LoadingPopupWindow()
+        self.on_accepted_obj_id = None
+        self.on_accepted_already_exists = None
         # endregion
 
         # region Get widgets
@@ -129,7 +131,10 @@ class UIConfigEntryDialog(QDialog):
         )
         self.pvs_connection_thread.started.connect(self.pvs_connection_check_started)
         self.pvs_connection_thread.finished.connect(self.pvs_connection_check_finished)
-        self.pvs_connection_thread.finished_check_before_add_config.connect(lambda: print('aaaaaa'))
+        self.pvs_connection_thread.finished_check_before_add_config.connect(self.add_entry_pv_check_finished)
+
+        # QThread graceful exit on app close
+        QApplication.instance().aboutToQuit.connect(self.pvs_connection_thread.stop)
         # endregion
 
         # region Events
@@ -143,6 +148,7 @@ class UIConfigEntryDialog(QDialog):
 
     def closeEvent(self, e: QCloseEvent):
         self.pvs_connection_thread.stop()
+        self.loading_msg.close()
 
     # endregion
 
@@ -204,22 +210,6 @@ class UIConfigEntryDialog(QDialog):
             print('Not exist - create with default vals?')
             return
 
-        # Test PV connections if auto-check is enabled
-        auto_pv_check_enabled = Settings.Manager.get_new_entry_auto_pv_check()
-        if auto_pv_check_enabled:
-            self.start_measurement_pvs_check(check_before_add_config=True)
-            self.loading_msg.show()
-            QThread.wait(self.pvs_connection_thread)
-            self.loading_msg.close()
-            failed_connections = self.pvs_connection_thread.results['failed']
-            if failed_connections:
-                msg_box = QMessageBox.warning(self, 'PV Connection Failed',
-                                              'Could not establish connection to one or more PVs.\n'
-                                              'Add configuration anyway? (not recommended)',
-                                              QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Cancel)
-                if msg_box != QMessageBox.Yes:
-                    return
-
         # Check if object already has a PV configuration
         existing_ids = Settings.Service.PVConfig.get_entry_object_ids()
         already_exists = False
@@ -230,7 +220,38 @@ class UIConfigEntryDialog(QDialog):
             if resp != QMessageBox.Ok:
                 return
 
-        self.add_entry(object_id=object_id, overwrite=already_exists)
+        # Test PV connections if auto-check is enabled
+        auto_pv_check_enabled = Settings.Manager.get_new_entry_auto_pv_check()
+        if auto_pv_check_enabled:
+            self.on_accepted_obj_id = object_id
+            self.on_accepted_already_exists = already_exists
+            self.start_measurement_pvs_check(on_add_config=True)
+            self.loading_msg.show()
+        else:
+            self.add_entry(object_id=object_id, overwrite=already_exists)
+
+    def add_entry_pv_check_finished(self):
+        """
+        If auto PV conn. check on new entry is enabled, call the start check method with flag to mark it's a check
+        before adding the entry.
+        While the connection checks are being made, show a loading message pop-up.
+        When the PV conn thread finishes after its test was started with the flag, it will emit a signal
+        to call this method, which closes the loading message and checks for failed connections.
+        If there are any, ask the user if they want to add the config anyway via another message box, and if so,
+        finally call the add entry method.
+
+        If auto PV check is disabled in settings, this step will be skipped and add entry will be called directly
+        from the on accepted slot.
+        """
+        self.loading_msg.close()
+        failed_connections = self.pvs_connection_thread.results['failed']
+        if failed_connections:
+            msg_box = QMessageBox.warning(self, 'PV Connection Failed',
+                                          'Could not establish connection to one or more PVs.\n'
+                                          'Add configuration anyway? (not recommended)',
+                                          QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Cancel)
+            if msg_box == QMessageBox.Yes:
+                self.add_entry(object_id=self.on_accepted_obj_id, overwrite=self.on_accepted_already_exists)
 
     def add_entry(self, object_id: int, overwrite: bool):
         """
@@ -280,6 +301,7 @@ class UIConfigEntryDialog(QDialog):
 
     def on_help(self):
         # todo
+        self.loading_msg.show()
         pass
 
     # endregion
@@ -388,7 +410,7 @@ class UIConfigEntryDialog(QDialog):
                 line_edit.setEnabled(True)
             self.obj_name_cb.setEnabled(True)
 
-    def start_measurement_pvs_check(self, check_before_add_config: bool = False):
+    def start_measurement_pvs_check(self, on_add_config: bool = False):
         """
         Check all line edits. If no text, skip. If text, take PV name (should accept both FULL and PARTIAL names).
         Starts the PV connection check thread.
@@ -397,7 +419,7 @@ class UIConfigEntryDialog(QDialog):
         While loading, change label text or add loading animation
 
         Args:
-            check_before_add_config (bool): Whether to emit the signal to add configuration on finish or not.
+            on_add_config (bool): Whether to emit the signal to add configuration on finish or not.
                 This is used when the check is started automatically by the Add Configuration button,
                 if automatic PV check is enabled in general settings.
         """
@@ -409,7 +431,7 @@ class UIConfigEntryDialog(QDialog):
                 names.append(full_name)
             else:
                 names.append(None)
-        self.pvs_connection_thread.check_before_add_config(check_before_add_config)
+        self.pvs_connection_thread.on_add_config(on_add_config)
         self.pvs_connection_thread.set_pv_names(pv_names=names)
         self.pvs_connection_thread.start()
 
@@ -489,7 +511,7 @@ class CheckPVsThread(QThread):
     def __init__(self, *args, **kwargs):
         QThread.__init__(self, *args, **kwargs)
         self.finished.connect(self.clear_progress_bar)
-        self.finished.connect(lambda: self.finished_check_before_add_config.emit() if self._add_config else None)
+        self.finished.connect(lambda: self.finished_check_before_add_config.emit() if self._on_add_config else None)
         self.pv_names = None
         self._running = None
         self.results = None
@@ -497,7 +519,7 @@ class CheckPVsThread(QThread):
         # Whether to emit the signal to add configuration on finish or not. This is used
         # when the check is started automatically by the Add Configuration button, if
         # automatic PV check is enabled in general settings.
-        self._add_config = None
+        self._on_add_config = None
 
     def __del__(self):
         self.wait()
@@ -542,24 +564,44 @@ class CheckPVsThread(QThread):
         self.progress_bar_update.emit(0)
         self.display_progress_bar.emit(False)
 
-    def check_before_add_config(self, add_config: bool):
-        self._add_config = add_config
+    def on_add_config(self, add_config_clicked: bool):
+        self._on_add_config = add_config_clicked
 
 
 class LoadingPopupWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setFixedSize(200, 100)
-        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.CustomizeWindowHint)
+        self.setFixedSize(210, 100)
+        self.setWindowFlags(Qt.SplashScreen | Qt.WindowStaysOnTopHint | Qt.CustomizeWindowHint)
 
-        layout = QVBoxLayout()
+        layout = QHBoxLayout()
 
-        self.label_msg = QLabel(self)
+        self.label_msg = QLabel()
         self.label_msg.setText('Checking PVs ...')
+        font = QFont()
+        font.setPointSize(10)
+        self.label_msg.setFont(font)
 
+        self.load_animation_lbl = QLabel()
+        self.movie = QMovie(loading_animation)
+        self.load_animation_lbl.setMovie(self.movie)
+
+        size = QSize(50, 50)
+        self.movie.setScaledSize(size)
+
+        layout.addWidget(self.load_animation_lbl)
         layout.addWidget(self.label_msg)
 
-        self.setLayout(layout)
+        frame = QFrame(self)
+        frame.setFrameShape(QFrame.StyledPanel)
+        frame.setGeometry(self.geometry())
+        frame.setLayout(layout)
+
+    def showEvent(self, e: QShowEvent):
+        self.movie.start()
+
+    def closeEvent(self, e: QCloseEvent):
+        self.movie.stop()
 
 
 class OverwriteMessageBox(QMessageBox):

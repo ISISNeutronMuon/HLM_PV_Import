@@ -1,9 +1,9 @@
 import os
 import win32serviceutil
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtGui import QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QMessageBox, QPlainTextEdit, QWidget, QSpinBox, \
-    QLineEdit, QLabel, QComboBox, QTableWidget, QTableWidgetItem, QApplication
+    QLineEdit, QLabel, QComboBox, QTableWidget, QTableWidgetItem, QApplication, QFrame
 from PyQt5 import uic
 
 from ServiceManager.logger import logger
@@ -42,6 +42,8 @@ class UIMainWindow(QMainWindow):
         self.service_name = None
         self.service_debug_f = None
         self.service_path = None
+        self.table_expanded = False
+        self.expand_table_btn_text = {False: 'Expand table', True: 'Service info'}
 
         self.pv_config_data = []
         # endregion
@@ -86,13 +88,8 @@ class UIMainWindow(QMainWindow):
         self.btn_service_start = self.service_status_panel.findChild(QPushButton, 'serviceStart')
         self.btn_service_stop = self.service_status_panel.findChild(QPushButton, 'serviceStop')
         self.btn_service_restart = self.service_status_panel.findChild(QPushButton, 'serviceRestart')
-        
-        self.service_log_panel = self.findChild(QWidget, 'serviceLog')
-        self.service_log_txt = self.service_log_panel.findChild(QPlainTextEdit, 'serviceLogText')
-        self.service_log_file_open_btn = self.service_log_panel.findChild(QPushButton, 'openLogFileButton')
-        self.service_log_scroll_down_btn = self.service_log_panel.findChild(QPushButton, 'logScrollDownButton')
-        self.service_log_show_lines_spinbox = self.service_log_panel.findChild(QSpinBox, 'logLinesSpinBox')
-        self.service_log_font_size = self.service_log_panel.findChild(QComboBox, 'fontSizeCB')
+
+        self.h_line_one = self.findChild(QFrame, 'h_line_1')
 
         self.config_table = self.findChild(QTableWidget, 'configTable')
         self.expand_table_btn = self.findChild(QPushButton, 'expandTableButton')
@@ -101,6 +98,16 @@ class UIMainWindow(QMainWindow):
         self.new_config_btn = self.findChild(QPushButton, 'newButton')
         self.edit_config_btn = self.findChild(QPushButton, 'editButton')
         self.delete_config_btn = self.findChild(QPushButton, 'deleteButton')
+
+        self.h_line_two = self.findChild(QFrame, 'h_line_2')
+
+        self.service_log_panel = self.findChild(QWidget, 'serviceLog')
+        self.service_log_txt = self.service_log_panel.findChild(QPlainTextEdit, 'serviceLogText')
+        self.service_log_file_open_btn = self.service_log_panel.findChild(QPushButton, 'openLogFileButton')
+        self.service_log_scroll_down_btn = self.service_log_panel.findChild(QPushButton, 'logScrollDownButton')
+        self.service_log_show_lines_spinbox = self.service_log_panel.findChild(QSpinBox, 'logLinesSpinBox')
+        self.service_log_font_size = self.service_log_panel.findChild(QComboBox, 'fontSizeCB')
+
         # endregion
 
         # region Connect signals to slots
@@ -115,7 +122,7 @@ class UIMainWindow(QMainWindow):
         self.service_log_show_lines_spinbox.valueChanged.connect(self.update_log_displayed_lines_no)
         self.service_log_font_size.currentTextChanged.connect(self.update_log_font_size)
 
-        # self.expand_table_btn.clicked.connect() #todo
+        self.expand_table_btn.clicked.connect(self.expand_table_btn_clicked)
         self.refresh_btn.clicked.connect(self.refresh_btn_clicked)
         self.filter_btn.clicked.connect(self.filter_btn_clicked)
         self.new_config_btn.clicked.connect(self.new_config_btn_clicked)
@@ -153,13 +160,6 @@ class UIMainWindow(QMainWindow):
         self.btn_service_stop.setEnabled(False)
         self.btn_service_restart.setEnabled(False)
         # endregion
-
-        # Fill widgets with data
-        self.update_fields()
-
-        # todo
-        # from ServiceManager.utilities import add_config_entry
-        # add_config_entry({})
 
     # region Service control buttons slots
     def service_start_btn_clicked(self):
@@ -256,6 +256,9 @@ class UIMainWindow(QMainWindow):
     # endregion
 
     # region Events
+    def showEvent(self, event: QShowEvent):
+        self.update_fields()
+
     def closeEvent(self, event: QCloseEvent):
         quit_msg = "Are you sure you want to exit the program?"
         reply = QMessageBox.question(self, 'HLM PV Import',
@@ -276,6 +279,16 @@ class UIMainWindow(QMainWindow):
             logger.info(e)
             self.pv_config_data = []
             return
+
+    def expand_table_btn_clicked(self): #todo
+        # expanded is false -> set visible false (hide) -> expanded = true;
+        # expanded is true -> set visible true (show) -> expanded = false;
+        self.service_status_panel.setVisible(self.table_expanded)
+        self.service_log_panel.setVisible(self.table_expanded)
+        self.h_line_one.setVisible(self.table_expanded)
+        self.h_line_two.setVisible(self.table_expanded)
+        self.table_expanded = not self.table_expanded  # toggle bool
+        self.expand_table_btn.setText(self.expand_table_btn_text[self.table_expanded])
 
     def refresh_btn_clicked(self):
         self.update_config_data()
@@ -337,6 +350,7 @@ class UIMainWindow(QMainWindow):
     def update_fields(self):
         self.update_config_data()
         self.update_config_table()
+        self.expand_table_btn.setText(self.expand_table_btn_text[self.table_expanded])
 
     def update_service(self):
         self.thread_service_log.start()

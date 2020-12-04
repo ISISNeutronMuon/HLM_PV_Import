@@ -16,6 +16,7 @@ else:
 gui_dir = os.path.join(BASE_PATH, 'GUI')
 icon_path = os.path.join(gui_dir, 'assets', 'icon.svg')
 about_logo_path = os.path.join(gui_dir, 'assets', 'isis-logo.png')
+loading_animation = os.path.join(gui_dir, 'assets', 'loading.gif')
 main_window_ui = os.path.join(gui_dir, 'layouts', 'MainWindow.ui')
 about_ui = os.path.join(gui_dir, 'layouts', 'about.ui')
 db_settings_ui = os.path.join(gui_dir, 'layouts', 'DBSettings.ui')
