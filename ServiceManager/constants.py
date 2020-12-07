@@ -38,7 +38,7 @@ SERVICE_SETTINGS_FILE_NAME = 'settings.ini'
 # region Settings Files Templates
 MANAGER_SETTINGS_TEMPLATE = {
     'Service': ['Directory'],
-    'General': ['AutoPVConnectionCheck'],
+    'General': ['AutoPVConnectionCheck', 'AutoLoadExistingConfig'],
     'Defaults': ['MeasurementsUpdateInterval']
 }
 

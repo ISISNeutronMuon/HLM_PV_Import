@@ -1,8 +1,7 @@
 from PyQt5.QtCore import QObject, pyqtSignal, QEvent, QThread, Qt, QSize
 from PyQt5.QtGui import QShowEvent, QCloseEvent, QFont, QMovie
-from PyQt5.QtWidgets import QDialog, QPushButton, QLineEdit, QDialogButtonBox, QFrame, \
-    QLayout, QComboBox, QLabel, QProgressBar, QSpinBox, QMessageBox, QApplication, QHBoxLayout, QWidget, QVBoxLayout, \
-    QCheckBox
+from PyQt5.QtWidgets import QDialog, QPushButton, QLineEdit, QFrame, \
+    QComboBox, QLabel, QProgressBar, QSpinBox, QMessageBox, QApplication, QHBoxLayout, QWidget
 from PyQt5 import uic
 
 from ServiceManager.constants import config_entry_ui, loading_animation
@@ -15,6 +14,9 @@ from caproto import CaprotoTimeoutError
 
 
 class UIConfigEntryDialog(QDialog):
+
+    config_updated = pyqtSignal()
+
     def __init__(self):
         super(UIConfigEntryDialog, self).__init__()
         uic.loadUi(uifile=config_entry_ui, baseinstance=self)
@@ -26,6 +28,8 @@ class UIConfigEntryDialog(QDialog):
         self.loading_msg = LoadingPopupWindow()
         self.on_accepted_obj_id = None
         self.on_accepted_already_exists = None
+        self.existing_config_frame_visible = None
+        self.existing_config_pvs = {}
         # endregion
 
         # region Get widgets
@@ -78,6 +82,10 @@ class UIConfigEntryDialog(QDialog):
             self.mea_status_lbl_5
         ]
 
+        self.existing_config_frame = self.findChild(QFrame, 'existingConfigFrame')
+        self.existing_config_frame.hide()
+        self.existing_config_load_btn = self.findChild(QPushButton, 'loadExistingConfigButton')
+        self.existing_config_load_btn.setEnabled(False)
         self.check_pvs_progress_bar = self.findChild(QProgressBar, 'checkMeasProgressBar')
         self.check_pvs_progress_bar.hide()
         self.check_pvs_btn = self.findChild(QPushButton, 'checkPvsButton')
@@ -87,7 +95,7 @@ class UIConfigEntryDialog(QDialog):
 
         self.ok_btn = self.findChild(QPushButton, 'dialog_btn_ok')
         self.cancel_btn = self.findChild(QPushButton, 'dialog_btn_cancel')
-        self.help_btn = self.findChild(QPushButton, 'dialog_btn_help')
+        self.delete_btn = self.findChild(QPushButton, 'dialog_btn_delete')
         # endregion
 
         # region Basic signals to slots
@@ -101,8 +109,8 @@ class UIConfigEntryDialog(QDialog):
         )
 
         self.object_name_filter = ObjectNameCBFilter()  # instantiate event filter with custom signals
-        self.obj_name_cb.installEventFilter(self.object_name_filter)  # install filter to widget
         self.object_name_filter.focusOut.connect(self.update_data)  # connect filter custom signal to slot
+        self.obj_name_cb.installEventFilter(self.object_name_filter)  # install filter to widget
 
         self.log_interval_sb.valueChanged.connect(lambda _: self.settings_changed(True))
 
@@ -112,19 +120,26 @@ class UIConfigEntryDialog(QDialog):
             mea_pv_name.textChanged.connect(
                 lambda: self.mea_pvs_frame.setStyleSheet(f'QFrame#{self.mea_pvs_frame.objectName()} {{}}')
             )
+            mea_pv_name.textEdited.connect(self.update_existing_config_btn)
+
+        self.progress_bar_filter = ProgressBarFilter()
+        self.progress_bar_filter.showEventSignal.connect(self.progress_bar_show)
+        self.progress_bar_filter.hideEventSignal.connect(self.progress_bar_hide)
+        self.check_pvs_progress_bar.installEventFilter(self.progress_bar_filter)
 
         self.check_pvs_btn.clicked.connect(self.start_measurement_pvs_check)
+        self.existing_config_load_btn.clicked.connect(self.update_measurement_pv_names)
 
         self.ok_btn.clicked.connect(self.on_accepted)
         self.cancel_btn.clicked.connect(self.on_cancel)
-        self.help_btn.clicked.connect(self.on_help)
+        self.delete_btn.clicked.connect(self.on_delete)
         # endregion
 
         # region Threads
         self.pvs_connection_thread = CheckPVsThread()
         self.pvs_connection_thread.mea_status_update.connect(self.update_measurements_pvs_status)
         self.pvs_connection_thread.display_progress_bar.connect(
-            lambda x: self.check_pvs_progress_bar.show() if x else self.check_pvs_progress_bar.hide()
+            lambda x: self.check_pvs_progress_bar.setVisible(x)
         )
         self.pvs_connection_thread.progress_bar_update.connect(
             lambda val: self.check_pvs_progress_bar.setValue(val)
@@ -168,6 +183,10 @@ class UIConfigEntryDialog(QDialog):
         self.clear_measurement_type_labels()
         self.clear_measurement_pv_names()
 
+        self.existing_config_frame.hide()
+        self.existing_config_load_btn.setEnabled(False)
+        self.delete_btn.setEnabled(False)
+
         self.message_lbl.clear()
         self.obj_name_frame.setStyleSheet(f'QFrame#{self.obj_name_frame.objectName()} {{}}')
         self.mea_pvs_frame.setStyleSheet(f'QFrame#{self.mea_pvs_frame.objectName()} {{}}')
@@ -175,7 +194,6 @@ class UIConfigEntryDialog(QDialog):
         self.enable_or_disable_check_pvs_btn()
 
         self.settings_changed(False)
-        self.connection_results = None
 
     def settings_changed(self, changed=True):
         self._settings_changed = changed
@@ -215,7 +233,7 @@ class UIConfigEntryDialog(QDialog):
         already_exists = False
         if object_id in existing_ids:  # if it does, ask if overwrite
             already_exists = True
-            msg_box = OverwriteMessageBox(object_id, object_name)
+            msg_box = OverwriteMessageBox(object_name, object_id)
             resp = msg_box.exec()
             if resp != QMessageBox.Ok:
                 return
@@ -273,10 +291,19 @@ class UIConfigEntryDialog(QDialog):
             Settings.Service.PVConfig.MEAS: measurement_pvs
         }
 
+        msg = None
         if overwrite:
             Settings.Service.PVConfig.add_entry(config_data, overwrite=True)
+            msg = 'Configuration has been updated.'
         else:
             Settings.Service.PVConfig.add_entry(config_data)
+            msg = 'New configuration has been added.'
+
+        self.config_updated.emit()
+
+        self.message_lbl.setText(msg)
+        self.message_lbl.setStyleSheet('color: green;')
+        self.clear_pvs_connection_status()
 
     def input_fields_valid(self):
         invalid_input = False
@@ -299,10 +326,16 @@ class UIConfigEntryDialog(QDialog):
     def on_cancel(self):
         self.close()
 
-    def on_help(self):
-        # todo
-        self.loading_msg.show()
-        pass
+    def on_delete(self):
+        object_name = self.obj_name_cb.lineEdit().text()
+        object_id = DBUtils.get_object_id(object_name)
+
+        msg_box = DeleteConfigMessageBox(object_name, object_id)
+        resp = msg_box.exec()
+
+        if resp == QMessageBox.Ok:
+            Settings.Service.PVConfig.delete_entry(object_id)
+            self.config_updated.emit()
 
     # endregion
 
@@ -325,7 +358,7 @@ class UIConfigEntryDialog(QDialog):
 
         self.last_details_update_obj = None
 
-    def update_data(self, *args):
+    def update_data(self):
         current_object = self.obj_name_cb.currentText()
         # If no name or object data already displayed, return
         if not current_object or current_object == self.last_details_update_obj:
@@ -337,10 +370,12 @@ class UIConfigEntryDialog(QDialog):
             return
 
         self.clear_details()
+        self.message_lbl.clear()
         self.update_details(obj_id, current_object)
 
-        self.clear_measurement_pv_names()
-        self.update_measurements(obj_id)
+        if Settings.Manager.get_auto_load_existing_config():
+            self.clear_measurement_pv_names()
+        self.check_for_existing_config_pvs(obj_id)
 
     def update_details(self, obj_id: int, current_object: str):
         obj_record = DBUtils.get_object(obj_id)
@@ -363,17 +398,38 @@ class UIConfigEntryDialog(QDialog):
         mea_types = DBUtils.get_class_measurement_types(class_id=obj_class_record[0][0])
         self.update_measurement_types(mea_types)
 
-    def update_measurements(self, obj_id: int):
+    def check_for_existing_config_pvs(self, obj_id: int):
         obj_entry = Settings.Service.PVConfig.get_entry_with_id(obj_id)
         if not obj_entry:
+            self.existing_config_frame.hide()
+            self.existing_config_load_btn.setEnabled(False)
+            self.delete_btn.setEnabled(False)
             return
-        mea_pvs = obj_entry[Settings.Service.PVConfig.MEAS]
+
+        self.existing_config_pvs = obj_entry[Settings.Service.PVConfig.MEAS]
+        self.delete_btn.setEnabled(True)
+
+        if self.existing_config_pvs:
+            self.existing_config_frame.show()
+            self.existing_config_load_btn.setEnabled(True)
+            self.existing_config_load_btn.setText('Load')
+
+            auto_load_setting = Settings.Manager.get_auto_load_existing_config()
+            if auto_load_setting:
+                self.update_measurement_pv_names()
+
+        else:
+            self.existing_config_frame.hide()
+            self.existing_config_load_btn.setEnabled(False)
+
+    def update_measurement_pv_names(self):
+        self.existing_config_load_btn.setText('Loaded')
+        self.existing_config_load_btn.setEnabled(False)
         for index, pv_name_line_edit in enumerate(self.mea_pv_names):
             try:
-                pv_name_line_edit.setText(mea_pvs[f'{index+1}'])
+                pv_name_line_edit.setText(self.existing_config_pvs[f'{index+1}'])
             except KeyError:
                 continue
-
     # endregion
 
     # region Measurement PVs
@@ -444,11 +500,25 @@ class UIConfigEntryDialog(QDialog):
             status_lbl.setText('ERR')
             status_lbl.setStyleSheet('color: red;')
 
+    def progress_bar_show(self):
+        if self.existing_config_frame.isVisible():
+            self.existing_config_frame_visible = True
+            self.existing_config_frame.setVisible(False)
+
+    def progress_bar_hide(self):
+        if self.existing_config_frame_visible:
+            self.existing_config_frame.setVisible(True)
+
     def measurement_pv_text_changed(self, mea_no: int):
         self.mea_status_labels[mea_no].clear()
         self.settings_changed(True)
         self.enable_or_disable_check_pvs_btn()
         self.message_lbl.clear()
+
+    def update_existing_config_btn(self):  # by user (and not programmatically e.g. setText)
+        if self.existing_config_frame.isVisible():
+            self.existing_config_load_btn.setText('Load')
+            self.existing_config_load_btn.setEnabled(True)
 
     def enable_or_disable_check_pvs_btn(self):
         self.check_pvs_btn.setEnabled(False)
@@ -481,6 +551,11 @@ class UIConfigEntryDialog(QDialog):
 
     # endregion Measurement PVs
 
+    def edit_object_config(self, obj_name: str):
+        self.obj_name_cb.lineEdit().setText(obj_name)
+        self.update_data()
+        self.update_measurement_pv_names()
+
 
 class CustomSignals(QObject):
     serviceUpdated = pyqtSignal()
@@ -497,6 +572,20 @@ class ObjectNameCBFilter(QObject):
             self.focusOut.emit()
         elif event.type() == QEvent.FocusIn:
             self.focusIn.emit()
+
+        # return False so that the widget will also handle the event
+        return False
+
+
+class ProgressBarFilter(QObject):
+    showEventSignal = pyqtSignal()
+    hideEventSignal = pyqtSignal()
+
+    def eventFilter(self, widget, event):
+        if event.type() == QEvent.Show:
+            self.showEventSignal.emit()
+        elif event.type() == QEvent.Hide:
+            self.hideEventSignal.emit()
 
         # return False so that the widget will also handle the event
         return False
@@ -605,7 +694,7 @@ class LoadingPopupWindow(QWidget):
 
 
 class OverwriteMessageBox(QMessageBox):
-    def __init__(self, object_name, object_id):
+    def __init__(self, object_name: str, object_id: int):
         super().__init__()
 
         self.setWindowTitle('Configuration already exists')
@@ -615,5 +704,20 @@ class OverwriteMessageBox(QMessageBox):
         self.addButton(QMessageBox.Ok)
         ok_btn = self.button(QMessageBox.Ok)
         ok_btn.setText('Overwrite')
+        self.addButton(QMessageBox.Cancel)
+        self.setDefaultButton(QMessageBox.Cancel)
+
+
+class DeleteConfigMessageBox(QMessageBox):
+    def __init__(self, object_name: str, object_id: int):
+        super().__init__()
+
+        self.setWindowTitle('Delete configuration')
+        self.setText(f'Deleting configuration for {object_name} (ID: {object_id}).\n'
+                     f'Are you sure?')
+        self.setIcon(QMessageBox.Warning)
+        self.addButton(QMessageBox.Ok)
+        ok_btn = self.button(QMessageBox.Ok)
+        ok_btn.setText('Delete')
         self.addButton(QMessageBox.Cancel)
         self.setDefaultButton(QMessageBox.Cancel)

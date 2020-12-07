@@ -122,6 +122,13 @@ class ManagerSettings:
         self.config_parser['General']['AutoPVConnectionCheck'] = f'{checked}'
         self.update()
 
+    def get_auto_load_existing_config(self):
+        return self.config_parser['General'].getboolean('AutoLoadExistingConfig')
+
+    def set_auto_load_existing_config(self, checked: bool):
+        self.config_parser['General']['AutoLoadExistingConfig'] = f'{checked}'
+        self.update()
+
 
 class ServiceSettings:
     def __init__(self, service_path):
@@ -251,8 +258,27 @@ class _PVConfig:
 
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
-        print(file_path)
         print(f'Added new PV configuration entry: {new_entry}')
+
+    def delete_entry(self, object_id: int):
+        file_path = self.get_path()
+        data = self.get_entries()
+        deleted = False
+        for index, entry in enumerate(data):
+            if entry[self.OBJ] == object_id:
+                data.remove(entry)
+                deleted = True
+                break
+
+        if not deleted:
+            print(f'WARNING: Entry with object ID {object_id} should have been deleted but was not.')
+
+        data = {self.ROOT: data}
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+        if deleted:
+            print(f'Deleted PV configuration entry for object ID: {object_id}.')
 
 
 class _Logging:

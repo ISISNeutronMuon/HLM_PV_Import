@@ -124,6 +124,9 @@
                <property name="focusPolicy">
                 <enum>Qt::StrongFocus</enum>
                </property>
+               <property name="whatsThis">
+                <string>The name of the object whose configuration to add/edit. It can be selected from the list of existing database objects, or typed and created with default values (depending on its type).</string>
+               </property>
                <property name="editable">
                 <bool>true</bool>
                </property>
@@ -171,6 +174,9 @@
               </property>
               <property name="focusPolicy">
                <enum>Qt::StrongFocus</enum>
+              </property>
+              <property name="whatsThis">
+               <string>The helium database measurements logging period for the object (how often it will be updated).</string>
               </property>
               <property name="minimum">
                <number>1</number>
@@ -311,6 +317,9 @@
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
                </property>
+               <property name="whatsThis">
+                <string>The database record ID of the object.</string>
+               </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
                </property>
@@ -337,6 +346,9 @@
                </property>
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
+               </property>
+               <property name="whatsThis">
+                <string>The name of the object as it is in the helium DB.</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
@@ -396,6 +408,9 @@
                </property>
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
+               </property>
+               <property name="whatsThis">
+                <string>The object's type.</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
@@ -466,6 +481,9 @@
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
                </property>
+               <property name="whatsThis">
+                <string>The object's class, which groups all devices of the same type, regardless of the specific model and manufacturer.</string>
+               </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
                </property>
@@ -513,6 +531,9 @@
                </property>
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
+               </property>
+               <property name="whatsThis">
+                <string>The object's function, describing the overall purpose of the device.</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
@@ -576,6 +597,9 @@
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
                </property>
+               <property name="whatsThis">
+                <string>The name of the Software Level Device linked to this object. A SLD &quot;stands&quot; between the object itself and its measurements, acting as a &quot;middle-man&quot;. Cryostats, vessels and gas counters require a SLD.</string>
+               </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
                </property>
@@ -636,6 +660,9 @@
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
                </property>
+               <property name="whatsThis">
+                <string>Comments regarding this object.</string>
+               </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
                </property>
@@ -668,6 +695,9 @@
                </property>
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
+               </property>
+               <property name="whatsThis">
+                <string>The ID of the SLD. Measurements will be added to it instead of the object's ID. The object knows its measurements through the relation between itself and the SLD.</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
@@ -741,6 +771,64 @@
            </spacer>
           </item>
           <item>
+           <widget class="QFrame" name="existingConfigFrame">
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_8">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="existingConfigLabel">
+               <property name="font">
+                <font>
+                 <pointsize>9</pointsize>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color: rgb(255, 85, 0);</string>
+               </property>
+               <property name="text">
+                <string>Object has an existing config entry</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="loadExistingConfigButton">
+               <property name="whatsThis">
+                <string>Load the currently selected object's existing configuration and fill the measurement PV names.</string>
+               </property>
+               <property name="text">
+                <string>Load</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="line_5">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
            <widget class="QProgressBar" name="checkMeasProgressBar">
             <property name="maximumSize">
              <size>
@@ -791,6 +879,9 @@
             </property>
             <property name="focusPolicy">
              <enum>Qt::TabFocus</enum>
+            </property>
+            <property name="whatsThis">
+             <string>Starts a connection test for the PVs. Results will be shown on the right.</string>
             </property>
             <property name="text">
              <string>Check Measurement PVs</string>
@@ -919,6 +1010,9 @@
                  <pointsize>9</pointsize>
                 </font>
                </property>
+               <property name="whatsThis">
+                <string>Name of the PV that stores the value for measurement #1.</string>
+               </property>
                <property name="text">
                 <string/>
                </property>
@@ -998,6 +1092,9 @@
                  <pointsize>9</pointsize>
                 </font>
                </property>
+               <property name="whatsThis">
+                <string>Name of the PV that stores the value for measurement #2.</string>
+               </property>
                <property name="placeholderText">
                 <string>Measurement #2 PV Name</string>
                </property>
@@ -1065,6 +1162,9 @@
                  <pointsize>9</pointsize>
                 </font>
                </property>
+               <property name="whatsThis">
+                <string>Name of the PV that stores the value for measurement #3.</string>
+               </property>
                <property name="placeholderText">
                 <string>Measurement #3 PV Name</string>
                </property>
@@ -1092,6 +1192,9 @@
                 <font>
                  <pointsize>9</pointsize>
                 </font>
+               </property>
+               <property name="whatsThis">
+                <string>Name of the PV that stores the value for measurement #4.</string>
                </property>
                <property name="placeholderText">
                 <string>Measurement #4 PV Name</string>
@@ -1254,6 +1357,9 @@
                 <font>
                  <pointsize>9</pointsize>
                 </font>
+               </property>
+               <property name="whatsThis">
+                <string>Name of the PV that stores the value for measurement #5.</string>
                </property>
                <property name="placeholderText">
                 <string>Measurement #5 PV Name</string>
@@ -1446,8 +1552,11 @@
        <property name="focusPolicy">
         <enum>Qt::TabFocus</enum>
        </property>
+       <property name="whatsThis">
+        <string>Add or edit the configuration. If the object is not found in the DB, one can be created with default values. If the object already has a configuration, it can be overwritten. A configuration can be added even if the PV test failed, although it is not recommended unless it is known that the PV is only temporary failing to connect.</string>
+       </property>
        <property name="text">
-        <string>Add configuration</string>
+        <string>Save</string>
        </property>
       </widget>
      </item>
@@ -1461,13 +1570,16 @@
        <property name="focusPolicy">
         <enum>Qt::TabFocus</enum>
        </property>
+       <property name="whatsThis">
+        <string>Discard changes and cancel.</string>
+       </property>
        <property name="text">
         <string>Cancel</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="dialog_btn_help">
+      <widget class="QPushButton" name="dialog_btn_delete">
        <property name="font">
         <font>
          <pointsize>9</pointsize>
@@ -1477,7 +1589,7 @@
         <enum>Qt::TabFocus</enum>
        </property>
        <property name="text">
-        <string>Help</string>
+        <string>Delete</string>
        </property>
       </widget>
      </item>
@@ -1509,7 +1621,7 @@
   <tabstop>checkPvsButton</tabstop>
   <tabstop>dialog_btn_ok</tabstop>
   <tabstop>dialog_btn_cancel</tabstop>
-  <tabstop>dialog_btn_help</tabstop>
+  <tabstop>dialog_btn_delete</tabstop>
  </tabstops>
  <resources/>
  <connections/>

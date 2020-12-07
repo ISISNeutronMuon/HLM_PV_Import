@@ -3,7 +3,7 @@ import win32serviceutil
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QMessageBox, QPlainTextEdit, QWidget, QSpinBox, \
-    QLineEdit, QLabel, QComboBox, QTableWidget, QTableWidgetItem, QApplication, QFrame
+    QLineEdit, QLabel, QComboBox, QTableWidget, QTableWidgetItem, QApplication, QFrame, QListWidget, QSizePolicy
 from PyQt5 import uic
 
 from ServiceManager.logger import logger
@@ -35,7 +35,7 @@ class UIMainWindow(QMainWindow):
         self.general_settings_w = None
         self.ca_settings_w = None
         self.service_dir_path_w = None
-        self.add_config_w = None
+        self.config_entry_w = None
         # endregion
 
         # region Attributes
@@ -122,8 +122,10 @@ class UIMainWindow(QMainWindow):
         self.service_log_show_lines_spinbox.valueChanged.connect(self.update_log_displayed_lines_no)
         self.service_log_font_size.currentTextChanged.connect(self.update_log_font_size)
 
+        self.config_table.itemSelectionChanged.connect(self.enable_or_disable_edit_and_delete_buttons)
+
         self.expand_table_btn.clicked.connect(self.expand_table_btn_clicked)
-        self.refresh_btn.clicked.connect(self.refresh_btn_clicked)
+        self.refresh_btn.clicked.connect(self.refresh_config)
         self.filter_btn.clicked.connect(self.filter_btn_clicked)
         self.new_config_btn.clicked.connect(self.new_config_btn_clicked)
         self.edit_config_btn.clicked.connect(self.edit_config_btn_clicked)
@@ -261,8 +263,7 @@ class UIMainWindow(QMainWindow):
 
     def closeEvent(self, event: QCloseEvent):
         quit_msg = "Are you sure you want to exit the program?"
-        reply = QMessageBox.question(self, 'HLM PV Import',
-                                           quit_msg, QMessageBox.Yes, QMessageBox.No)
+        reply = QMessageBox.question(self, 'HLM PV Import', quit_msg, QMessageBox.Yes, QMessageBox.No)
 
         if reply == QMessageBox.Yes:
             event.accept()
@@ -280,7 +281,7 @@ class UIMainWindow(QMainWindow):
             self.pv_config_data = []
             return
 
-    def expand_table_btn_clicked(self): #todo
+    def expand_table_btn_clicked(self):
         # expanded is false -> set visible false (hide) -> expanded = true;
         # expanded is true -> set visible true (show) -> expanded = false;
         self.service_status_panel.setVisible(self.table_expanded)
@@ -290,11 +291,11 @@ class UIMainWindow(QMainWindow):
         self.table_expanded = not self.table_expanded  # toggle bool
         self.expand_table_btn.setText(self.expand_table_btn_text[self.table_expanded])
 
-    def refresh_btn_clicked(self):
+    def refresh_config(self):
         self.update_config_data()
         self.update_config_table()
 
-    def filter_btn_clicked(self):
+    def filter_btn_clicked(self):  # todo
         results = self.config_table.findItems('Epics', Qt.MatchContains)
         rows = set(item.row() for item in results)
 
@@ -305,18 +306,52 @@ class UIMainWindow(QMainWindow):
             self.config_table.setRowHidden(row, False)
 
     def new_config_btn_clicked(self):
-        if self.add_config_w is None:
-            self.add_config_w = UIConfigEntryDialog()
-        self.add_config_w.show()
-        self.add_config_w.activateWindow()
+        if self.config_entry_w is None:
+            self.config_entry_w = UIConfigEntryDialog()
+            self.config_entry_w.config_updated.connect(self.refresh_config)
+        self.config_entry_w.show()
+        self.config_entry_w.activateWindow()
 
     def edit_config_btn_clicked(self):
-        print('edit clicked')
-        # todo
+        if self.config_entry_w is None:
+            self.config_entry_w = UIConfigEntryDialog()
+            self.config_entry_w.config_updated.connect(self.refresh_config)
+        self.config_entry_w.show()
+
+        selected_row_items = self.config_table.selectedItems()
+        if selected_row_items:
+            selected_object_name = selected_row_items[1].text()
+            self.config_entry_w.edit_object_config(obj_name=selected_object_name)
+
+        self.config_entry_w.activateWindow()
 
     def delete_config_btn_clicked(self):
-        print('del clicked')
-        # todo
+        selected = self.config_table.selectedIndexes()
+        cols_count = self.config_table.columnCount()
+        selected_rows = set()
+        for index in selected[1::cols_count]:
+            selected_rows.add(index.row())
+
+        if not selected_rows:
+            return
+
+        obj_ids = []  # ids of objects whose config is to be removed
+        obj_list = []
+        for row_no in selected_rows:
+            id_ = self.config_table.item(row_no, 0)
+            obj_ids.append(id_.text())
+            name_ = self.config_table.item(row_no, 1)
+            obj_list.append(f'{id_.text()} - {name_.text()}')
+
+        msg_box = DeleteConfigsMessageBox(obj_list=obj_list)
+        resp = msg_box.exec()
+
+        if resp == QMessageBox.Ok:
+            for item in obj_ids:
+                id_ = int(item)
+                Settings.Service.PVConfig.delete_entry(object_id=id_)
+
+        self.refresh_config()
 
     def update_config_table(self):
         self.config_table.setSortingEnabled(False)  # otherwise table will not be properly updated if columns are sorted
@@ -344,6 +379,14 @@ class UIMainWindow(QMainWindow):
                 item.setToolTip(f'{elem}')
                 self.config_table.setItem(self.config_table.rowCount() - 1, index, item)
         self.config_table.setSortingEnabled(True)
+
+    def enable_or_disable_edit_and_delete_buttons(self):
+        if self.config_table.selectedItems():
+            self.edit_config_btn.setEnabled(True)
+            self.delete_config_btn.setEnabled(True)
+        else:
+            self.edit_config_btn.setEnabled(False)
+            self.delete_config_btn.setEnabled(False)
     # endregion
 
     # region Update on Service Change
@@ -351,6 +394,8 @@ class UIMainWindow(QMainWindow):
         self.update_config_data()
         self.update_config_table()
         self.expand_table_btn.setText(self.expand_table_btn_text[self.table_expanded])
+        self.edit_config_btn.setEnabled(False)
+        self.delete_config_btn.setEnabled(False)
 
     def update_service(self):
         self.thread_service_log.start()
@@ -422,3 +467,38 @@ class UIMainWindow(QMainWindow):
             self.btn_service_restart.setEnabled(True)
     # endregion
     # endregion
+
+
+class DeleteConfigsMessageBox(QMessageBox):
+    def __init__(self, obj_list: list):
+        super().__init__()
+
+        self.setWindowTitle('Delete configuration')
+        self.setText(f'Deleting the following configuration entries.\n'
+                     f'Are you sure?\n\n\n')
+        self.setIcon(QMessageBox.Warning)
+
+        self.list_ = QListWidget(self)
+        self.list_.move(30, 70)
+        self.list_.resize(450, 120)
+        self.list_.addItems(obj_list)
+
+        self.addButton(QMessageBox.Ok)
+        ok_btn = self.button(QMessageBox.Ok)
+        ok_btn.setText('Delete')
+        self.addButton(QMessageBox.Cancel)
+        self.setDefaultButton(QMessageBox.Cancel)
+
+    def event(self, e):
+        result = QMessageBox.event(self, e)
+        self.setMinimumWidth(0)
+        self.setMaximumWidth(16777215)
+        self.setMinimumHeight(0)
+        self.setMaximumHeight(16777215)
+        self.setSizePolicy(
+            QSizePolicy.Expanding,
+            QSizePolicy.Expanding
+        )
+        self.resize(500, 250)
+
+        return result

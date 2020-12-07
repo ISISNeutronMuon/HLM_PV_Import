@@ -53,6 +53,13 @@
        </property>
       </widget>
      </item>
+     <item row="1" column="0">
+      <widget class="QCheckBox" name="autoLoadExistingConfig">
+       <property name="text">
+        <string>Autoload existing config PVs on entry add/edit</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -63,7 +70,7 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>158</height>
+       <height>143</height>
       </size>
      </property>
     </spacer>
@@ -122,7 +129,7 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>157</height>
+       <height>143</height>
       </size>
      </property>
     </spacer>

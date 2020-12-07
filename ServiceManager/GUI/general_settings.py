@@ -15,6 +15,7 @@ class UIGeneralSettings(QDialog):
         # region Get widgets
         self.default_meas_update_interval_sb = self.findChild(QSpinBox, 'measUpdateIntervalSpinBox')
         self.check_pv_on_new_entry_cb = self.findChild(QCheckBox, 'autoCheckPVConnection')
+        self.auto_load_existing_config_cb = self.findChild(QCheckBox, 'autoLoadExistingConfig')
 
         self.message_lbl = self.findChild(QLabel, 'message_lbl')
 
@@ -25,6 +26,7 @@ class UIGeneralSettings(QDialog):
         # region Connect signals to slots
         self.default_meas_update_interval_sb.valueChanged.connect(lambda _: self.settings_changed(True))
         self.check_pv_on_new_entry_cb.stateChanged.connect(lambda _: self.settings_changed(True))
+        self.auto_load_existing_config_cb.stateChanged.connect(lambda _: self.settings_changed(True))
 
         self.button_box.rejected.connect(self.on_rejected)
         self.button_box.accepted.connect(self.on_accepted)
@@ -34,10 +36,12 @@ class UIGeneralSettings(QDialog):
     def apply_new_settings(self):
         Settings.Manager.set_default_meas_update_interval(self.default_meas_update_interval_sb.value())
         Settings.Manager.set_new_entry_auto_pv_check(self.check_pv_on_new_entry_cb.isChecked())
+        Settings.Manager.set_auto_load_existing_config(self.auto_load_existing_config_cb.isChecked())
 
     def update_fields(self):
         self.default_meas_update_interval_sb.setValue(Settings.Manager.get_default_meas_update_interval())
         self.check_pv_on_new_entry_cb.setChecked(Settings.Manager.get_new_entry_auto_pv_check())
+        self.auto_load_existing_config_cb.setChecked(Settings.Manager.get_auto_load_existing_config())
         self.message_lbl.clear()
         self.settings_changed(False)
 
