@@ -1,9 +1,10 @@
 import os
 import win32serviceutil
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal, QObject, QEvent
 from PyQt5.QtGui import QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QMessageBox, QPlainTextEdit, QWidget, QSpinBox, \
-    QLineEdit, QLabel, QComboBox, QTableWidget, QTableWidgetItem, QApplication, QFrame, QListWidget, QSizePolicy
+    QLineEdit, QLabel, QComboBox, QTableWidget, QTableWidgetItem, QApplication, QFrame, QListWidget, QSizePolicy, \
+    QDialog
 from PyQt5 import uic
 
 from ServiceManager.logger import logger
@@ -36,6 +37,7 @@ class UIMainWindow(QMainWindow):
         self.ca_settings_w = None
         self.service_dir_path_w = None
         self.config_entry_w = None
+        self.search_dlg = None
         # endregion
 
         # region Attributes
@@ -43,9 +45,9 @@ class UIMainWindow(QMainWindow):
         self.service_debug_f = None
         self.service_path = None
         self.table_expanded = False
-        self.expand_table_btn_text = {False: 'Expand table', True: 'Service info'}
-
+        self.expand_table_btn_text = {False: 'Expand Table', True: 'Service Info'}
         self.pv_config_data = []
+        self.column_names = []  # horizontal headers
         # endregion
 
         # region Menu actions
@@ -91,13 +93,27 @@ class UIMainWindow(QMainWindow):
 
         self.h_line_one = self.findChild(QFrame, 'h_line_1')
 
-        self.config_table = self.findChild(QTableWidget, 'configTable')
         self.expand_table_btn = self.findChild(QPushButton, 'expandTableButton')
         self.refresh_btn = self.findChild(QPushButton, 'refreshButton')
-        self.filter_btn = self.findChild(QPushButton, 'filterButton')
+        self.show_filter_btn = self.findChild(QPushButton, 'filterButton')
         self.new_config_btn = self.findChild(QPushButton, 'newButton')
         self.edit_config_btn = self.findChild(QPushButton, 'editButton')
         self.delete_config_btn = self.findChild(QPushButton, 'deleteButton')
+        self.config_table = self.findChild(QTableWidget, 'configTable')
+
+        # Save the table header names for the search bar combo box
+        for index in range(self.config_table.columnCount()):
+            self.column_names.append(self.config_table.horizontalHeaderItem(index).text())
+
+        # Filter/Search Frame
+        self.filter_frame = self.findChild(QFrame, 'filterFrame')
+        self.filter_frame.setVisible(False)
+        self.filter_columns_cb = self.findChild(QComboBox, 'filterColumnCB')
+        self.filter_columns_cb.insertItems(0, ['All columns', *self.column_names])
+        self.filter_bar = self.findChild(QLineEdit, 'filterValueLE')
+        self.apply_filter_btn = self.findChild(QPushButton, 'applyFilterBtn')
+        self.clear_filter_btn = self.findChild(QPushButton, 'clearFilterBtn')
+        self.hide_filter_frame_btn = self.findChild(QPushButton, 'hideFiltersBtn')
 
         self.h_line_two = self.findChild(QFrame, 'h_line_2')
 
@@ -126,10 +142,18 @@ class UIMainWindow(QMainWindow):
 
         self.expand_table_btn.clicked.connect(self.expand_table_btn_clicked)
         self.refresh_btn.clicked.connect(self.refresh_config)
-        self.filter_btn.clicked.connect(self.filter_btn_clicked)
+        self.show_filter_btn.clicked.connect(self.show_filter_btn_clicked)
         self.new_config_btn.clicked.connect(self.new_config_btn_clicked)
         self.edit_config_btn.clicked.connect(self.edit_config_btn_clicked)
         self.delete_config_btn.clicked.connect(self.delete_config_btn_clicked)
+
+        # Table Filters
+        self.apply_filter_btn.clicked.connect(self.apply_filters)
+        self.filter_bar.returnPressed.connect(self.apply_filters)
+        self.filter_bar.returnPressed.connect(self.apply_filters)
+        self.clear_filter_btn.clicked.connect(self.clear_filters)
+        self.hide_filter_frame_btn.clicked.connect(lambda _: self.filter_frame.setVisible(False))
+
         # endregion
 
         # region Threads
@@ -295,15 +319,33 @@ class UIMainWindow(QMainWindow):
         self.update_config_data()
         self.update_config_table()
 
-    def filter_btn_clicked(self):  # todo
-        results = self.config_table.findItems('Epics', Qt.MatchContains)
-        rows = set(item.row() for item in results)
+    def show_filter_btn_clicked(self):
+        toggle = not self.filter_frame.isVisible()
+        self.filter_frame.setVisible(toggle)
 
-        for index in range(self.config_table.rowCount()):
-            self.config_table.setRowHidden(index, True)
+    def apply_filters(self):
+        column_of_interest = self.filter_columns_cb.currentIndex()
+        value_of_interest = self.filter_bar.text()
 
-        for row in rows:
-            self.config_table.setRowHidden(row, False)
+        if column_of_interest == 0:
+            results = self.config_table.findItems(value_of_interest, Qt.MatchContains)
+            rows = set(item.row() for item in results)
+            for index in range(self.config_table.rowCount()):
+                show_or_hide = index not in rows
+                self.config_table.setRowHidden(index, show_or_hide)
+        else:
+            column_of_interest -= 1
+            for rowIndex in range(self.config_table.rowCount()):
+                item = self.config_table.item(rowIndex, column_of_interest)
+                if value_of_interest in item.text():
+                    self.config_table.setRowHidden(rowIndex, False)
+                else:
+                    self.config_table.setRowHidden(rowIndex, True)
+
+    def clear_filters(self):
+        self.filter_columns_cb.setCurrentIndex(0)
+        self.filter_bar.clear()
+        self.refresh_config()
 
     def new_config_btn_clicked(self):
         if self.config_entry_w is None:
@@ -341,7 +383,7 @@ class UIMainWindow(QMainWindow):
             id_ = self.config_table.item(row_no, 0)
             obj_ids.append(id_.text())
             name_ = self.config_table.item(row_no, 1)
-            obj_list.append(f'{id_.text()} - {name_.text()}')
+            obj_list.append(f'(ID: {id_.text()}) {name_.text()}')
 
         msg_box = DeleteConfigsMessageBox(obj_list=obj_list)
         resp = msg_box.exec()

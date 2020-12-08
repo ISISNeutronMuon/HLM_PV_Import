@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1204</width>
-    <height>768</height>
+    <width>1200</width>
+    <height>885</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <locale language="English" country="UnitedKingdom"/>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_10">
+   <layout class="QVBoxLayout" name="verticalLayout_9">
     <item>
      <widget class="QFrame" name="serviceStatusFrame">
       <property name="frameShape">
@@ -101,6 +101,9 @@
                   <pointsize>9</pointsize>
                  </font>
                 </property>
+                <property name="toolTip">
+                 <string>Start the service.</string>
+                </property>
                 <property name="text">
                  <string>Start</string>
                 </property>
@@ -113,6 +116,9 @@
                   <pointsize>9</pointsize>
                  </font>
                 </property>
+                <property name="toolTip">
+                 <string>Stop the service.</string>
+                </property>
                 <property name="text">
                  <string>Stop</string>
                 </property>
@@ -124,6 +130,9 @@
                  <font>
                   <pointsize>9</pointsize>
                  </font>
+                </property>
+                <property name="toolTip">
+                 <string>Restart the service. This will apply any changes to the PV config and service settings.</string>
                 </property>
                 <property name="text">
                  <string>Restart</string>
@@ -422,39 +431,11 @@
                <pointsize>9</pointsize>
               </font>
              </property>
+             <property name="toolTip">
+              <string>Expand/Shrink table.</string>
+             </property>
              <property name="text">
               <string>Placeholder</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="Line" name="line_10">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="refreshButton">
-             <property name="font">
-              <font>
-               <pointsize>9</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Refresh</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="filterButton">
-             <property name="font">
-              <font>
-               <pointsize>9</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Filter</string>
              </property>
             </widget>
            </item>
@@ -472,6 +453,9 @@
                <pointsize>9</pointsize>
               </font>
              </property>
+             <property name="toolTip">
+              <string>Add a new entry.</string>
+             </property>
              <property name="text">
               <string>New</string>
              </property>
@@ -483,6 +467,9 @@
               <font>
                <pointsize>9</pointsize>
               </font>
+             </property>
+             <property name="toolTip">
+              <string>Edit the selected entry from the table.</string>
              </property>
              <property name="text">
               <string>Edit</string>
@@ -496,8 +483,48 @@
                <pointsize>9</pointsize>
               </font>
              </property>
+             <property name="toolTip">
+              <string>Delete the selected entries from the table.</string>
+             </property>
              <property name="text">
               <string>Delete</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_10">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="filterButton">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
+             <property name="toolTip">
+              <string>Open search dialog to find a configuration entry.</string>
+             </property>
+             <property name="text">
+              <string>Filters</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="refreshButton">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
+             <property name="toolTip">
+              <string>Refresh the contents of the table.</string>
+             </property>
+             <property name="text">
+              <string>Refresh</string>
              </property>
             </widget>
            </item>
@@ -606,6 +633,144 @@
                  <string>Measurement 5</string>
                 </property>
                </column>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="filterFrame">
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_4">
+                  <item>
+                   <widget class="QComboBox" name="filterColumnCB">
+                    <property name="font">
+                     <font>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
+                    <property name="toolTip">
+                     <string>The columns to search in.</string>
+                    </property>
+                    <property name="whatsThis">
+                     <string>The columns to apply the search for.</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="filterValueLE">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
+                    <property name="toolTip">
+                     <string>The search keywords.</string>
+                    </property>
+                    <property name="whatsThis">
+                     <string>The search key word(s).</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="clearButtonEnabled">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_5">
+                    <item>
+                     <widget class="QPushButton" name="applyFilterBtn">
+                      <property name="font">
+                       <font>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
+                      <property name="toolTip">
+                       <string>Start search.</string>
+                      </property>
+                      <property name="whatsThis">
+                       <string>Apply filters.</string>
+                      </property>
+                      <property name="text">
+                       <string>Apply</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="clearFilterBtn">
+                      <property name="font">
+                       <font>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
+                      <property name="text">
+                       <string>Clear</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_4">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="hideFiltersBtn">
+                      <property name="font">
+                       <font>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
+                      <property name="toolTip">
+                       <string>Cancel search.</string>
+                      </property>
+                      <property name="whatsThis">
+                       <string>Cancel search, close dialog.</string>
+                      </property>
+                      <property name="text">
+                       <string>Hide filters</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
               </widget>
              </item>
             </layout>
@@ -740,6 +905,9 @@
                   <pointsize>9</pointsize>
                  </font>
                 </property>
+                <property name="toolTip">
+                 <string>Change the font size of the log viewer.</string>
+                </property>
                 <property name="editable">
                  <bool>false</bool>
                 </property>
@@ -861,6 +1029,9 @@
                   <pointsize>9</pointsize>
                  </font>
                 </property>
+                <property name="toolTip">
+                 <string>How many lines of the log to load and display.</string>
+                </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
                 </property>
@@ -913,6 +1084,9 @@
                   <pointsize>9</pointsize>
                  </font>
                 </property>
+                <property name="toolTip">
+                 <string>Scroll to the most recent events.</string>
+                </property>
                 <property name="text">
                  <string>Scroll to Current</string>
                 </property>
@@ -931,6 +1105,9 @@
                  <font>
                   <pointsize>9</pointsize>
                  </font>
+                </property>
+                <property name="toolTip">
+                 <string>Open the log file.</string>
                 </property>
                 <property name="text">
                  <string>Open Log File</string>
@@ -997,7 +1174,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1204</width>
+     <width>1200</width>
      <height>26</height>
     </rect>
    </property>

@@ -48,6 +48,12 @@
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="0">
       <widget class="QCheckBox" name="autoCheckPVConnection">
+       <property name="toolTip">
+        <string>Upon pressing the button to add/edit a configuration, the connection of PVs will be tested automatically. If disabled, this can be done manually through the &quot;Check PVs&quot; button, although a warning will not be shown on add/edit if one or more tests failed.</string>
+       </property>
+       <property name="whatsThis">
+        <string>Upon pressing the button to add/edit a configuration, the connection of PVs will be tested automatically. If disabled, this can be done manually through the &quot;Check PVs&quot; button, although a warning will not be shown on add/edit if one or more tests failed.</string>
+       </property>
        <property name="text">
         <string>Check PV connection on new entry</string>
        </property>
@@ -55,6 +61,12 @@
      </item>
      <item row="1" column="0">
       <widget class="QCheckBox" name="autoLoadExistingConfig">
+       <property name="toolTip">
+        <string>When adding or editing a configuration entry, upon selecting an object, the measurement PV names will be automatically loaded and displayed. If disabled, this can be manually done by pressing the &quot;Load&quot; button when available.</string>
+       </property>
+       <property name="whatsThis">
+        <string>When adding or editing a configuration entry, upon selecting an object, the measurement PV names will be automatically loaded and displayed. If disabled, this can be manually done by pressing the &quot;Load&quot; button when available.</string>
+       </property>
        <property name="text">
         <string>Autoload existing config PVs on entry add/edit</string>
        </property>
@@ -108,6 +120,12 @@
      </item>
      <item row="0" column="1">
       <widget class="QSpinBox" name="measUpdateIntervalSpinBox">
+       <property name="toolTip">
+        <string>Default value for how often the measurement values will be updated.</string>
+       </property>
+       <property name="whatsThis">
+        <string>Default value for how often the measurement values will be updated.Default value for how often the measurement values will be updated.</string>
+       </property>
        <property name="minimum">
         <number>1</number>
        </property>

@@ -124,6 +124,9 @@
                <property name="focusPolicy">
                 <enum>Qt::StrongFocus</enum>
                </property>
+               <property name="toolTip">
+                <string>Name of the object for which to add/edit configuration.</string>
+               </property>
                <property name="whatsThis">
                 <string>The name of the object whose configuration to add/edit. It can be selected from the list of existing database objects, or typed and created with default values (depending on its type).</string>
                </property>
@@ -174,6 +177,9 @@
               </property>
               <property name="focusPolicy">
                <enum>Qt::StrongFocus</enum>
+              </property>
+              <property name="toolTip">
+               <string>How often the measurement values will be updated.</string>
               </property>
               <property name="whatsThis">
                <string>The helium database measurements logging period for the object (how often it will be updated).</string>
@@ -347,6 +353,9 @@
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
                </property>
+               <property name="toolTip">
+                <string>The name of the object, as it is in the DB record.</string>
+               </property>
                <property name="whatsThis">
                 <string>The name of the object as it is in the helium DB.</string>
                </property>
@@ -408,6 +417,9 @@
                </property>
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
+               </property>
+               <property name="toolTip">
+                <string>The type of the object.</string>
                </property>
                <property name="whatsThis">
                 <string>The object's type.</string>
@@ -481,6 +493,9 @@
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
                </property>
+               <property name="toolTip">
+                <string>The class of the object.</string>
+               </property>
                <property name="whatsThis">
                 <string>The object's class, which groups all devices of the same type, regardless of the specific model and manufacturer.</string>
                </property>
@@ -531,6 +546,9 @@
                </property>
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
+               </property>
+               <property name="toolTip">
+                <string>The function of the object.</string>
                </property>
                <property name="whatsThis">
                 <string>The object's function, describing the overall purpose of the device.</string>
@@ -597,6 +615,9 @@
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
                </property>
+               <property name="toolTip">
+                <string>The name of the Software Level Device attached to this object, if exists.</string>
+               </property>
                <property name="whatsThis">
                 <string>The name of the Software Level Device linked to this object. A SLD &quot;stands&quot; between the object itself and its measurements, acting as a &quot;middle-man&quot;. Cryostats, vessels and gas counters require a SLD.</string>
                </property>
@@ -660,6 +681,9 @@
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
                </property>
+               <property name="toolTip">
+                <string>Comments regarding the object.</string>
+               </property>
                <property name="whatsThis">
                 <string>Comments regarding this object.</string>
                </property>
@@ -695,6 +719,9 @@
                </property>
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
+               </property>
+               <property name="toolTip">
+                <string>The record ID of the Software Level Device.</string>
                </property>
                <property name="whatsThis">
                 <string>The ID of the SLD. Measurements will be added to it instead of the object's ID. The object knows its measurements through the relation between itself and the SLD.</string>
@@ -800,6 +827,9 @@
                  <bold>true</bold>
                 </font>
                </property>
+               <property name="toolTip">
+                <string>A configuration entry for this object has been found in the PV config file.</string>
+               </property>
                <property name="styleSheet">
                 <string notr="true">color: rgb(255, 85, 0);</string>
                </property>
@@ -810,6 +840,9 @@
              </item>
              <item>
               <widget class="QPushButton" name="loadExistingConfigButton">
+               <property name="toolTip">
+                <string>Load the measurement PV names from the existing configuration of the object.</string>
+               </property>
                <property name="whatsThis">
                 <string>Load the currently selected object's existing configuration and fill the measurement PV names.</string>
                </property>
@@ -879,6 +912,9 @@
             </property>
             <property name="focusPolicy">
              <enum>Qt::TabFocus</enum>
+            </property>
+            <property name="toolTip">
+             <string>Start PV connection test.</string>
             </property>
             <property name="whatsThis">
              <string>Starts a connection test for the PVs. Results will be shown on the right.</string>
@@ -1552,6 +1588,9 @@
        <property name="focusPolicy">
         <enum>Qt::TabFocus</enum>
        </property>
+       <property name="toolTip">
+        <string>Add/Edit the configuration.</string>
+       </property>
        <property name="whatsThis">
         <string>Add or edit the configuration. If the object is not found in the DB, one can be created with default values. If the object already has a configuration, it can be overwritten. A configuration can be added even if the PV test failed, although it is not recommended unless it is known that the PV is only temporary failing to connect.</string>
        </property>
@@ -1570,6 +1609,9 @@
        <property name="focusPolicy">
         <enum>Qt::TabFocus</enum>
        </property>
+       <property name="toolTip">
+        <string>Discard any changes and close dialog.</string>
+       </property>
        <property name="whatsThis">
         <string>Discard changes and cancel.</string>
        </property>
@@ -1587,6 +1629,9 @@
        </property>
        <property name="focusPolicy">
         <enum>Qt::TabFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Delete the configuration of the selected object, if it has one.</string>
        </property>
        <property name="text">
         <string>Delete</string>
