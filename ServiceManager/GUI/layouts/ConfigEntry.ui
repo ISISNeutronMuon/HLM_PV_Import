@@ -273,7 +273,7 @@
               <enum>Qt::StrongFocus</enum>
              </property>
              <property name="toolTip">
-              <string>Name of the object for which to add/edit configuration.</string>
+              <string>Name of the object for which to add/edit configuration. Enter a new object name, or select an existing object.</string>
              </property>
              <property name="whatsThis">
               <string>The name of the object whose configuration to add/edit. It can be selected from the list of existing database objects, or typed and created with default values (depending on its type).</string>
@@ -339,6 +339,9 @@
             </property>
             <property name="readOnly">
              <bool>false</bool>
+            </property>
+            <property name="placeholderText">
+             <string>Description of the object (optional)</string>
             </property>
            </widget>
           </item>

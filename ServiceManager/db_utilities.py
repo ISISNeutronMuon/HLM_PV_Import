@@ -114,7 +114,7 @@ class DatabaseUtilities:
         if already_exists:
             msg = f'Could not create object - Object with name "{name}" already exists in the database.'
             logger.error(msg)
-            raise ValueError(msg)
+            raise DBUtilsObjectNameAlreadyExists(msg)
 
         data = {'OB_NAME': name, 'OB_OBJECTTYPE_ID': type_id, 'OB_COMMENT': comment}
 
@@ -331,6 +331,11 @@ class DatabaseUtilities:
             mea_types[index+1] = type_
 
         return mea_types
+
+
+class DBUtilsObjectNameAlreadyExists(Exception):
+    def __init__(self, err_msg):
+        super(DBUtilsObjectNameAlreadyExists, self).__init__(err_msg)
 
 
 DBUtils = DatabaseUtilities()
