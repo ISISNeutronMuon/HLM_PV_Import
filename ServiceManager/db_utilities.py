@@ -47,7 +47,7 @@ class DatabaseUtilities:
         search_data = (object_name,)
         result = self._select(table=Tables.OBJECT, columns='OB_ID', filters=search, filters_args=search_data,
                               f_elem=True)
-        return result
+        return result if result else None
 
     def get_object_name(self, object_id):
         """
@@ -69,10 +69,56 @@ class DatabaseUtilities:
         Get a list of all object names in the Helium DB.
 
         Returns:
-            (list): The PV names.
+            (list): The object names.
         """
         object_names = self._select(table=Tables.OBJECT, columns='OB_NAME')
         return object_names
+
+    def get_all_type_names(self):
+        """
+        Get a list of all type names from the Helium DB.
+
+        Returns:
+            (list): The type names.
+        """
+        type_names = self._select(table=Tables.OBJECT_TYPE, columns='OT_NAME')
+        return type_names
+
+    def get_type_id(self, type_name: str):
+        """
+        Gets the type name using its ID.
+
+        Args:
+            type_name (str): The type name.
+
+        Returns:
+            type_id (int): The type ID.
+        """
+        type_id = self._select(table=Tables.OBJECT_TYPE, columns='OT_ID',
+                               filters='WHERE OT_NAME LIKE %s', filters_args=(type_name,), f_elem=True)
+        return type_id
+
+    def add_object(self, name: str, type_id: int, comment: str = None):
+        """
+        Add an object to the database, with the given name, type and comment. Other fields will be blank.
+
+        Args:
+            name (str): The name of the object.
+            type_id (int): The type ID of the object.
+            comment (str): Comments regarding the object.
+
+        Raises:
+            ValueError: If an object with the given name already exists in the database.
+        """
+        already_exists = self.get_object_id(object_name=name)
+        if already_exists:
+            msg = f'Could not create object - Object with name "{name}" already exists in the database.'
+            logger.error(msg)
+            raise ValueError(msg)
+
+        data = {'OB_NAME': name, 'OB_OBJECTTYPE_ID': type_id, 'OB_COMMENT': comment}
+
+        self._insert(table=Tables.OBJECT, data=data)
 
     def _select(self, table: str, columns: str = '*', filters: str = None, filters_args: tuple = None,
                 f_elem: bool = False):

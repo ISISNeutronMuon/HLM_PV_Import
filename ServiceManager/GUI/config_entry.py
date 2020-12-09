@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QObject, pyqtSignal, QEvent, QThread, Qt, QSize
-from PyQt5.QtGui import QShowEvent, QCloseEvent, QFont, QMovie
+from PyQt5.QtGui import QShowEvent, QCloseEvent, QFont, QMovie, QPalette
 from PyQt5.QtWidgets import QDialog, QPushButton, QLineEdit, QFrame, \
     QComboBox, QLabel, QProgressBar, QSpinBox, QMessageBox, QApplication, QHBoxLayout, QWidget
 from PyQt5 import uic
@@ -14,7 +14,6 @@ from caproto import CaprotoTimeoutError
 
 
 class UIConfigEntryDialog(QDialog):
-
     config_updated = pyqtSignal()
 
     def __init__(self):
@@ -30,10 +29,12 @@ class UIConfigEntryDialog(QDialog):
         self.on_accepted_already_exists = None
         self.existing_config_frame_visible = None
         self.existing_config_pvs = {}
+        self.type_and_comment_updated = False
         # endregion
 
         # region Get widgets
         self.obj_details_btn = self.findChild(QPushButton, 'objectDetailsButton')
+        self.obj_details_btn.setAutoDefault(False)
         self.obj_details_frame = self.findChild(QFrame, 'detailsFrame')
 
         self.obj_name_label = self.findChild(QLabel, 'objectNameLabel')
@@ -44,12 +45,14 @@ class UIConfigEntryDialog(QDialog):
 
         self.log_interval_sb = self.findChild(QSpinBox, 'logIntervalSpinBox')
 
+        self.obj_type_cb = self.findChild(QComboBox, 'objectTypeCB')
+        self.obj_type_frame = self.findChild(QFrame, 'objectTypeFrame')
+        self.obj_comment = self.findChild(QLineEdit, 'objectCommentLineEdit')
+
         self.obj_detail_name = self.findChild(QLineEdit, 'objectNameDetailsLineEdit')
         self.obj_detail_id = self.findChild(QLineEdit, 'objectIdLineEdit')
-        self.obj_detail_type = self.findChild(QLineEdit, 'objectTypeLineEdit')
         self.obj_detail_class = self.findChild(QLineEdit, 'objectClassLineEdit')
         self.obj_detail_func = self.findChild(QLineEdit, 'objectFunctionLineEdit')
-        self.obj_detail_comment = self.findChild(QLineEdit, 'objectCommentLineEdit')
         self.obj_detail_sdl_name = self.findChild(QLineEdit, 'SLDNameLineEdit')
         self.obj_detail_sdl_id = self.findChild(QLineEdit, 'SLDIDLineEdit')
 
@@ -112,6 +115,11 @@ class UIConfigEntryDialog(QDialog):
         self.object_name_filter.focusOut.connect(self.update_data)  # connect filter custom signal to slot
         self.obj_name_cb.installEventFilter(self.object_name_filter)  # install filter to widget
 
+        self.obj_type_cb.currentTextChanged.connect(
+            lambda: self.obj_type_frame.setStyleSheet(f'QFrame#{self.obj_type_frame.objectName()} {{}}')
+        )
+        self.obj_type_cb.currentTextChanged.connect(self.message_lbl.clear)
+
         self.log_interval_sb.valueChanged.connect(lambda _: self.settings_changed(True))
 
         # For each PV Name line edit, on text change, clear the PV connection status label text
@@ -170,11 +178,18 @@ class UIConfigEntryDialog(QDialog):
     # region Widget refresh & updates
     def update_fields(self):
         names_list = DBUtils.get_all_object_names()
+        types_list = DBUtils.get_all_type_names()
 
         self.obj_name_cb.clear()
         self.obj_name_cb.lineEdit().clear()
         self.obj_name_cb.addItem(None)
         self.obj_name_cb.addItems(names_list)
+
+        self.obj_type_cb.clear()
+        self.obj_type_cb.addItem(None)
+        self.obj_type_cb.addItems(types_list)
+
+        self.obj_comment.clear()
 
         self.log_interval_sb.setValue(Settings.Manager.get_default_meas_update_interval())
 
@@ -189,6 +204,7 @@ class UIConfigEntryDialog(QDialog):
 
         self.message_lbl.clear()
         self.obj_name_frame.setStyleSheet(f'QFrame#{self.obj_name_frame.objectName()} {{}}')
+        self.obj_type_frame.setStyleSheet(f'QFrame#{self.obj_type_frame.objectName()} {{}}')
         self.mea_pvs_frame.setStyleSheet(f'QFrame#{self.mea_pvs_frame.objectName()} {{}}')
 
         self.enable_or_disable_check_pvs_btn()
@@ -222,14 +238,47 @@ class UIConfigEntryDialog(QDialog):
 
         # Object not in DB, ask if create with default vals
         if not object_id:
-            # todo: dialog asking if create obj with default values. Type must be specified from combo box. Types will
-            # todo: be fetched from the default values settings file in Manager
-            # todo: Types and their default values should be configurable through general settings.
-            print('Not exist - create with default vals?')
-            return
+            type_name = self.obj_type_cb.currentText()
+            if not type_name:
+                self.message_lbl.setText(f'Object type is required.')
+                self.message_lbl.setStyleSheet('color: red;')
+                self.obj_type_frame.setStyleSheet(
+                    f'QFrame#{self.obj_type_frame.objectName()} {{border: 1px solid red;}}')
+                return
+
+            type_id = DBUtils.get_type_id(type_name=type_name)
+            if not type_id:
+                self.message_lbl.setText(f'Type "{type_name}" was not found.')
+                self.message_lbl.setStyleSheet('color: red;')
+                self.obj_type_frame.setStyleSheet(
+                    f'QFrame#{self.obj_type_frame.objectName()} {{border: 1px solid red;}}')
+                return
+
+            msg_box = QMessageBox.question(self, 'Create new object',
+                                           f'Create new object "{object_name}" with type "{type_name}" '
+                                           f'and save the PV configuration?',
+                                           QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if msg_box != QMessageBox.Yes:
+                return
+
+            try:
+                DBUtils.add_object(object_name, type_id)
+            except ValueError:
+                self.message_lbl.setText(f'Object "{object_name}" already exists in the database.')
+                self.message_lbl.setStyleSheet('color: red;')
+                self.obj_name_frame.setStyleSheet(
+                    f'QFrame#{self.obj_name_frame.objectName()} {{border: 1px solid red;}}')
+                return
+
+            # Update the ID with that of the newly added object
+            print(object_name)
+            object_id = DBUtils.get_object_id(object_name)
+            print(object_id)
 
         # Check if object already has a PV configuration
         existing_ids = Settings.Service.PVConfig.get_entry_object_ids()
+        print(existing_ids)
+        print(object_id)
         already_exists = False
         if object_id in existing_ids:  # if it does, ask if overwrite
             already_exists = True
@@ -291,7 +340,6 @@ class UIConfigEntryDialog(QDialog):
             Settings.Service.PVConfig.MEAS: measurement_pvs
         }
 
-        msg = None
         if overwrite:
             Settings.Service.PVConfig.add_entry(config_data, overwrite=True)
             msg = 'Configuration has been updated.'
@@ -347,12 +395,16 @@ class UIConfigEntryDialog(QDialog):
             self.obj_details_frame.hide()
 
     def clear_details(self):
+        if self.type_and_comment_updated:
+            self.obj_type_cb.setCurrentIndex(0)
+            self.obj_comment.clear()
+            self.type_and_comment_updated = False
+
         self.obj_detail_name.clear()
         self.obj_detail_id.clear()
-        self.obj_detail_type.clear()
         self.obj_detail_class.clear()
         self.obj_detail_func.clear()
-        self.obj_detail_comment.clear()
+
         self.obj_detail_sdl_name.clear()
         self.obj_detail_sdl_id.clear()
 
@@ -360,17 +412,28 @@ class UIConfigEntryDialog(QDialog):
 
     def update_data(self):
         current_object = self.obj_name_cb.currentText()
-        # If no name or object data already displayed, return
-        if not current_object or current_object == self.last_details_update_obj:
+        # If object data already displayed, return
+        if current_object == self.last_details_update_obj:
             return
 
-        obj_id = DBUtils.get_object_id(current_object)
-
-        if not obj_id:
+        if not current_object:
+            self.clear_details()
+            self.obj_type_cb.setEnabled(True)
+            self.obj_comment.setEnabled(True)
             return
 
         self.clear_details()
         self.message_lbl.clear()
+
+        obj_id = DBUtils.get_object_id(current_object)  # search for object in DB
+        if obj_id:
+            self.obj_type_cb.setEnabled(False)
+            self.obj_comment.setEnabled(False)
+        else:
+            self.obj_type_cb.setEnabled(True)
+            self.obj_comment.setEnabled(True)
+            return
+
         self.update_details(obj_id, current_object)
 
         if Settings.Manager.get_auto_load_existing_config():
@@ -380,10 +443,13 @@ class UIConfigEntryDialog(QDialog):
     def update_details(self, obj_id: int, current_object: str):
         obj_record = DBUtils.get_object(obj_id)
         obj_class_record = DBUtils.get_object_class(object_id=obj_id)
-        self.obj_detail_comment.setText(obj_record[0][4])
+
+        self.obj_comment.setText(obj_record[0][4])
+        self.obj_type_cb.setCurrentText(DBUtils.get_object_type(object_id=obj_id, name_only=True))
+        self.type_and_comment_updated = True
+
         self.obj_detail_name.setText(DBUtils.get_object_name(obj_id))
         self.obj_detail_id.setText(f'{obj_id}')
-        self.obj_detail_type.setText(DBUtils.get_object_type(object_id=obj_id, name_only=True))
         self.obj_detail_class.setText(obj_class_record[0][2])
         self.obj_detail_func.setText(DBUtils.get_object_function(object_id=obj_id, name_only=True))
 
@@ -427,9 +493,10 @@ class UIConfigEntryDialog(QDialog):
         self.existing_config_load_btn.setEnabled(False)
         for index, pv_name_line_edit in enumerate(self.mea_pv_names):
             try:
-                pv_name_line_edit.setText(self.existing_config_pvs[f'{index+1}'])
+                pv_name_line_edit.setText(self.existing_config_pvs[f'{index + 1}'])
             except KeyError:
                 continue
+
     # endregion
 
     # region Measurement PVs
@@ -531,12 +598,14 @@ class UIConfigEntryDialog(QDialog):
         self.update_check_pvs_widgets(pvs_check_running=True)
         self.clear_pvs_connection_status()
         self.ok_btn.setEnabled(False)
+        self.log_interval_sb.setEnabled(False)
         self.message_lbl.setText('Checking measurement PVs ...')
         self.message_lbl.setStyleSheet('color: green;')
 
     def pvs_connection_check_finished(self):
         self.update_check_pvs_widgets(pvs_check_running=False)
         self.ok_btn.setEnabled(True)
+        self.log_interval_sb.setEnabled(True)
 
         results = self.pvs_connection_thread.results
         failed_pvs = len(results['failed'])
