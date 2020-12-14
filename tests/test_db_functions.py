@@ -39,7 +39,7 @@ class TestDbFunctions(unittest.TestCase):
         }
 
         # Act
-        db_functions.add_relationship(assigned=assigned_obj, start_date=start_date, removal_date=end_date)
+        db_functions.add_relation(assigned=assigned_obj, start_date=start_date, removal_date=end_date)
 
         # Assert
         mock_insert.assert_called_with(Tables.OBJECT_RELATION, expected_dict)

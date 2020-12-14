@@ -17,7 +17,7 @@
    <locale language="English" country="UnitedKingdom"/>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_9">
+   <layout class="QVBoxLayout" name="verticalLayout_10">
     <item>
      <widget class="QFrame" name="serviceStatusFrame">
       <property name="frameShape">
@@ -544,260 +544,231 @@
           </layout>
          </item>
          <item>
-          <widget class="QTabWidget" name="tabWidget">
-           <property name="font">
-            <font>
-             <pointsize>9</pointsize>
-            </font>
-           </property>
-           <property name="currentIndex">
-            <number>0</number>
-           </property>
-           <widget class="QWidget" name="configTab">
-            <attribute name="title">
-             <string>Configuration</string>
-            </attribute>
-            <layout class="QVBoxLayout" name="verticalLayout_11">
-             <property name="spacing">
-              <number>7</number>
+          <layout class="QVBoxLayout" name="verticalLayout_9">
+           <item>
+            <widget class="QTableWidget" name="configTable">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+              </font>
              </property>
-             <property name="leftMargin">
-              <number>0</number>
+             <property name="sizeAdjustPolicy">
+              <enum>QAbstractScrollArea::AdjustIgnored</enum>
              </property>
-             <property name="topMargin">
-              <number>0</number>
+             <property name="alternatingRowColors">
+              <bool>false</bool>
              </property>
-             <property name="rightMargin">
-              <number>0</number>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
              </property>
-             <property name="bottomMargin">
-              <number>0</number>
+             <property name="sortingEnabled">
+              <bool>true</bool>
              </property>
-             <item>
-              <widget class="QTableWidget" name="configTable">
-               <property name="alternatingRowColors">
-                <bool>false</bool>
-               </property>
-               <property name="selectionBehavior">
-                <enum>QAbstractItemView::SelectRows</enum>
-               </property>
-               <property name="sortingEnabled">
-                <bool>true</bool>
-               </property>
-               <attribute name="horizontalHeaderCascadingSectionResizes">
-                <bool>false</bool>
-               </attribute>
-               <attribute name="horizontalHeaderHighlightSections">
-                <bool>true</bool>
-               </attribute>
-               <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-                <bool>true</bool>
-               </attribute>
-               <column>
-                <property name="text">
-                 <string>Object ID</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Object Name</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Logging Period</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Measurement 1</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Measurement 2</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Measurement 3</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Measurement 4</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Measurement 5</string>
-                </property>
-               </column>
-              </widget>
-             </item>
-             <item>
-              <widget class="QFrame" name="filterFrame">
-               <property name="styleSheet">
-                <string notr="true"/>
-               </property>
-               <property name="frameShape">
-                <enum>QFrame::NoFrame</enum>
-               </property>
-               <property name="frameShadow">
-                <enum>QFrame::Raised</enum>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_6">
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
+             <attribute name="horizontalHeaderCascadingSectionResizes">
+              <bool>false</bool>
+             </attribute>
+             <attribute name="horizontalHeaderHighlightSections">
+              <bool>true</bool>
+             </attribute>
+             <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+              <bool>true</bool>
+             </attribute>
+             <column>
+              <property name="text">
+               <string>Object ID</string>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>9</pointsize>
+               </font>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Object Name</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Object Type</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>SLD</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Logging Period</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Measurement 1</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Measurement 2</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Measurement 3</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Measurement 4</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Measurement 5</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="filterFrame">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_4">
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <widget class="QComboBox" name="filterColumnCB">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>The columns to search in.</string>
+                  </property>
+                  <property name="whatsThis">
+                   <string>The columns to apply the search for.</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="filterValueLE">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
+                  <property name="toolTip">
+                   <string>The search keywords.</string>
+                  </property>
+                  <property name="whatsThis">
+                   <string>The search key word(s).</string>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="clearButtonEnabled">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
                   <item>
-                   <widget class="QComboBox" name="filterColumnCB">
+                   <widget class="QPushButton" name="applyFilterBtn">
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
                      </font>
                     </property>
                     <property name="toolTip">
-                     <string>The columns to search in.</string>
+                     <string>Start search.</string>
                     </property>
                     <property name="whatsThis">
-                     <string>The columns to apply the search for.</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="filterValueLE">
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="font">
-                     <font>
-                      <pointsize>9</pointsize>
-                     </font>
-                    </property>
-                    <property name="toolTip">
-                     <string>The search keywords.</string>
-                    </property>
-                    <property name="whatsThis">
-                     <string>The search key word(s).</string>
+                     <string>Apply filters.</string>
                     </property>
                     <property name="text">
-                     <string/>
-                    </property>
-                    <property name="clearButtonEnabled">
-                     <bool>true</bool>
+                     <string>Apply</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_5">
-                    <item>
-                     <widget class="QPushButton" name="applyFilterBtn">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                       </font>
-                      </property>
-                      <property name="toolTip">
-                       <string>Start search.</string>
-                      </property>
-                      <property name="whatsThis">
-                       <string>Apply filters.</string>
-                      </property>
-                      <property name="text">
-                       <string>Apply</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="clearFilterBtn">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                       </font>
-                      </property>
-                      <property name="text">
-                       <string>Clear</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <spacer name="horizontalSpacer_4">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>40</width>
-                        <height>20</height>
-                       </size>
-                      </property>
-                     </spacer>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="hideFiltersBtn">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                       </font>
-                      </property>
-                      <property name="toolTip">
-                       <string>Cancel search.</string>
-                      </property>
-                      <property name="whatsThis">
-                       <string>Cancel search, close dialog.</string>
-                      </property>
-                      <property name="text">
-                       <string>Hide filters</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
+                   <widget class="QPushButton" name="clearFilterBtn">
+                    <property name="font">
+                     <font>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Clear</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_4">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="hideFiltersBtn">
+                    <property name="font">
+                     <font>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
+                    <property name="toolTip">
+                     <string>Cancel search.</string>
+                    </property>
+                    <property name="whatsThis">
+                     <string>Cancel search, close dialog.</string>
+                    </property>
+                    <property name="text">
+                     <string>Hide filters</string>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </item>
                </layout>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-           <widget class="QWidget" name="recordsTab">
-            <attribute name="title">
-             <string>Records</string>
-            </attribute>
-            <layout class="QVBoxLayout" name="verticalLayout_12">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QTableWidget" name="recordsTable"/>
-             </item>
-            </layout>
-           </widget>
-          </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>

@@ -45,17 +45,26 @@ def get_object_id(object_name):
 
 def add_measurement(object_id, mea_values: dict, mea_valid=True):
     """
-    Adds a measurement to the database.
+    Adds a measurement to the database. If the object currently has a Software Level Device, the measurement object will
+    be the SLD. Otherwise, it will be the object itself.
 
     Args:
         object_id (int): Record/Object id of the object the measurement is for.
         mea_values (dict): A dict of the measurement values, max 5, in measurement_number(str)/pv_value pairs.
-        mea_valid (boolean, optional): True if the measurement is valid, Defaults to False.
+        mea_valid (boolean, optional): Whether the measurement is valid, Defaults to True.
     """
     record_name = _get_object_name(object_id)
     mea_obj_type = _get_object_type(object_id, name_only=True)
     mea_obj_class = _get_object_class(object_id, name_only=True)
-    mea_comment = f'"{record_name}" ({mea_obj_type} - {mea_obj_class}) via {IMPORT_OBJECT}'
+
+    # Check if object has a Software Level Device
+    sld = get_object_sld(object_id)
+    if sld:
+        sld_id = sld[0][0]
+        object_id = sld_id
+        mea_comment = f'SLD for "{record_name}" ({mea_obj_type} - {mea_obj_class}) via {IMPORT_OBJECT}'
+    else:
+        mea_comment = f'"{record_name}" ({mea_obj_type} - {mea_obj_class}) via {IMPORT_OBJECT}'
 
     mea_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -81,30 +90,26 @@ def add_measurement(object_id, mea_values: dict, mea_valid=True):
                                   obj_name=record_name, values=mea_values, print_msg=True)
 
 
-def add_relationship(assigned, start_date=None, removal_date=None):
+def get_object_sld(object_id: int):
     """
-    Adds a relationship between two objects. Dates must be in '%Y-%m-%d %H:%M:%S' format.
+    Searches the relations table to find the Software Level Device of the given object and return its record.
 
     Args:
-        assigned (int): The assigned object ID.
-        start_date (str, optional): The starting date of the relationship, Defaults to current time.
-        removal_date (str, optional): The removal date of the relationship, Defaults to None.
+        object_id (int): The object ID.
+
+    Returns:
+        (list): The Software Level Device record.
     """
-    if not start_date:
-        start_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-    pv_import_obj_id = _get_pv_import_object_id()
-    relationship_dict = {
-        'OR_PRIMARY': 0,
-        'OR_OBJECT_ID': pv_import_obj_id,
-        'OR_OBJECT_ID_ASSIGNED': assigned,
-        'OR_DATE_ASSIGNMENT': start_date,
-        'OR_DATE_REMOVAL': removal_date,
-        'OR_OUTFLOW': None,
-        'OR_BOOKINGREQUEST': None
-    }
-
-    _insert(Tables.OBJECT_RELATION, relationship_dict)
+    # OR_OBJECT_ID = Object, OR_OBJECT_ID_ASSIGNED = ILM/SLD
+    # Software level device TYPE ID = 18
+    search = "WHERE OR_OBJECT_ID = %s AND OR_DATE_REMOVAL IS NULL ORDER BY OR_ID DESC;"
+    relations = _select(table=Tables.OBJECT_RELATION, filters=search, filters_args=(object_id,))
+    for relation in relations:
+        ob_assigned_id = relation[3]
+        ob_assigned = _select(table=Tables.OBJECT, filters='WHERE OB_ID = %s', filters_args=(ob_assigned_id,))
+        ob_assigned_type_id = ob_assigned[0][1]
+        if ob_assigned_type_id == 18:
+            return ob_assigned
 
 
 def _create_pv_import_object_if_not_exist():
@@ -233,7 +238,6 @@ def _select(table, columns='*', filters=None, filters_args=None, f_elem=False):
     """
     cursor = None
     try:
-        print(connection)
         if connection.is_connected():
             cursor = connection.cursor()
             columns = '*' if columns is None else columns

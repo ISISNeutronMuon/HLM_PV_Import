@@ -85,7 +85,7 @@ class UserConfig:
         if not_connected:
             err_msg = f'Could not connect to one or more measurement PVs: {not_connected}'
             log_error(err_msg)
-            raise PVConfigurationException(err_msg)
+            print(f'PVConfig WARNING: {err_msg}')
         else:
             print('PVConfig: All measurement PVs connected.')
 

@@ -1,6 +1,8 @@
 """
 Contains functions for working with the HeRecovery database.
 """
+from datetime import datetime
+
 import mysql.connector
 from ServiceManager.utilities import single_tuples_to_strings
 from ServiceManager.logger import logger
@@ -119,6 +121,31 @@ class DatabaseUtilities:
         data = {'OB_NAME': name, 'OB_OBJECTTYPE_ID': type_id, 'OB_COMMENT': comment}
 
         self._insert(table=Tables.OBJECT, data=data)
+
+    def add_relation(self, or_object_id, or_object_id_assigned, start_date=None, removal_date=None):
+        """
+        Makes a relation between two objects. Dates must be in '%Y-%m-%d %H:%M:%S' format.
+
+        Args:
+            or_object_id (int): The object ID (the object itself).
+            or_object_id_assigned (int): The assigned object ID (e.g. the SLD/ILM Module etc.).
+            start_date (str, optional): The starting date of the relation, Defaults to current time.
+            removal_date (str, optional): The removal date of the relation, Defaults to None.
+        """
+        if not start_date:
+            start_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        relation_dict = {
+            'OR_PRIMARY': 0,
+            'OR_OBJECT_ID': or_object_id,
+            'OR_OBJECT_ID_ASSIGNED': or_object_id_assigned,
+            'OR_DATE_ASSIGNMENT': start_date,
+            'OR_DATE_REMOVAL': removal_date,
+            'OR_OUTFLOW': None,
+            'OR_BOOKINGREQUEST': None
+        }
+
+        self._insert(Tables.OBJECT_RELATION, relation_dict)
 
     def _select(self, table: str, columns: str = '*', filters: str = None, filters_args: tuple = None,
                 f_elem: bool = False):
@@ -270,6 +297,24 @@ class DatabaseUtilities:
 
         return record
 
+    def get_class_id(self, type_id: int):
+        """
+        Returns the class DB record of the given object.
+
+        Args:
+            type_id (int): The DB ID of the type.
+
+        Returns:
+            (int): The class ID of the object.
+        """
+        class_id = self._select(table=Tables.OBJECT_TYPE, columns='OT_OBJECTCLASS_ID',
+                                filters='WHERE OT_ID = %s', filters_args=(type_id,))
+
+        if isinstance(class_id, list):
+            class_id = class_id[0]
+
+        return class_id
+
     def get_object_function(self, object_id: int, name_only=False):
         """
         Returns the function DB record of the given object.
@@ -291,15 +336,17 @@ class DatabaseUtilities:
 
         return record
 
-    def get_object_sld(self, object_id: int):
+    def get_object_sld(self, object_id: int, name_only=False, id_only=False):
         """
         Searches the relations table to find the Software Level Device of the given object and return its record.
 
         Args:
             object_id (int): The object ID.
+            name_only (boolean, optional): Return only the name, Defaults to False.
+            id_only (boolean, optional): Return the ID only, Defaults to False.
 
         Returns:
-            (list): The Software Level Device record.
+            (str/int/list): The Software Level Device record, ID or name.
         """
         # OR_OBJECT_ID = Object, OR_OBJECT_ID_ASSIGNED = ILM/SLD
         # Software level device TYPE ID = 18
@@ -310,7 +357,12 @@ class DatabaseUtilities:
             ob_assigned = self._select(table=Tables.OBJECT, filters='WHERE OB_ID = %s', filters_args=(ob_assigned_id,))
             ob_assigned_type_id = ob_assigned[0][1]
             if ob_assigned_type_id == 18:
-                return ob_assigned
+                if name_only is True:
+                    return ob_assigned[0][2]
+                elif id_only is True:
+                    return ob_assigned[0][0]
+                else:
+                    return ob_assigned
 
     def get_class_measurement_types(self, class_id: int):
         """

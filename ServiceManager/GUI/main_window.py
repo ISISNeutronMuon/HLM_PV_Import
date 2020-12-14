@@ -403,10 +403,13 @@ class UIMainWindow(QMainWindow):
 
         for entry in pv_config_data:
 
+            object_id = entry[Settings.Service.PVConfig.OBJ]
             # store the entry data in a list
             entry_data = [
-                entry[Settings.Service.PVConfig.OBJ],
-                DBUtils.get_object_name(entry[Settings.Service.PVConfig.OBJ]),
+                object_id,
+                DBUtils.get_object_name(object_id),
+                DBUtils.get_object_type(object_id, name_only=True),
+                DBUtils.get_object_sld(object_id, id_only=True),
                 entry[Settings.Service.PVConfig.LOG_PERIOD],
                 *[entry[Settings.Service.PVConfig.MEAS].get(x) for x in ['1', '2', '3', '4', '5']]
             ]
@@ -421,6 +424,7 @@ class UIMainWindow(QMainWindow):
                 item.setToolTip(f'{elem}')
                 self.config_table.setItem(self.config_table.rowCount() - 1, index, item)
         self.config_table.setSortingEnabled(True)
+        self.config_table.resizeColumnsToContents()
 
     def enable_or_disable_edit_and_delete_buttons(self):
         if self.config_table.selectedItems():

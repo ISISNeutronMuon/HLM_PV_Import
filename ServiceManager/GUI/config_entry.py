@@ -243,6 +243,19 @@ class UIConfigEntryDialog(QDialog):
             # Update the ID with that of the newly created object
             object_id = DBUtils.get_object_id(object_name)
 
+            # If the object is a Vessel, Cryostat or Gas Counter, create a Software Level Device and make relation
+            class_id = DBUtils.get_class_id(type_id)
+            # Class ID: Vessel = 2, Cryostat = 4, Gas Counter = 7. SLD Type ID: 18
+            if class_id in [2, 4, 7]:
+                # add SLD
+                sld_name = f'SLD "{object_name}" (ID: {object_id})'
+                sld_comment = f'Software Level Device for {type_name} "{object_name}" (ID: {object_id})'
+                sld_type_id = 18
+                DBUtils.add_object(name=sld_name, type_id=sld_type_id, comment=sld_comment)
+                # make relation
+                sld_id = DBUtils.get_object_id(object_name=sld_name)
+                DBUtils.add_relation(or_object_id=object_id, or_object_id_assigned=sld_id)
+
         # Check if object already has a PV configuration (worth checking even for objects not in the DB before)
         existing_ids = Settings.Service.PVConfig.get_entry_object_ids()
         already_exists = False
@@ -365,6 +378,7 @@ class UIConfigEntryDialog(QDialog):
         if resp == QMessageBox.Ok:
             Settings.Service.PVConfig.delete_entry(object_id)
             self.config_updated.emit()
+            self.delete_btn.setEnabled(False)
 
     # endregion
 
