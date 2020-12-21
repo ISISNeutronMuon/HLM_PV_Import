@@ -109,6 +109,7 @@ class UIConfigEntryDialog(QDialog):
 
         self.obj_type_cb.currentTextChanged.connect(self.message_lbl.clear)
         self.obj_type_cb.currentTextChanged.connect(lambda: self.set_red_border(self.obj_type_frame, False))
+        self.obj_type_cb.currentTextChanged.connect(self.update_measurement_types)
 
         self.obj_details_btn.clicked.connect(self.toggle_details_frame)
 
@@ -159,11 +160,17 @@ class UIConfigEntryDialog(QDialog):
         self.obj_name_cb.clear()
         self.obj_name_cb.lineEdit().clear()
         self.obj_name_cb.addItem(None)
-        self.obj_name_cb.addItems(DBUtils.get_all_object_names())
+        try:
+            self.obj_name_cb.addItems(DBUtils.get_all_object_names())
+        except TypeError:
+            pass
 
         self.obj_type_cb.clear()
         self.obj_type_cb.addItem(None)
-        self.obj_type_cb.addItems(DBUtils.get_all_type_names())
+        try:
+            self.obj_type_cb.addItems(DBUtils.get_all_type_names())
+        except TypeError:
+            pass
 
         self.log_interval_sb.setValue(Settings.Manager.get_default_meas_update_interval())
 
@@ -455,9 +462,10 @@ class UIConfigEntryDialog(QDialog):
         """ Fetches the object record data and updates the details widgets with it. """
         obj_record = DBUtils.get_object(obj_id)
         obj_class_record = DBUtils.get_object_class(object_id=obj_id)
+        type_name = DBUtils.get_object_type(object_id=obj_id, name_only=True)
 
         self.obj_comment.setText(obj_record[0][4])
-        self.obj_type_cb.setCurrentText(DBUtils.get_object_type(object_id=obj_id, name_only=True))
+        self.obj_type_cb.setCurrentText(type_name)
         self.type_and_comment_updated = True
 
         self.obj_detail_name.setText(DBUtils.get_object_name(obj_id))
@@ -468,13 +476,9 @@ class UIConfigEntryDialog(QDialog):
         sld_record = DBUtils.get_object_sld(object_id=obj_id)
         if sld_record:
             self.obj_detail_sdl_name.setText(sld_record[0][2])
-            self.obj_detail_sdl_id.setText(sld_record[0][0])
+            self.obj_detail_sdl_id.setText(f'{sld_record[0][0]}')
 
         self.last_details_update_obj = current_object
-
-        # Update the measurement types labels
-        mea_types = DBUtils.get_class_measurement_types(class_id=obj_class_record[0][0])
-        self.update_measurement_types(mea_types)
 
     def check_for_existing_config_pvs(self, obj_id: int):
         """ Check if a PV config with the given object already exists, and if it does, display config load frame. """
@@ -527,11 +531,32 @@ class UIConfigEntryDialog(QDialog):
         for line_edit in self.mea_pv_names:
             line_edit.clear()
 
-    def update_measurement_types(self, mea_types: dict):
+    def update_measurement_types(self):
         # mea_type_labels = list of QLabel widgets
         # mea_types (arg) = dictionary containing [Mea. Number/Type Description] pairs (e.g. {1: 'Temperature (K)', ...}
+
+        type_name = self.obj_type_cb.currentText()
+        if not type_name:
+            return
+        type_id = DBUtils.get_type_id(type_name=type_name)
+        if not type_id:
+            logger.warning(f'Type ID for {type_name} was not found.')
+
+        class_id = DBUtils.get_class_id(type_id=type_id)
+
+        sld = False
+        # If class is Vessel, Cryostat or Gas Counter, display types for HLModule (class of Soft. Level Device)
+        if class_id in [2, 4, 7]:  # 2, 4, 7 = Vessel, Cryostat, Gas Counter
+            sld = True
+            class_id = 17  # 17 - Helium level module
+
+        mea_types = DBUtils.get_class_measurement_types(class_id=class_id)
+
         for index, type_lbl in enumerate(self.mea_type_labels):
-            type_lbl.setText(mea_types[index + 1])
+            if sld is True:
+                type_lbl.setText(f'SLD: {mea_types[index + 1]}')
+            else:
+                type_lbl.setText(mea_types[index + 1])
 
     def disable_widgets_if_pv_check_running(self, pvs_check_running: bool):
         if pvs_check_running:
@@ -657,6 +682,7 @@ class UIConfigEntryDialog(QDialog):
 
 
 class ObjectNameCBFilter(QObject):
+    """ Focus events filter for the object name comboBox. """
     focusOut = pyqtSignal()
     focusIn = pyqtSignal()
 
@@ -673,6 +699,7 @@ class ObjectNameCBFilter(QObject):
 
 
 class ProgressBarFilter(QObject):
+    """ Show & Hide events filter for the PV connection test progress bar. """
     showEventSignal = pyqtSignal()
     hideEventSignal = pyqtSignal()
 
@@ -687,6 +714,9 @@ class ProgressBarFilter(QObject):
 
 
 class CheckPVsThread(QThread):
+    """ Thread to run the PV connection test. """
+
+    # Signals
     mea_status_update = pyqtSignal(int, bool)
     progress_bar_update = pyqtSignal(int)
     display_progress_bar = pyqtSignal(bool)
@@ -700,8 +730,8 @@ class CheckPVsThread(QThread):
         self._running = None
         self.results = None
 
-        # Whether to emit the signal to add configuration on finish or not. This is used
-        # when the check is started automatically by the Add Configuration button, if
+        # If the PV connection test is started from the Save/Add Config button (auto-check before entry add/edit).
+        # This is used when the check is started automatically by the Add Configuration/Save button, and
         # automatic PV check is enabled in general settings.
         self._on_add_config = None
 
@@ -753,6 +783,7 @@ class CheckPVsThread(QThread):
 
 
 class LoadingPopupWindow(QWidget):
+    """ Loading splash screen to display during PV connection auto-check. """
     def __init__(self):
         super().__init__()
         self.setFixedSize(210, 100)
@@ -789,6 +820,7 @@ class LoadingPopupWindow(QWidget):
 
 
 class OverwriteMessageBox(QMessageBox):
+    """ Message box displayed on Save/Add Config when the object already has an existing config entry. """
     def __init__(self, object_name: str, object_id: int):
         super().__init__()
 
@@ -804,6 +836,7 @@ class OverwriteMessageBox(QMessageBox):
 
 
 class ConfigDeleteMessageBox(QMessageBox):
+    """ Confirmation message box to display on object config entry deletion within the Config Entry dialog window. """
     def __init__(self, object_name: str, object_id: int):
         super().__init__()
 

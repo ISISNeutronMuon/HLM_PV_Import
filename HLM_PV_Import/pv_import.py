@@ -1,11 +1,9 @@
 from HLM_PV_Import.ca_wrapper import PvMonitors
 from HLM_PV_Import.user_config import UserConfig
-from HLM_PV_Import.db_functions import add_measurement, setup_db_pv_import
+from HLM_PV_Import.db_functions import add_measurement
 from HLM_PV_Import.settings import PvImportConfig
-from datetime import datetime
 from collections import defaultdict
 import time
-import copy
 
 LOOP_TIMER = PvImportConfig.LOOP_TIMER   # The timer between each PV import loop
 
@@ -24,9 +22,6 @@ class PvImport:
         # Check if the user configuration is valid
         self.config.run_checks()
 
-        # Create the PV IMPORT object within the database if it doesn't already exist
-        setup_db_pv_import()
-
         # Initialize tasks
         for record in self.config.records:
             self.tasks[record] = 0
@@ -42,8 +37,8 @@ class PvImport:
             time.sleep(LOOP_TIMER - ((time.time() - start_time) % LOOP_TIMER))
 
             # For debugging
-            pv_data = copy.deepcopy(self.pv_monitors.get_data())
-            print(f"({datetime.now().strftime('%H:%M:%S')}) {len(pv_data)} {pv_data}")
+            # pv_data = copy.deepcopy(self.pv_monitors.get_data())
+            # print(f"({datetime.now().strftime('%H:%M:%S')}) {len(pv_data)} {pv_data}")
 
             for record in self.config.records:
 

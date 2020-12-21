@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>406</width>
-    <height>304</height>
+    <height>311</height>
    </rect>
   </property>
   <property name="font">
@@ -212,7 +212,7 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>30</height>
+       <height>16777215</height>
       </size>
      </property>
      <property name="font">
@@ -227,6 +227,9 @@
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

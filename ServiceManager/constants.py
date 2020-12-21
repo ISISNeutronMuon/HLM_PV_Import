@@ -1,8 +1,13 @@
 import os
 import sys
 
+# If changed, update the service settings.py as well
+SERVICE_NAME = 'HLMPVImport'
+PV_CONFIG_FILE_NAME = 'pv_config.json'
+
+# About
 VER = '1.0.0'
-B_DATE = '10 November 2020'
+B_DATE = '18 December 2020'
 
 if getattr(sys, 'frozen', False):
     # BASE_PATH = os.path.dirname(sys.executable)
@@ -37,17 +42,32 @@ SERVICE_SETTINGS_FILE_NAME = 'settings.ini'
 
 # region Settings Files Templates
 MANAGER_SETTINGS_TEMPLATE = {
-    'Service': ['Directory'],
-    'General': ['AutoPVConnectionCheck', 'AutoLoadExistingConfig'],
-    'Defaults': ['MeasurementsUpdateInterval']
+    'Service': {
+        'Directory': ''
+    },
+    'General': {
+        'AutoPVConnectionCheck': 'True',
+        'AutoLoadExistingConfig': 'False'
+    },
+    'Defaults': {
+        'MeasurementsUpdateInterval': '60'
+    }
 }
 
 SERVICE_SETTINGS_TEMPLATE = {
-    'ChannelAccess': ['EPICS_CA_ADDR_LIST', 'ConnectionTimeout', 'PvStaleAfter', 'PV_PREFIX', 'PV_DOMAIN'],
-    'PVImport': ['LoopTimer'],
-    'PVConfig': ['FILE'],
-    'HeRecoveryDB': ['Host', 'Name', 'DBObjectName', 'DBObjectType'],
-    'Service': ['Name', 'DisplayName', 'Description'],
-    'Logging': ['DirectoryPath']
+    'ChannelAccess': {
+        'EPICS_CA_ADDR_LIST': '',
+        'ConnectionTimeout': '2',
+        'PvStaleAfter': '7200',
+        'PV_PREFIX': '',
+        'PV_DOMAIN': ''
+    },
+    'PVImport': {
+        'LoopTimer': '5'
+    },
+    'HeRecoveryDB': {
+        'Host': '',
+        'Name': ''
+    }
 }
 # endregion

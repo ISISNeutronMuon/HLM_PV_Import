@@ -37,7 +37,7 @@
         <number>11</number>
        </property>
        <property name="bottomMargin">
-        <number>11</number>
+        <number>5</number>
        </property>
        <item>
         <widget class="QWidget" name="serviceDetails" native="true">
@@ -400,6 +400,51 @@
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QLabel" name="dbConnLbl">
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Database connection:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="dbConnStatus">
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>placeholder</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
@@ -1167,7 +1212,7 @@
    </widget>
    <widget class="QMenu" name="menuOpen">
     <property name="title">
-     <string>Debug</string>
+     <string>View</string>
     </property>
     <addaction name="actionManager_Error_Log"/>
     <addaction name="actionManager_Settings"/>

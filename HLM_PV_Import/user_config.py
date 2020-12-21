@@ -49,7 +49,7 @@ class UserConfig:
         for record in self.records:
             if not record:
                 err_msg = 'One or more elements in the user configuration is empty/null/None.'
-                log_error('One or more elements in the user configuration is empty/null/None.')
+                log_error(err_msg)
                 raise PVConfigurationException(err_msg)
 
     def _check_config_records_exist(self):
@@ -83,11 +83,11 @@ class UserConfig:
         not_connected = set(config_pvs) ^ set(connected_pvs)
 
         if not_connected:
-            err_msg = f'Could not connect to one or more measurement PVs: {not_connected}'
+            err_msg = f'Could not connect to one or more PVs: {not_connected}'
             log_error(err_msg)
             print(f'PVConfig WARNING: {err_msg}')
         else:
-            print('PVConfig: All measurement PVs connected.')
+            print('PVConfig: All PVs connected.')
 
     def _check_records_have_at_least_one_measurement_pv(self):
         """
@@ -175,7 +175,7 @@ class UserConfig:
             (dict): The record IDs and their logging period.
         """
         entries = self.entries
-        log_periods = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in entries }
+        log_periods = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in entries}
         return log_periods
 
     def _get_pv_config(self, pv_name):
@@ -219,7 +219,9 @@ class UserConfig:
             data = data[PVConfigConst.ROOT]
 
             if not data:
-                raise PVConfigurationException('The configuration file has no entries.')
+                err_msg = 'The configuration file has no entries.'
+                log_error(err_msg)
+                raise PVConfigurationException(err_msg)
 
             return data
 

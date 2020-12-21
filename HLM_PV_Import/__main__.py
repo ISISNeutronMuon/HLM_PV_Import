@@ -12,7 +12,6 @@ import os
 def main():
     # Setup the channel access address list in order to connect to PVs
     os.environ['EPICS_CA_ADDR_LIST'] = CA.EPICS_CA_ADDR_LIST
-    from HLM_PV_Import.ca_wrapper import get_pv_value
 
     # Get the user configuration and the list of measurement PVs
     config = UserConfig()

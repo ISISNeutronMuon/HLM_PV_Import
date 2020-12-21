@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QLineEdit, QDialogButt
 from PyQt5 import uic
 
 from ServiceManager.constants import SERVICE_SETTINGS_FILE_NAME, service_path_dlg_ui
+from ServiceManager.logger import logger
 from ServiceManager.settings import Settings
 
 
@@ -65,7 +66,6 @@ class UIServicePathDialog(QDialog):
                 reply = QMessageBox.warning(self, 'HLM PV Import',
                                             settings_not_found_msg, QMessageBox.Yes, QMessageBox.No)
 
-                # todo: make check if ALL service files (logs etc.) are there, otherwise create ALL
                 if reply == QMessageBox.Yes:
                     self.accept()
         else:
@@ -75,11 +75,10 @@ class UIServicePathDialog(QDialog):
         if result == QDialog.Accepted:
             path = self.service_path.text()
             Settings.Manager.set_service_path(path)
+            logger.info('Service directory path changed.')
             service_settings_path = Settings.Manager.get_service_path()
             Settings.init_service_settings(service_settings_path)  # Init/Update Service settings with path
             self.custom_signals.serviceUpdated.emit()
-        # elif result == QDialog.Rejected:
-        #     pass
 
     @staticmethod
     def on_help():

@@ -121,7 +121,7 @@ class DBLogger:
             self.log_file.close()
             self.make_log()
 
-    def log_new_measurement(self, record_no, obj_id, obj_name, values, print_msg=False):
+    def log_new_measurement(self, record_no, obj_id, obj_name, values, print_msg=False, print_only=False):
         """
         Logs details of the measurement added to the DB.
 
@@ -131,6 +131,7 @@ class DBLogger:
             obj_name (str): The name of the object.
             values (dict/list): The values of the measurement.
             print_msg (boolean, optional): Whether to print the log message to the console, Defaults to False.
+            print_only (boolean, optional): Don't write to DB log file, Defaults to False.
         """
         if isinstance(values, defaultdict):
             values = dict(values)  # so only the keys and values are logged, without type
@@ -139,7 +140,13 @@ class DBLogger:
 
         if print_msg:
             print(msg)
+            if print_only:
+                return
 
+        self._log_write(msg)
+
+    def log_insert(self, table, record_id):
+        msg = f"Added record no. {record_id} to {table}"
         self._log_write(msg)
     
     def _log_write(self, msg):

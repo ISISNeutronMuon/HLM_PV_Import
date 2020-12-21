@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QDialog, QLabel, QLineEdit, QDialogButtonBox, QMessageBox
 from PyQt5 import uic
@@ -9,6 +9,8 @@ from ServiceManager.settings import Settings
 
 
 class UIDBSettings(QDialog):
+    update_db_connection_status = pyqtSignal()
+
     def __init__(self):
         super(UIDBSettings, self).__init__()
         uic.loadUi(uifile=db_settings_ui, baseinstance=self)
@@ -33,9 +35,6 @@ class UIDBSettings(QDialog):
         self.db = self.findChild(QLineEdit, 'dBNameLineEdit')
         self.user = self.findChild(QLineEdit, 'userLineEdit')
         self.password = self.findChild(QLineEdit, 'passLineEdit')
-
-        # Add the current settings to the LineEdit widgets (input fields).
-        self.update_fields()
 
         # Assign slots to button signals
         self.button_box = self.findChild(QDialogButtonBox, 'buttonBox')
@@ -105,7 +104,14 @@ class UIDBSettings(QDialog):
                 Settings.Service.HeliumDB.set_user(self.user.text())
                 Settings.Service.HeliumDB.set_pass(self.password.text())
 
-                set_colored_text(label=self.message, text='Updated DB configuration.', color=QColor('green'))
+                registry_user = Settings.Service.HeliumDB.get_user()
+                registry_pass = Settings.Service.HeliumDB.get_pass()
+
+                if registry_user == self.user.text() and registry_pass == self.password.text():
+                    set_colored_text(label=self.message, text='Updated DB configuration.', color=QColor('green'))
+                else:
+                    set_colored_text(label=self.message, text='User/Password could not be updated.\nPlease verify the '
+                                                              'service is found.', color=QColor('red'))
             except Exception as e:
                 set_colored_text(label=self.message, text=f'{e}', color=QColor('red'))
 
@@ -113,6 +119,18 @@ class UIDBSettings(QDialog):
             set_colored_text(label=self.message, text='Updated DB configuration.', color=QColor('green'))
 
         self.reset_styles()
+
+        # Establish new DB connection and get result
+        connected = Settings.Service.connect_to_db()
+        if connected is True:
+            set_colored_text(label=self.message, text=f'{self.message.text()}\nConnected to DB.', color=QColor('green'))
+        elif connected is False:
+            set_colored_text(
+                label=self.message,
+                text=f'{self.message.text()}\nCould not establish DB connection, please check log for details.',
+                color=QColor('red')
+            )
+        self.update_db_connection_status.emit()
 
     def closeEvent(self, event: QCloseEvent):
         """ Upon dialog close """
@@ -159,15 +177,10 @@ class UIDBSettings(QDialog):
             self.password.setPlaceholderText(msg)
             self.password.setToolTip('Please restart the app in Administrator Mode to edit this setting.')
         else:
-            # Check if user and password are already in the registry and if so add them to the fields
             self.reg_user = Settings.Service.HeliumDB.get_user()
             self.reg_pass = Settings.Service.HeliumDB.get_pass()
-
-            if self.reg_user:
-                self.user.setText(self.reg_user)
-
-            if self.reg_pass:
-                self.password.setText(self.reg_pass)
+            self.user.setText(self.reg_user)
+            self.password.setText(self.reg_pass)
 
         # Check if host and db name are already in the settings.ini, and if so add them to the fields
         self.settings_host = Settings.Service.HeliumDB.get_host()

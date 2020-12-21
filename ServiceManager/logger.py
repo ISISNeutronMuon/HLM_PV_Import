@@ -31,8 +31,7 @@ def get_logger():
     if not os.path.exists(MANAGER_LOGS_FILE):
         if not os.path.exists(MANAGER_LOGS_DIR):  # If settings directory does not exist either, create it too
             os.makedirs(MANAGER_LOGS_DIR)
-        with open(MANAGER_LOGS_FILE, 'w') as f:
-            pass
+        open(MANAGER_LOGS_FILE, 'a').close()
 
     logger_ = logging.getLogger()
     logger_.setLevel(logging.INFO)

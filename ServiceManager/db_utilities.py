@@ -26,7 +26,14 @@ class DatabaseUtilities:
     def make_connection(self, host, database, user, password):
         if self.connection and self.connection.is_connected():
             self.connection.close()
-        self.connection = mysql.connector.connect(host=host, database=database, user=user, password=password)
+            self.connection = None
+        try:
+            self.connection = mysql.connector.connect(host=host, database=database, user=user, password=password)
+        except Exception as e:
+            raise DBConnectionError(f'DB Connection Error: {e}')
+
+    def is_connected(self):
+        return self.connection and self.connection.is_connected()
 
     def get_object(self, object_id):
         """
@@ -165,7 +172,7 @@ class DatabaseUtilities:
         """
         cursor = None
         try:
-            if self.connection.is_connected():
+            if self.connection and self.connection.is_connected():
                 cursor = self.connection.cursor()
                 columns = '*' if columns is None else columns
                 query = f"SELECT {columns} FROM {table}"
@@ -200,7 +207,7 @@ class DatabaseUtilities:
         """
         cursor = None
         try:
-            if self.connection.is_connected():
+            if self.connection and self.connection.is_connected():
                 cursor = self.connection.cursor()
 
                 placeholders = ', '.join(['%s'] * len(data))
@@ -217,7 +224,7 @@ class DatabaseUtilities:
                 if record_no == 0:  # If table has no AUTO_INCREMENT column
                     record_no = self._get_table_last_id(table)
 
-                print(f"Added record no. {record_no} to {table}")
+                logger.info(f"Added record no. {record_no} to {table}")
 
         except mysql.connector.Error as e:
             logger.error(f'{e}')
@@ -271,28 +278,29 @@ class DatabaseUtilities:
         columns = 'OT_NAME' if name_only else '*'
         record = self._select(table=Tables.OBJECT_TYPE, columns=columns, filters='WHERE OT_ID LIKE %s',
                               filters_args=(type_id,))
-        if name_only:
+        if name_only and record:
             record = record[0]
 
         return record
 
-    def get_object_class(self, object_id: int, name_only=False):
+    def get_object_class(self, object_id: int, name_only=False, id_only=False):
         """
         Returns the class DB record of the given object.
 
         Args:
             object_id (int): The DB ID of the object.
             name_only (boolean, optional): Get only the class name, Defaults to False.
+            id_only (boolean, optional): Get only the class ID, Defaults to False.
 
         Returns:
             (str/list): The class name/record of the object.
         """
         type_record = self.get_object_type(object_id)
         class_id = type_record[0][1]
-        columns = 'OC_NAME' if name_only else '*'
+        columns = 'OC_NAME' if name_only else 'OC_ID' if id_only else '*'
         record = self._select(table=Tables.OBJECT_CLASS, columns=columns, filters='WHERE OC_ID LIKE %s',
                               filters_args=(class_id,))
-        if name_only:
+        if name_only or id_only:
             record = record[0]
 
         return record
@@ -352,6 +360,8 @@ class DatabaseUtilities:
         # Software level device TYPE ID = 18
         search = "WHERE OR_OBJECT_ID = %s AND OR_DATE_REMOVAL IS NULL ORDER BY OR_ID DESC;"
         relations = self._select(table=Tables.OBJECT_RELATION, filters=search, filters_args=(object_id,))
+        if relations is None:
+            return
         for relation in relations:
             ob_assigned_id = relation[3]
             ob_assigned = self._select(table=Tables.OBJECT, filters='WHERE OB_ID = %s', filters_args=(ob_assigned_id,))
@@ -388,6 +398,11 @@ class DatabaseUtilities:
 class DBUtilsObjectNameAlreadyExists(Exception):
     def __init__(self, err_msg):
         super(DBUtilsObjectNameAlreadyExists, self).__init__(err_msg)
+
+
+class DBConnectionError(Exception):
+    def __init__(self, err_msg):
+        super(DBConnectionError, self).__init__(err_msg)
 
 
 DBUtils = DatabaseUtilities()

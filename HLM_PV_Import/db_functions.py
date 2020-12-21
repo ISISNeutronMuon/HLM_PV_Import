@@ -7,9 +7,6 @@ from datetime import datetime
 from HLM_PV_Import.logger import log_db_error, DBLogger
 from HLM_PV_Import.settings import HEDB, Tables
 
-IMPORT_OBJECT = HEDB.DB_OBJ_NAME  # The database PV Import object name
-IMPORT_OBJECT_TYPE = HEDB.DB_OBJ_TYPE
-
 # setup the database events logger
 db_logger = DBLogger()
 db_logger.make_log()
@@ -61,10 +58,10 @@ def add_measurement(object_id, mea_values: dict, mea_valid=True):
     sld = get_object_sld(object_id)
     if sld:
         sld_id = sld[0][0]
-        object_id = sld_id
-        mea_comment = f'SLD for "{record_name}" ({mea_obj_type} - {mea_obj_class}) via {IMPORT_OBJECT}'
+        mea_comment = f'SLD for {object_id} "{record_name}" ({mea_obj_type} - {mea_obj_class}) via HLM PV IMPORT'
+        object_id = sld_id  # Add measurements to the SLD instead of directly to the object
     else:
-        mea_comment = f'"{record_name}" ({mea_obj_type} - {mea_obj_class}) via {IMPORT_OBJECT}'
+        mea_comment = f'"{record_name}" ({mea_obj_type} - {mea_obj_class}) via HLM PV IMPORT'
 
     mea_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -87,7 +84,7 @@ def add_measurement(object_id, mea_values: dict, mea_valid=True):
 
     last_id = _get_table_last_id(Tables.MEASUREMENT)
     db_logger.log_new_measurement(record_no=last_id, obj_id=object_id,
-                                  obj_name=record_name, values=mea_values, print_msg=True)
+                                  obj_name=record_name, values=mea_values, print_msg=True, print_only=True)
 
 
 def get_object_sld(object_id: int):
@@ -110,34 +107,6 @@ def get_object_sld(object_id: int):
         ob_assigned_type_id = ob_assigned[0][1]
         if ob_assigned_type_id == 18:
             return ob_assigned
-
-
-def _create_pv_import_object_if_not_exist():
-    """
-    Creates the HLM PV Import object if it doesn't exist in the DB yet.
-    """
-    # CREATE OBJECT IF IT DOES NOT EXIST
-    results = _select(table=Tables.OBJECT, filters='WHERE OB_NAME LIKE %s', filters_args=(IMPORT_OBJECT,))
-    if not results:
-        pv_import_type_id = _select(table=Tables.OBJECT_TYPE, columns='OT_ID', filters='WHERE OT_NAME LIKE %s',
-                                    filters_args=(IMPORT_OBJECT_TYPE,), f_elem=True)
-        if not pv_import_type_id:
-            raise Exception(f'Could not find type with name "{IMPORT_OBJECT_TYPE}" in the database.')
-
-        object_dict = {
-            'OB_OBJECTTYPE_ID': pv_import_type_id,
-            'OB_NAME': IMPORT_OBJECT,
-            'OB_COMMENT': 'HLM PV IMPORT',
-        }
-
-        _insert(table=Tables.OBJECT, data=object_dict)
-
-
-def setup_db_pv_import():
-    """
-    Checks the DB for the function, class, type and object of PV IMPORT, and create them if any are missing.
-    """
-    _create_pv_import_object_if_not_exist()
 
 
 def _get_object_type(object_id, name_only=False):
@@ -292,7 +261,7 @@ def _insert(table, data):
             if record_no == 0:  # If table has no AUTO_INCREMENT column
                 record_no = _get_table_last_id(table)
 
-            print(f"Added record no. {record_no} to {table}")
+            db_logger.log_insert(table=table, record_id=record_no)
 
     except mysql.connector.Error as e:
         log_db_error(f'{e}', print_err=True)
@@ -344,16 +313,3 @@ def _get_table_last_id(table):
     last_id = _select(table=table, columns=f'MAX({pk_column})', f_elem=True)
 
     return last_id
-
-
-def _get_pv_import_object_id():
-    """
-    Gets the ID of the PV IMPORT object from the Objects He DB table.
-
-    Returns:
-        (int): The PV Import object ID.
-    """
-    search = "WHERE OB_NAME LIKE %s"
-    result = _select(table=Tables.OBJECT, columns='OB_ID', filters=search, filters_args=(IMPORT_OBJECT,), f_elem=True)
-
-    return result

@@ -78,16 +78,6 @@ class TestUserConfig(unittest.TestCase):
         mock_connected_pvs.return_value = ['a', 'b', 'c']
         self.config._check_measurement_pvs_connect()
 
-    @patch('HLM_PV_Import.user_config.get_connected_pvs')
-    @patch('HLM_PV_Import.user_config.UserConfig.get_measurement_pvs')
-    def test_GIVEN_nonexistent_pvs_WHEN_check_if_measurement_pvs_exist_THEN_exception_raised(self, mock_meas_pvs,
-                                                                                             mock_connected_pvs):
-        with patch('HLM_PV_Import.user_config.log_error'):
-            mock_meas_pvs.return_value = ['a', 'b', 'c', 'd', 'e']
-            mock_connected_pvs.return_value = ['a', 'b']
-            with self.assertRaises(PVConfigurationException):
-                self.config._check_measurement_pvs_connect()
-
     @parameterized.expand([
         (
             [
@@ -112,12 +102,12 @@ class TestUserConfig(unittest.TestCase):
             ['a', 'b', 'c', 'a', 'a', 'b', 'd'], False
         )
     ])
-    def test_WHEN_get_measurement_pvs_THEN_pvs_returned(self, entries, expected_value, duplicates):
+    def test_WHEN_get_measurement_pvs_THEN_pvs_returned(self, entries, expected_value, duplicates_):
         # Arrange
         self.config.entries = entries
 
         # Act
-        result = self.config.get_measurement_pvs(no_duplicates=duplicates)
+        result = self.config.get_measurement_pvs(no_duplicates=duplicates_)
 
         # Assert
         self.assertCountEqual(expected_value, result)

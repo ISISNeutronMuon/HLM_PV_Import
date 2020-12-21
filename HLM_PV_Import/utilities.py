@@ -2,7 +2,6 @@
 Various utility functions
 """
 from HLM_PV_Import.settings import CA
-from collections import Counter
 
 
 def single_tuples_to_strings(tuple_list):

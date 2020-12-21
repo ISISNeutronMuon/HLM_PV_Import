@@ -35,12 +35,21 @@ def get_logger():
     log_file = os.path.join(log_dir, 'debug.log')
 
     logger_ = logging.getLogger()
+
+    # don't log caproto messages unless they are at least warnings
+    logging.getLogger("caproto").setLevel(logging.WARNING)
+
     logger_.setLevel(logging.INFO)
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.NOTSET)
     handler.setFormatter(formatter)
     logger_.addHandler(handler)
+
+    if not os.path.exists(log_file):
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        open(log_file, 'a').close()
 
     handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=10*1024**2, backupCount=10)
     handler.setLevel(logging.NOTSET)

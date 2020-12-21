@@ -33,16 +33,15 @@ class CA:
 
 
 class LoggersConst:
-    _config_logs_dir = config['Logging']['DirectoryPath']
-    LOGS_DIR = 'logs' if not _config_logs_dir else _config_logs_dir
+    LOGS_DIR = 'logs'
     ERR_LOG_DIR = os.path.join(BASE_PATH, LOGS_DIR, 'err', '')
     DB_LOG_DIR = os.path.join(BASE_PATH, LOGS_DIR, 'db', '')
 
 
 class Service:
-    NAME = config['Service']['Name']
-    DISPLAY_NAME = config['Service']['DisplayName']
-    DESCRIPTION = config['Service']['Description']
+    NAME = 'HLMPVImport'
+    DISPLAY_NAME = 'HLM PV Import'
+    DESCRIPTION = 'Helium Level Monitoring - PV Import'
 
 
 # the HLM GAM DB
@@ -51,8 +50,6 @@ class HEDB:
     NAME = config['HeRecoveryDB']['Name']
     USER = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_USER')
     PASS = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_PASS')
-    DB_OBJ_NAME = config['HeRecoveryDB']['DBObjectName']  # Helium DB PV Import object name
-    DB_OBJ_TYPE = config['HeRecoveryDB']['DBObjectType']  # and its type name
 
 
 # Helium DB Tables
@@ -72,7 +69,7 @@ class PvImportConfig:
 
 # User Configuration
 class PVConfigConst:
-    FILE = config['PVConfig']['FILE']
+    FILE = 'pv_config.json'
     PATH = os.path.join(BASE_PATH, FILE)
     ROOT = 'records'
     OBJ = 'object_id'

@@ -33,7 +33,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Please enter path to the service directory</string>
+      <string>Please enter the service directory path</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

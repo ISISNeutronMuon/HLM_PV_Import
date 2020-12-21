@@ -1,4 +1,3 @@
-
 import servicemanager
 import socket
 import sys
@@ -27,24 +26,28 @@ class PVImportService(win32serviceutil.ServiceFramework):
         self.pv_import = None
         self.pv_monitors = None
 
+    # noinspection PyBroadException
+    # noinspection PyPep8Naming
     def SvcStop(self):
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
 
         try:
             self.stop()
-        except:
+        except Exception:
             log_exception(*sys.exc_info())
 
         win32event.SetEvent(self.hWaitStop)
         self.ReportServiceStatus(win32service.SERVICE_STOPPED)
 
+    # noinspection PyBroadException
+    # noinspection PyPep8Naming
     def SvcDoRun(self):
         servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
                               servicemanager.PYS_SERVICE_STARTED,
                               (self._svc_name_, ''))
         try:
             self.main()
-        except:
+        except Exception:
             log_exception(*sys.exc_info())
 
     def main(self):

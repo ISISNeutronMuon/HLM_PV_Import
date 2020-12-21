@@ -2,8 +2,7 @@ import unittest
 from mock import patch, DEFAULT
 from parameterized import parameterized
 from HLM_PV_Import import db_functions
-from HLM_PV_Import.settings import Tables, HEDB
-from datetime import datetime
+from HLM_PV_Import.settings import Tables
 
 
 class TestDbFunctions(unittest.TestCase):
@@ -14,35 +13,6 @@ class TestDbFunctions(unittest.TestCase):
         search = f"WHERE `OB_NAME` LIKE %s"
         mock_select_query.assert_called_with(table=Tables.OBJECT, columns='OB_ID',
                                              filters=search, filters_args=('obj_name',), f_elem=True)
-
-    @parameterized.expand([('date', 'end', 'date', 'end'), (None, None, 'current date', None)])
-    @patch.multiple('HLM_PV_Import.db_functions', _get_pv_import_object_id=DEFAULT,
-                    _insert=DEFAULT, datetime=DEFAULT)
-    def test_WHEN_add_relationship_THEN_correct_dates(self, start_date, end_date, exp_s, exp_e, **mocks):
-        # Arrange
-        mock_get_import_id = mocks['_get_pv_import_object_id']
-        mock_insert = mocks['_insert']
-        mock_datetime = mocks['datetime']
-        mock_datetime.now.return_value.strftime.return_value = 'current date'
-        mock_get_import_id.return_value = 42
-
-        assigned_obj = 1
-
-        expected_dict = {
-            'OR_PRIMARY': 0,
-            'OR_OBJECT_ID': 42,
-            'OR_OBJECT_ID_ASSIGNED': 1,
-            'OR_DATE_ASSIGNMENT': exp_s,
-            'OR_DATE_REMOVAL': exp_e,
-            'OR_OUTFLOW': None,
-            'OR_BOOKINGREQUEST': None
-        }
-
-        # Act
-        db_functions.add_relation(assigned=assigned_obj, start_date=start_date, removal_date=end_date)
-
-        # Assert
-        mock_insert.assert_called_with(Tables.OBJECT_RELATION, expected_dict)
 
     @parameterized.expand([
         (False, [(1, 2, 'Coordinator default')], [(1, 2, 'Coordinator default')], '*'),
@@ -198,7 +168,7 @@ class TestAddMeasurement(unittest.TestCase):
 
     def setUp(self):
         patcher = patch.multiple('HLM_PV_Import.db_functions', datetime=DEFAULT, db_logger=DEFAULT,
-                                 _get_table_last_id=DEFAULT, add_relationship=DEFAULT, _insert=DEFAULT,
+                                 _get_table_last_id=DEFAULT, _insert=DEFAULT,
                                  _get_object_class=DEFAULT, _get_object_type=DEFAULT, _get_object_name=DEFAULT,
                                  log_db_error=DEFAULT)
         self.addCleanup(patcher.stop)
@@ -227,7 +197,7 @@ class TestAddMeasurement(unittest.TestCase):
         # Assert
         mock_logger.log_new_measurement.assert_called_with(record_no=exp_last_id, obj_id=exp_obj_id,
                                                            obj_name=exp_record_name, values=exp_mea_values,
-                                                           print_msg=True)
+                                                           print_msg=True, print_only=True)
 
 
 class TestImportObjectDBSetup(unittest.TestCase):
@@ -237,34 +207,3 @@ class TestImportObjectDBSetup(unittest.TestCase):
                                  _get_table_last_id=DEFAULT)
         self.addCleanup(patcher.stop)
         self.mocks = patcher.start()
-
-    def test_GIVEN_no_object_WHEN_create_db_pv_import_object_if_not_exist_THEN_correct_insert_statement(self):
-        # Arrange
-        mock_select = self.mocks['_select']
-        mock_insert = self.mocks['_insert']
-        mock_select.side_effect = [None, 42]
-
-        expected_insert = {
-            'OB_OBJECTTYPE_ID': 42,
-            'OB_NAME': HEDB.DB_OBJ_NAME,
-            'OB_COMMENT': 'HLM PV IMPORT',
-        }
-
-        # Act
-        db_functions._create_pv_import_object_if_not_exist()
-
-        # Assert
-        mock_insert.assert_called_with(table=Tables.OBJECT, data=expected_insert)
-
-    def test_GIVEN_object_exists_WHEN_create_db_pv_import_object_if_not_exist_THEN_no_insert(self):
-        # Arrange
-        mock_select = self.mocks['_select']
-        mock_insert = self.mocks['_insert']
-
-        mock_select.return_value = True
-
-        # Act
-        db_functions._create_pv_import_object_if_not_exist()
-
-        # Assert
-        mock_insert.assert_not_called()

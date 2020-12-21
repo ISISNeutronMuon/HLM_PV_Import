@@ -8,7 +8,8 @@ a = Analysis(['HlmManager.py'],
              binaries=[],
              datas=[
 				("ServiceManager/GUI/layouts", "GUI/layouts"),
-				("ServiceManager/GUI/assets", "GUI/assets")
+				("ServiceManager/GUI/assets", "GUI/assets"),
+				("icon.ico", ".")
 			],
              hiddenimports=['win32timezone'],
              hookspath=[],
@@ -33,4 +34,5 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True )
+          console=False,
+		  icon='icon.ico' )
