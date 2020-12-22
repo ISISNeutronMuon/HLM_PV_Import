@@ -1,12 +1,15 @@
-import traceback
+import multiprocessing
 import sys
-from PyQt5.QtWidgets import QApplication, QErrorMessage
+import traceback
+
 from PyQt5.QtGui import QIcon, QFont
-from ServiceManager.settings import Settings
-from ServiceManager.constants import icon_path
-from ServiceManager.logger import logger
+from PyQt5.QtWidgets import QApplication, QErrorMessage
+
 from ServiceManager.GUI.main_window import UIMainWindow
 from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
+from ServiceManager.constants import icon_path
+from ServiceManager.logger import logger
+from ServiceManager.settings import Settings
 
 
 class App:
@@ -65,4 +68,8 @@ def main():
 
 
 if __name__ == '__main__':
+
+    # Pyinstaller fix
+    multiprocessing.freeze_support()
+
     main()

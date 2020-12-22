@@ -1,14 +1,16 @@
 import os
+from datetime import datetime
 import win32serviceutil
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCloseEvent, QShowEvent, QColor
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QCloseEvent, QShowEvent, QColor, QIcon
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QMessageBox, QPlainTextEdit, QWidget, QSpinBox, \
-    QLineEdit, QLabel, QComboBox, QTableWidget, QTableWidgetItem, QApplication, QFrame, QListWidget, QSizePolicy
+    QLineEdit, QLabel, QComboBox, QTableWidget, QTableWidgetItem, QApplication, QFrame, QListWidget, QSizePolicy, \
+    QToolButton
 from PyQt5 import uic
 
 from ServiceManager.logger import logger
 from ServiceManager.settings import Settings
-from ServiceManager.constants import main_window_ui
+from ServiceManager.constants import main_window_ui, ASSETS_PATH
 from ServiceManager.GUI.about import UIAbout
 from ServiceManager.GUI.db_settings import UIDBSettings
 from ServiceManager.GUI.general_settings import UIGeneralSettings
@@ -40,7 +42,7 @@ class UIMainWindow(QMainWindow):
 
         # region Attributes
         self.table_expanded = False             # For toggling table expansion ("Expand Table"/"Service Info")
-        self.expand_table_btn_text = {False: 'Expand Table', True: 'Service Info'}
+        self.expand_table_btn_text = {False: ['  Expand', 'expand.svg'], True: ['  Shrink', 'shrink.svg']}
         self.column_names = []                  # Config. table header names, for the Filters columns comboBox
         self.pv_config_data = None              # Store the PV configuration data to be displayed in the config. table
         # endregion
@@ -84,24 +86,54 @@ class UIMainWindow(QMainWindow):
         self.service_details_username = self.service_status_panel.findChild(QLineEdit, 'usernameText')
         self.service_details_binpath = self.service_status_panel.findChild(QLineEdit, 'binPathText')
         self.btn_service_start = self.service_status_panel.findChild(QPushButton, 'serviceStart')
+        self.btn_service_start.setIcon(QIcon(os.path.join(ASSETS_PATH, 'start.svg')))
+        self.btn_service_start.setIconSize(QSize(15, 15))
+        self.btn_service_start.setStyleSheet("QPushButton { text-align: left; }")
         self.btn_service_stop = self.service_status_panel.findChild(QPushButton, 'serviceStop')
+        self.btn_service_stop.setIcon(QIcon(os.path.join(ASSETS_PATH, 'stop.svg')))
+        self.btn_service_stop.setIconSize(QSize(15, 15))
+        self.btn_service_stop.setStyleSheet("QPushButton { text-align: left; }")
         self.btn_service_restart = self.service_status_panel.findChild(QPushButton, 'serviceRestart')
+        self.btn_service_restart.setIcon(QIcon(os.path.join(ASSETS_PATH, 'restart.svg')))
+        self.btn_service_restart.setIconSize(QSize(15, 15))
+        self.btn_service_restart.setStyleSheet("QPushButton { text-align: left; }")
         if not is_admin():
             self.btn_service_start.setEnabled(False)
             self.btn_service_stop.setEnabled(False)
             self.btn_service_restart.setEnabled(False)
 
         self.db_connection_status = self.findChild(QLabel, 'dbConnStatus')
+        self.db_connection_refresh_btn = self.findChild(QToolButton, 'refreshDbConnButton')
+        self.db_connection_refresh_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, 'refresh.svg')))
+        self.db_connection_refresh_btn.setIconSize(QSize(15, 15))
+        self.db_connection_last_checked = self.findChild(QLabel, 'dbLastCheckedLbl')
 
         self.h_line_one = self.findChild(QFrame, 'h_line_1')
 
         self.config_table = self.findChild(QTableWidget, 'configTable')
         self.expand_table_btn = self.findChild(QPushButton, 'expandTableButton')
+        self.expand_table_btn.setIconSize(QSize(15, 15))
+        self.expand_table_btn.setStyleSheet("QPushButton { text-align: left; }")
         self.refresh_btn = self.findChild(QPushButton, 'refreshButton')
+        self.refresh_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, 'refresh_config.svg')))
+        self.refresh_btn.setIconSize(QSize(15, 15))
+        self.refresh_btn.setStyleSheet("QPushButton { text-align: left; }")
         self.show_filter_btn = self.findChild(QPushButton, 'filterButton')
+        self.show_filter_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, 'search.svg')))
+        self.show_filter_btn.setIconSize(QSize(15, 15))
+        self.show_filter_btn.setStyleSheet("QPushButton { text-align: left; }")
         self.new_config_btn = self.findChild(QPushButton, 'newButton')
+        self.new_config_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, 'add.svg')))
+        self.new_config_btn.setIconSize(QSize(15, 15))
+        self.new_config_btn.setStyleSheet("QPushButton { text-align: left; }")
         self.edit_config_btn = self.findChild(QPushButton, 'editButton')
+        self.edit_config_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, 'edit.svg')))
+        self.edit_config_btn.setIconSize(QSize(15, 15))
+        self.edit_config_btn.setStyleSheet("QPushButton { text-align: left; }")
         self.delete_config_btn = self.findChild(QPushButton, 'deleteButton')
+        self.delete_config_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, 'delete.svg')))
+        self.delete_config_btn.setIconSize(QSize(15, 15))
+        self.delete_config_btn.setStyleSheet("QPushButton { text-align: left; }")
 
         # Save the table header names, to be used for the Filters columns combo box
         for index in range(self.config_table.columnCount()):
@@ -115,7 +147,6 @@ class UIMainWindow(QMainWindow):
         self.filter_bar = self.findChild(QLineEdit, 'filterValueLE')
         self.apply_filter_btn = self.findChild(QPushButton, 'applyFilterBtn')
         self.clear_filter_btn = self.findChild(QPushButton, 'clearFilterBtn')
-        self.hide_filter_frame_btn = self.findChild(QPushButton, 'hideFiltersBtn')
 
         self.h_line_two = self.findChild(QFrame, 'h_line_2')
 
@@ -132,6 +163,8 @@ class UIMainWindow(QMainWindow):
         self.btn_service_stop.clicked.connect(self.service_stop_btn_clicked)
         self.btn_service_restart.clicked.connect(self.service_restart_btn_clicked)
 
+        self.db_connection_refresh_btn.clicked.connect(self.update_db_connection_status)
+
         self.config_table.itemSelectionChanged.connect(self.enable_or_disable_edit_and_delete_buttons)
         self.expand_table_btn.clicked.connect(self.expand_table_btn_clicked)
         self.refresh_btn.clicked.connect(self.refresh_config)
@@ -144,7 +177,6 @@ class UIMainWindow(QMainWindow):
         self.filter_bar.returnPressed.connect(self.apply_filters)
         self.filter_bar.returnPressed.connect(self.apply_filters)
         self.clear_filter_btn.clicked.connect(self.clear_filters)
-        self.hide_filter_frame_btn.clicked.connect(lambda _: self.filter_frame.setVisible(False))
 
         self.service_log_file_open_btn.clicked.connect(self.open_service_log)
         self.service_log_scroll_down_btn.clicked.connect(self.log_scroll_to_bottom)
@@ -198,7 +230,9 @@ class UIMainWindow(QMainWindow):
     def update_fields(self):
         self.update_config_data()
         self.update_config_table()
-        self.expand_table_btn.setText(self.expand_table_btn_text[self.table_expanded])
+        expand_table_btn_settings = self.expand_table_btn_text[self.table_expanded]  # text and icon depending on table
+        self.expand_table_btn.setText(expand_table_btn_settings[0])
+        self.expand_table_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, expand_table_btn_settings[1])))
         self.edit_config_btn.setEnabled(False)
         self.delete_config_btn.setEnabled(False)
 
@@ -207,8 +241,11 @@ class UIMainWindow(QMainWindow):
     def update_db_connection_status(self):
         if DBUtils.is_connected():
             set_colored_text(self.db_connection_status, 'connected', QColor('green'))
+
         else:
             set_colored_text(self.db_connection_status, 'not connected', QColor('red'))
+        self.db_connection_last_checked.setText(f"Connection status last updated on: "
+                                                f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S:%f')}")
 
     def update_service(self):
         self.thread_service_log.start()
@@ -324,7 +361,9 @@ class UIMainWindow(QMainWindow):
         self.h_line_one.setVisible(self.table_expanded)
         self.h_line_two.setVisible(self.table_expanded)
         self.table_expanded = not self.table_expanded  # toggle bool
-        self.expand_table_btn.setText(self.expand_table_btn_text[self.table_expanded])
+        expand_table_btn_settings = self.expand_table_btn_text[self.table_expanded]  # text and icon depending on table
+        self.expand_table_btn.setText(expand_table_btn_settings[0])
+        self.expand_table_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, expand_table_btn_settings[1])))
 
     def refresh_config(self):
         """ Re-fetch PV config data, update table contents. """

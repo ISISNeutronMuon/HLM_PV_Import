@@ -105,7 +105,7 @@
                  <string>Start the service.</string>
                 </property>
                 <property name="text">
-                 <string>Start</string>
+                 <string>  Start</string>
                 </property>
                </widget>
               </item>
@@ -120,7 +120,7 @@
                  <string>Stop the service.</string>
                 </property>
                 <property name="text">
-                 <string>Stop</string>
+                 <string>  Stop</string>
                 </property>
                </widget>
               </item>
@@ -135,7 +135,7 @@
                  <string>Restart the service. This will apply any changes to the PV config and service settings.</string>
                 </property>
                 <property name="text">
-                 <string>Restart</string>
+                 <string>  Restart</string>
                 </property>
                </widget>
               </item>
@@ -402,7 +402,35 @@
         </widget>
        </item>
        <item>
+        <widget class="Line" name="line_7">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QToolButton" name="refreshDbConnButton">
+           <property name="maximumSize">
+            <size>
+             <width>25</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="toolTip">
+            <string>Re-check database connection.</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QLabel" name="dbConnLbl">
            <property name="font">
@@ -444,6 +472,18 @@
            </property>
           </spacer>
          </item>
+         <item>
+          <widget class="QLabel" name="dbLastCheckedLbl">
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Last status update placeholder</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -480,7 +520,7 @@
               <string>Expand/Shrink table.</string>
              </property>
              <property name="text">
-              <string>Placeholder</string>
+              <string>  Placeholder</string>
              </property>
             </widget>
            </item>
@@ -502,7 +542,7 @@
               <string>Add a new entry.</string>
              </property>
              <property name="text">
-              <string>New</string>
+              <string>  New</string>
              </property>
             </widget>
            </item>
@@ -517,7 +557,7 @@
               <string>Edit the selected entry from the table.</string>
              </property>
              <property name="text">
-              <string>Edit</string>
+              <string>  Edit</string>
              </property>
             </widget>
            </item>
@@ -532,7 +572,7 @@
               <string>Delete the selected entries from the table.</string>
              </property>
              <property name="text">
-              <string>Delete</string>
+              <string>  Delete</string>
              </property>
             </widget>
            </item>
@@ -554,7 +594,7 @@
               <string>Open search dialog to find a configuration entry.</string>
              </property>
              <property name="text">
-              <string>Filters</string>
+              <string>  Filters</string>
              </property>
             </widget>
            </item>
@@ -569,7 +609,7 @@
               <string>Refresh the contents of the table.</string>
              </property>
              <property name="text">
-              <string>Refresh</string>
+              <string>  Refresh</string>
              </property>
             </widget>
            </item>
@@ -787,24 +827,6 @@
                      </size>
                     </property>
                    </spacer>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="hideFiltersBtn">
-                    <property name="font">
-                     <font>
-                      <pointsize>9</pointsize>
-                     </font>
-                    </property>
-                    <property name="toolTip">
-                     <string>Cancel search.</string>
-                    </property>
-                    <property name="whatsThis">
-                     <string>Cancel search, close dialog.</string>
-                    </property>
-                    <property name="text">
-                     <string>Hide filters</string>
-                    </property>
-                   </widget>
                   </item>
                  </layout>
                 </item>

@@ -6,7 +6,7 @@ from PyQt5 import uic
 
 from ServiceManager.constants import config_entry_ui, loading_animation
 from ServiceManager.settings import Settings, get_full_pv_name
-from ServiceManager.utilities import get_pv_value
+from ServiceManager.utilities import test_pv_connection
 from ServiceManager.db_utilities import DBUtils, DBUtilsObjectNameAlreadyExists
 from ServiceManager.logger import logger
 
@@ -750,14 +750,14 @@ class CheckPVsThread(QThread):
         self.display_progress_bar.emit(True)
         for index, pv_name in enumerate(self.pv_names):
             if pv_name:
-                try:
-                    get_pv_value(name=pv_name, timeout=2)
+                pv_connected = test_pv_connection(name=pv_name, timeout=2)
+                if pv_connected:
                     if not self._running:
                         logger.info('Stopped PV connection check.')
                         break
                     self.mea_status_update.emit(index, True)
                     connected.append(pv_name)
-                except CaprotoTimeoutError:
+                else:
                     if not self._running:
                         logger.info('Stopped PV connection check.')
                         break

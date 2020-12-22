@@ -35,7 +35,15 @@ def get_full_pv_name(name):
     if not name:
         return None
     name = pv_name_without_prefix_and_domain(name)
-    name = f'{Settings.Service.CA.get_pv_prefix()}:{Settings.Service.CA.get_pv_domain()}:{name}'
+    pv_prefix = Settings.Service.CA.get_pv_prefix()
+    pv_domain = Settings.Service.CA.get_pv_domain()
+
+    if pv_prefix:
+        pv_prefix = f'{pv_prefix}:'
+    if pv_domain:
+        pv_domain = f'{pv_domain}:'
+    name = f'{pv_prefix}{pv_domain}{name}'
+
     return name
 
 

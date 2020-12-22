@@ -1,37 +1,31 @@
 import ctypes
 from PyQt5.QtGui import QPalette, QColor
 from ServiceManager.logger import logger
-from caproto import CaprotoTimeoutError
 from caproto.sync.client import read
 
 
-def get_pv_value(name: str, timeout: int = 1):
+def test_pv_connection(name: str, timeout: int = 1):
     """
-    Get the current value of the PV.
+    Tests whether CA can connect to a PV and get its value.
 
     Args:
         name (str): The PV.
         timeout (int, optional): PV connection timeout in seconds, Defaults to 1.
 
     Returns:
-        (str): The PV value.
+        (boolean): True if connected, False otherwise.
 
     Raises:
         CaprotoTimeoutError: If establishing the connection to the PV timed out.
     """
 
     try:
-        res = read(pv_name=name, timeout=timeout)
-    except CaprotoTimeoutError as e:
+        read(pv_name=name, timeout=timeout)
+    except Exception as e:
         logger.info(e)
-        raise
+        return False
 
-    value = res.data[0]
-
-    if isinstance(value, bytes):
-        value = value.decode('utf-8')
-
-    return value
+    return True
 
 
 def is_admin():
