@@ -47,7 +47,7 @@ def log_stale_pv_warning(pv_name, time_since_last_update, print_err=False):
         print_err (boolean, optional): Output the error message to console, Defaults to False.
     """
     time_since_last_update = '{:.1f}'.format(time_since_last_update)
-    err_msg = f"Stale PV warning: PV '{pv_name}' has not received updates for {time_since_last_update} seconds."
+    err_msg = f"Stale PV warning: '{pv_name}' has not received updates for {time_since_last_update} seconds."
     log_error(err_msg)
     if print_err:
         sys.stderr.write(f'{err_msg}\n')

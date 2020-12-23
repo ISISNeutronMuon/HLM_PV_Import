@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>548</width>
-    <height>387</height>
+    <height>413</height>
    </rect>
   </property>
   <property name="font">
@@ -21,7 +21,7 @@
   <property name="windowTitle">
    <string>Channel Access Settings</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_5">
+  <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
@@ -243,6 +243,35 @@
         </layout>
        </item>
       </layout>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>5</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="addStalePvCB">
+       <property name="toolTip">
+        <string>Add the PV to measurements even if its data is considered stale (time since last update is longer than Data Stale After value).</string>
+       </property>
+       <property name="whatsThis">
+        <string>Add the PV to measurements even if its data is considered stale (time since last update is longer than Data Stale After value).</string>
+       </property>
+       <property name="text">
+        <string>Add stale PVs to measurements</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

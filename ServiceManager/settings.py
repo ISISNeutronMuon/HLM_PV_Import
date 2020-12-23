@@ -434,6 +434,13 @@ class _CA:
         self.config_parser['ChannelAccess']['PV_DOMAIN'] = new_domain
         self.update()
 
+    def get_add_stale_pvs(self):
+        return self.config_parser['ChannelAccess'].getboolean('AddStalePvs')
+
+    def set_add_stale_pvs(self, checked: bool):
+        self.config_parser['ChannelAccess']['AddStalePvs'] = f'{checked}'
+        self.update()
+
 
 # endregion
 

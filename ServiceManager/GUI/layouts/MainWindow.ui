@@ -424,7 +424,7 @@
             </font>
            </property>
            <property name="toolTip">
-            <string>Re-check database connection.</string>
+            <string>Refresh the database connection.</string>
            </property>
            <property name="text">
             <string/>

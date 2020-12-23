@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt, pyqtSignal, QModelIndex
 from PyQt5.QtGui import QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QDialog, QPushButton, QListWidget, QLineEdit, QDialogButtonBox, QLabel, QListWidgetItem, \
-    QAbstractItemView, QStyledItemDelegate, QWidget, QStyleOptionViewItem, QMessageBox
+    QAbstractItemView, QStyledItemDelegate, QWidget, QStyleOptionViewItem, QMessageBox, QCheckBox
 from PyQt5 import uic
 
 from ServiceManager.constants import ca_settings_ui
@@ -25,6 +25,7 @@ class UICASettings(QDialog):
         self.pv_domain_ln = self.findChild(QLineEdit, 'pVDomainLineEdit')
         self.pv_stale_ln = self.findChild(QLineEdit, 'pVDataStaleLineEdit')
         self.pv_timeout_ln = self.findChild(QLineEdit, 'pVConnTimeoutLineEdit')
+        self.add_stale_pvs = self.findChild(QCheckBox, 'addStalePvCB')
 
         self.button_box = self.findChild(QDialogButtonBox, 'buttonBox')
         self.apply_btn = self.button_box.button(QDialogButtonBox.Apply)
@@ -40,6 +41,7 @@ class UICASettings(QDialog):
         self.pv_stale_ln.textChanged.connect(lambda _: self.settings_changed(True))
         self.pv_prefix_ln.textChanged.connect(lambda _: self.settings_changed(True))
         self.pv_domain_ln.textChanged.connect(lambda _: self.settings_changed(True))
+        self.add_stale_pvs.stateChanged.connect(lambda _: self.settings_changed(True))
 
         self.button_box.rejected.connect(self.on_rejected)
         self.button_box.accepted.connect(self.on_accepted)
@@ -68,6 +70,8 @@ class UICASettings(QDialog):
         Settings.Service.CA.set_pv_stale_after(pv_stale_threshold)
         Settings.Service.CA.set_conn_timeout(conn_timeout)
 
+        Settings.Service.CA.set_add_stale_pvs(self.add_stale_pvs.isChecked())
+
     def update_fields(self):
         """
         Update the widgets with the current settings.
@@ -85,6 +89,8 @@ class UICASettings(QDialog):
         pv_domain = Settings.Service.CA.get_pv_domain()
         pv_stale = Settings.Service.CA.get_pv_stale_after()
         pv_timeout = Settings.Service.CA.get_conn_timeout()
+
+        self.add_stale_pvs.setChecked(Settings.Service.CA.get_add_stale_pvs())
 
         self.pv_prefix_ln.setText(pv_prefix)
         self.pv_domain_ln.setText(pv_domain)

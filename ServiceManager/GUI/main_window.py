@@ -119,7 +119,7 @@ class UIMainWindow(QMainWindow):
         self.refresh_btn.setIconSize(QSize(15, 15))
         self.refresh_btn.setStyleSheet("QPushButton { text-align: left; }")
         self.show_filter_btn = self.findChild(QPushButton, 'filterButton')
-        self.show_filter_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, 'search.svg')))
+        self.show_filter_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, 'filter.svg')))
         self.show_filter_btn.setIconSize(QSize(15, 15))
         self.show_filter_btn.setStyleSheet("QPushButton { text-align: left; }")
         self.new_config_btn = self.findChild(QPushButton, 'newButton')
@@ -163,7 +163,7 @@ class UIMainWindow(QMainWindow):
         self.btn_service_stop.clicked.connect(self.service_stop_btn_clicked)
         self.btn_service_restart.clicked.connect(self.service_restart_btn_clicked)
 
-        self.db_connection_refresh_btn.clicked.connect(self.update_db_connection_status)
+        self.db_connection_refresh_btn.clicked.connect(self.refresh_db_connection)
 
         self.config_table.itemSelectionChanged.connect(self.enable_or_disable_edit_and_delete_buttons)
         self.expand_table_btn.clicked.connect(self.expand_table_btn_clicked)
@@ -236,6 +236,11 @@ class UIMainWindow(QMainWindow):
         self.edit_config_btn.setEnabled(False)
         self.delete_config_btn.setEnabled(False)
 
+        self.update_db_connection_status()
+
+    def refresh_db_connection(self):
+        if not DBUtils.is_connected():
+            Settings.Service.connect_to_db()
         self.update_db_connection_status()
 
     def update_db_connection_status(self):

@@ -37,7 +37,7 @@ config_entry_ui = os.path.join(GUI_DIR_PATH, 'layouts', 'ConfigEntry.ui')
 MANAGER_SETTINGS_DIR = os.path.join(os.getenv('LOCALAPPDATA'), 'HLM Service Manager', '')
 MANAGER_SETTINGS_FILE = os.path.join(MANAGER_SETTINGS_DIR, 'settings.ini')
 MANAGER_LOGS_DIR = os.path.join(MANAGER_SETTINGS_DIR, 'logs')
-MANAGER_LOGS_FILE = os.path.join(MANAGER_LOGS_DIR, 'HLM_ErrorLog.log')
+MANAGER_LOGS_FILE = os.path.join(MANAGER_LOGS_DIR, 'HLM_Manager_Log.log')
 SERVICE_SETTINGS_FILE_NAME = 'settings.ini'
 
 
@@ -60,6 +60,7 @@ SERVICE_SETTINGS_TEMPLATE = {
         'EPICS_CA_ADDR_LIST': '',
         'ConnectionTimeout': '2',
         'PvStaleAfter': '7200',
+        'AddStalePvs': 'False',
         'PV_PREFIX': '',
         'PV_DOMAIN': ''
     },

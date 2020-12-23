@@ -1,4 +1,4 @@
-import multiprocessing
+from multiprocessing import freeze_support
 import sys
 import traceback
 
@@ -59,7 +59,11 @@ def excepthook(exc_type, exc_value, exc_tb):
 
 
 def main():
+    # Pyinstaller fix
+    freeze_support()
+
     sys.excepthook = excepthook
+    print("Starting application.")
     e = App()
     ret = e.app.exec_()
     print("Event loop exited.")
@@ -68,8 +72,4 @@ def main():
 
 
 if __name__ == '__main__':
-
-    # Pyinstaller fix
-    multiprocessing.freeze_support()
-
     main()

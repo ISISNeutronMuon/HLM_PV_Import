@@ -103,6 +103,8 @@ class UIConfigEntryDialog(QDialog):
         self.obj_name_cb.currentIndexChanged.connect(self.update_data)
         self.obj_name_cb.lineEdit().returnPressed.connect(self.update_data)
         self.obj_name_cb.lineEdit().textChanged.connect(lambda: self.set_red_border(self.obj_name_frame, False))
+        self.obj_name_cb.lineEdit().textChanged.connect(self.check_for_existing_config_pvs)
+        self.obj_name_cb.lineEdit().textChanged.connect(self.update_data)
         self.object_name_filter = ObjectNameCBFilter()                  # instantiate event filter with custom signals
         self.object_name_filter.focusOut.connect(self.update_data)      # connect filter custom signal to slot
         self.obj_name_cb.installEventFilter(self.object_name_filter)    # install filter to widget
@@ -141,6 +143,7 @@ class UIConfigEntryDialog(QDialog):
         self.pvs_connection_thread.progress_bar_update.connect(lambda val: self.check_pvs_progress_bar.setValue(val))
         self.pvs_connection_thread.started.connect(self.pvs_connection_check_started)
         self.pvs_connection_thread.finished.connect(self.pvs_connection_check_finished)
+        self.pvs_connection_thread.finished_check.connect(self.pvs_connection_check_display_results_message)
         self.pvs_connection_thread.finished_check_before_add_config.connect(self.add_entry_pv_check_finished)
         QApplication.instance().aboutToQuit.connect(self.pvs_connection_thread.stop)  # graceful exit on app close
         # endregion
@@ -300,6 +303,8 @@ class UIConfigEntryDialog(QDialog):
                                           QMessageBox.Yes | QMessageBox.Cancel, QMessageBox.Cancel)
             if msg_box == QMessageBox.Yes:
                 self.add_entry(object_id=self.pv_check_obj_id, overwrite=self.pv_check_obj_already_exists)
+        else:
+            self.add_entry(object_id=self.pv_check_obj_id, overwrite=self.pv_check_obj_already_exists)
 
     def add_entry(self, object_id: int, overwrite: bool):
         """
@@ -323,9 +328,11 @@ class UIConfigEntryDialog(QDialog):
 
         if overwrite:
             Settings.Service.PVConfig.add_entry(config_data, overwrite=True)
+            self.check_for_existing_config_pvs(object_id)
             self.set_message_colored_text('Configuration has been updated.', 'green')
         else:
             Settings.Service.PVConfig.add_entry(config_data)
+            self.update_fields()
             self.set_message_colored_text('New configuration has been added.', 'green')
 
         self.config_updated.emit()
@@ -502,6 +509,7 @@ class UIConfigEntryDialog(QDialog):
                 self.load_existing_config_pvs()         # update all PV names.
 
         else:
+            self.existing_config_pvs = {}
             self.existing_config_frame.hide()
             self.existing_config_load_btn.setEnabled(False)
 
@@ -645,13 +653,14 @@ class UIConfigEntryDialog(QDialog):
         self.clear_pvs_connection_status()
         self.ok_btn.setEnabled(False)
         self.log_interval_sb.setEnabled(False)
-        self.set_message_colored_text('Checking measurement PVs ...', 'green')
+        self.set_message_colored_text('Checking measurement PVs ...', 'rgb(255, 85, 0)')
 
     def pvs_connection_check_finished(self):
         self.disable_widgets_if_pv_check_running(pvs_check_running=False)
         self.ok_btn.setEnabled(True)
         self.log_interval_sb.setEnabled(True)
 
+    def pvs_connection_check_display_results_message(self):
         results = self.pvs_connection_thread.results
         failed_pvs = len(results['failed'])
         if not failed_pvs:
@@ -721,11 +730,14 @@ class CheckPVsThread(QThread):
     progress_bar_update = pyqtSignal(int)
     display_progress_bar = pyqtSignal(bool)
     finished_check_before_add_config = pyqtSignal()
+    finished_check = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
         QThread.__init__(self, *args, **kwargs)
         self.finished.connect(self.clear_progress_bar)
-        self.finished.connect(lambda: self.finished_check_before_add_config.emit() if self._on_add_config else None)
+        self.finished.connect(
+            lambda: self.finished_check_before_add_config.emit() if self._on_add_config else self.finished_check.emit()
+        )
         self.pv_names = None
         self._running = None
         self.results = None

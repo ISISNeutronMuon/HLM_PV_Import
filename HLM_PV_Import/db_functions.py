@@ -1,6 +1,9 @@
 """
 Contains functions for working with the HeRecovery database.
 """
+import sys
+import time
+
 import mysql.connector
 from HLM_PV_Import.utilities import single_tuples_to_strings
 from datetime import datetime
@@ -11,9 +14,41 @@ from HLM_PV_Import.settings import HEDB, Tables
 db_logger = DBLogger()
 db_logger.make_log()
 
+# Explicit access to module level variables by accessing them explicitly on the module
+this = sys.modules[__name__]
+
+this.connection = None
+this.reconnect_wait_time = HEDB.RECONNECT_WAIT
+
 
 # Establish the database connection
-connection = mysql.connector.connect(host=HEDB.HOST, database=HEDB.NAME, user=HEDB.USER, password=HEDB.PASS)
+def make_db_connection():
+    try:
+        this.connection = mysql.connector.connect(host=HEDB.HOST, database=HEDB.NAME,
+                                                  user=HEDB.USER, password=HEDB.PASS)
+    except Exception as e:
+        sys.stderr.write(f'{e}\n')
+        this.connection = None
+
+
+make_db_connection()
+
+
+def db_is_connected(attempt: int = 1):
+    """
+    Check if DB is connected, and if not attempt to re-establish it.
+    """
+    if attempt > HEDB.RECONNECT_ATTEMPTS_MAX:
+        raise Exception('Connection to the database was lost and could not be re-established.')
+    elif this.connection and this.connection.is_connected():
+        this.reconnect_wait_time = HEDB.RECONNECT_WAIT  # reset the wait time
+        return True
+    else:
+        time.sleep(this.reconnect_wait_time)
+        this.reconnect_wait_time = HEDB.reconnect_wait_increase(current_wait=this.reconnect_wait_time)
+        print(f'Connection to the database was lost, attempting to reconnect. (Attempt: {attempt})')
+        make_db_connection()
+        return db_is_connected(attempt + 1)
 
 
 def get_object(object_id):
@@ -23,7 +58,7 @@ def get_object(object_id):
     Returns:
 
     """
-    result = _select(table=Tables.OBJECT, filters='WHERE `OB_ID` = %s', filters_args=(object_id, ))
+    result = _select(table=Tables.OBJECT, filters='WHERE `OB_ID` = %s', filters_args=(object_id,))
     return result
 
 
@@ -79,7 +114,6 @@ def add_measurement(object_id, mea_values: dict, mea_valid=True):
         'MEA_VALID': 1 if mea_valid is True else 0,
         'MEA_BOOKINGCODE': 0,  # 0 = measurement is not from the balance program (HZB)
     }
-
     _insert(Tables.MEASUREMENT, data=measurement_dict)
 
     last_id = _get_table_last_id(Tables.MEASUREMENT)
@@ -101,6 +135,8 @@ def get_object_sld(object_id: int):
     # Software level device TYPE ID = 18
     search = "WHERE OR_OBJECT_ID = %s AND OR_DATE_REMOVAL IS NULL ORDER BY OR_ID DESC;"
     relations = _select(table=Tables.OBJECT_RELATION, filters=search, filters_args=(object_id,))
+    if not relations:
+        return
     for relation in relations:
         ob_assigned_id = relation[3]
         ob_assigned = _select(table=Tables.OBJECT, filters='WHERE OB_ID = %s', filters_args=(ob_assigned_id,))
@@ -126,7 +162,7 @@ def _get_object_type(object_id, name_only=False):
 
     columns = 'OT_NAME' if name_only else '*'
     record = _select(table=Tables.OBJECT_TYPE, columns=columns, filters='WHERE OT_ID LIKE %s', filters_args=(type_id,))
-    if name_only:
+    if record and name_only:
         record = record[0]
 
     return record
@@ -144,11 +180,14 @@ def _get_object_class(object_id, name_only=False):
         (str/dict): The class name/record of the object.
     """
     type_record = _get_object_type(object_id)
-    class_id = type_record[0][1]
+    if type_record:
+        class_id = type_record[0][1]
+    else:
+        return
     columns = 'OC_NAME' if name_only else '*'
     record = _select(table=Tables.OBJECT_CLASS, columns=columns, filters='WHERE OC_ID LIKE %s',
                      filters_args=(class_id,))
-    if name_only:
+    if record and name_only:
         record = record[0]
 
     return record
@@ -167,8 +206,8 @@ def _get_table_columns(table, names_only=False):
     """
     cursor = None
     try:
-        if connection.is_connected():
-            cursor = connection.cursor()
+        if db_is_connected():
+            cursor = this.connection.cursor()
 
             query = f"SHOW COLUMNS FROM {table}"
 
@@ -207,8 +246,8 @@ def _select(table, columns='*', filters=None, filters_args=None, f_elem=False):
     """
     cursor = None
     try:
-        if connection.is_connected():
-            cursor = connection.cursor()
+        if db_is_connected():
+            cursor = this.connection.cursor()
             columns = '*' if columns is None else columns
             query = f"SELECT {columns} FROM {table}"
             if filters:
@@ -244,8 +283,8 @@ def _insert(table, data):
     """
     cursor = None
     try:
-        if connection.is_connected():
-            cursor = connection.cursor()
+        if db_is_connected():
+            cursor = this.connection.cursor()
 
             placeholders = ', '.join(['%s'] * len(data))
             columns = ', '.join(data.keys())
@@ -255,7 +294,7 @@ def _insert(table, data):
             values = list(data.values())
             cursor.execute(query, values)
 
-            connection.commit()
+            this.connection.commit()
 
             record_no = cursor.lastrowid
             if record_no == 0:  # If table has no AUTO_INCREMENT column

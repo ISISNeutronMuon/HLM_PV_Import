@@ -2,6 +2,8 @@ from HLM_PV_Import.ca_wrapper import PvMonitors
 from HLM_PV_Import.user_config import UserConfig
 from HLM_PV_Import.db_functions import add_measurement
 from HLM_PV_Import.settings import PvImportConfig
+from HLM_PV_Import.logger import log_error
+from HLM_PV_Import.settings import CA
 from collections import defaultdict
 import time
 
@@ -63,18 +65,20 @@ class PvImport:
                     # then skip it. This could happen because of a monitor not receiving updates from the existing PV.
                     try:
 
-                        # If the PV data is stale, then ignore it
-                        if self.pv_monitors.pv_data_is_stale(pv_name, print_warning=True):
+                        # If the PV data is stale, then ignore it. If Add Stale PVs setting is enabled, add it anyway.
+                        if not CA.ADD_STALE_PVS and self.pv_monitors.pv_data_is_stale(pv_name, print_warning=True):
                             continue
 
                         pv_value = self.pv_monitors.get_pv_data(pv_name)
                         mea_values[mea_number] = pv_value
-                    except KeyError:
+                    except Exception as e:
+                        log_error(f'{e}')
                         continue
 
                 # If none of the measurement PVs values were found from the PV monitors data dict,
                 # skip to the next record.
                 if all(value is None for value in mea_values.values()):
+                    print(f'No PV values for object with record ID {record}, skipping. ')
                     continue
 
                 # Add a measurement with the values for the record/object

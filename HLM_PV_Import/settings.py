@@ -28,6 +28,7 @@ class CA:
     EPICS_CA_ADDR_LIST = config['ChannelAccess']['EPICS_CA_ADDR_LIST']  # Epics channel access address list
     CONN_TIMEOUT = config['ChannelAccess'].getfloat('ConnectionTimeout')
     STALE_AFTER = config['ChannelAccess'].getfloat('PvStaleAfter')
+    ADD_STALE_PVS = config['ChannelAccess'].getboolean('AddStalePvs')
     PV_PREFIX = config['ChannelAccess']['PV_PREFIX']
     PV_DOMAIN = config['ChannelAccess']['PV_DOMAIN']
 
@@ -50,6 +51,17 @@ class HEDB:
     NAME = config['HeRecoveryDB']['Name']
     USER = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_USER')
     PASS = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_PASS')
+
+    RECONNECT_ATTEMPTS_MAX = 1000
+    RECONNECT_WAIT = 5  # base wait time between attempts in seconds
+
+    @staticmethod
+    def reconnect_wait_increase(current_wait):  # increasing wait time between attempts for each failed attempt
+        """
+        Args:
+            current_wait (int): Current wait time between attempts, in seconds.
+        """
+        return current_wait*2 if current_wait*2 < 14400 else 14400  # 14400 = maximum wait time between attempts, in sec
 
 
 # Helium DB Tables
