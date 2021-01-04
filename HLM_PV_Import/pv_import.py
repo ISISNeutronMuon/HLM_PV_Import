@@ -66,7 +66,7 @@ class PvImport:
                     try:
 
                         # If the PV data is stale, then ignore it. If Add Stale PVs setting is enabled, add it anyway.
-                        if not CA.ADD_STALE_PVS and self.pv_monitors.pv_data_is_stale(pv_name, print_warning=True):
+                        if self.pv_monitors.pv_data_is_stale(pv_name) and not CA.ADD_STALE_PVS:
                             continue
 
                         pv_value = self.pv_monitors.get_pv_data(pv_name)

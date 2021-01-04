@@ -96,7 +96,7 @@ class PvMonitors:
             response (caproto._commands.EventAddResponse): The full response from the server, which includes data
                                                             and any metadata.
         """
-        print(f'Received response from {sub.pv.name}')
+        # print(f'Received response from {sub.pv.name}')
         value = response.data[0]
 
         if isinstance(value, bytes):
