@@ -274,7 +274,6 @@ class DatabaseUtilities:
 
         type_id = self._select(table=Tables.OBJECT, columns='OB_OBJECTTYPE_ID', filters='WHERE OB_ID LIKE %s',
                                filters_args=(object_id,), f_elem=True)
-
         columns = 'OT_NAME' if name_only else '*'
         record = self._select(table=Tables.OBJECT_TYPE, columns=columns, filters='WHERE OT_ID LIKE %s',
                               filters_args=(type_id,))

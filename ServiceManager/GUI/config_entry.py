@@ -458,7 +458,9 @@ class UIConfigEntryDialog(QDialog):
 
             return
 
-        self.update_details(obj_id, current_object)
+        # Don't update details for objects with duplicate names
+        if not isinstance(obj_id, list):
+            self.update_details(obj_id, current_object)
 
         if update_meas_pvs:
             if Settings.Manager.get_auto_load_existing_config():    # If existing config auto-load setting is enabled
