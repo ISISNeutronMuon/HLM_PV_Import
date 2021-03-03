@@ -19,7 +19,7 @@ For information regarding both, please check the [HLM PV Import Wiki](https://gi
 4. Follow the rest of the [instructions](https://github.com/ISISNeutronMuon/HLM_PV_Import/wiki/Service-Setup-&-Manager-Manual). 
 
 **Notes**: 
-* Do not forget to set up the database as well. The schema creation script can be found in `\\isis\inst$\Kits$\CompGroup\Helium Level Meters\For Review`. Also, when first starting the HLM PV Import manager, configure the DB Connection settings. The DB user & password are saved in the windows registry as parameters of the service.  
+* Do not forget to set up the database as well. The schema creation script can be found in `\\isis\inst$\Kits$\CompGroup\Helium Level Meters\For Review`. Also, when first starting the HLM PV Import manager, configure the "DB Connection" settings. The DB user & password are saved in the windows registry as parameters of the service.  
 * If it helps with setting-up (to check configuration/settings files/registry etc.), the service is currently running on NDAHEMON. 
 * The [Helium Recovery PLC](https://github.com/ISISComputingGroup/ibex_developers_manual/wiki/Helium-Recovery-PLC) must also be set up and running on the machine: [Notes on NDAHEMON static build setup](https://github.com/ISISComputingGroup/ibex_developers_manual/wiki/Helium-Recovery-PLC#ndahemon-fins-setup-notes-procserv-no-ibex)
 
