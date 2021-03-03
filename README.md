@@ -20,7 +20,16 @@ For information regarding both, please check the [HLM PV Import Wiki](https://gi
 
 The service directory should look like this (`service_setup.bat` optional, logs will be created once the service has run):
 
-<img alt="hlm_service_dir_example" src="https://user-images.githubusercontent.com/69153228/103566794-92e07800-4eba-11eb-9a82-1770e5849630.png" width="620"/>
+```
+.
+├── logs
+│   └── ...
+├── HlmService.exe
+├── pv_config.json
+├── settings.ini
+├── service_setup.bat* (optional)
+```
+
 
 The manager can be placed anywhere, as long as it is given the correct service directory path. The service requires the `settings.ini` and `pv_config.json` files.
 
