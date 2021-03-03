@@ -5,6 +5,12 @@ Service (and manager) for updating the [HLM Database](https://github.com/SampleE
 This repository contains the [HLM PV Import Service](https://github.com/ISISNeutronMuon/HLM_PV_Import/tree/master/HLM_PV_Import) and the [Service Manager](https://github.com/ISISNeutronMuon/HLM_PV_Import/tree/master/ServiceManager). 
 For information regarding both, please check the [HLM PV Import Wiki](https://github.com/ISISNeutronMuon/HLM_PV_Import/wiki).
 
+### Links
+* [HLM PV Import Wiki](https://github.com/ISISNeutronMuon/HLM_PV_Import/wiki)
+* [HLM GAM Database](https://github.com/SampleEnvironment/He-Management/wiki#helium-level-monitoring-database)
+* [Helium Recovery PLC](https://github.com/ISISComputingGroup/ibex_developers_manual/wiki/Helium-Recovery-PLC)
+* [Omron FINS PLC](https://github.com/ISISComputingGroup/ibex_developers_manual/wiki/Omron-FINS)
+* [HLM Project Sharepoint](http://www.facilities.rl.ac.uk/isis/projects/heliummgmt/_layouts/viewlsts.aspx?BaseType=1)
 
 ### How to run
 1. Download the code and pip install requirements.
