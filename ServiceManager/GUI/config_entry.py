@@ -124,10 +124,8 @@ class UIConfigEntryDialog(QDialog):
 
         self.existing_config_load_btn.clicked.connect(self.load_existing_config_pvs)
 
-        self.progress_bar_filter = ProgressBarFilter()
-        self.progress_bar_filter.showEventSignal.connect(self.on_progress_bar_show_event)
-        self.progress_bar_filter.hideEventSignal.connect(self.on_progress_bar_hide_event)
-        self.check_pvs_progress_bar.installEventFilter(self.progress_bar_filter)
+        self.check_pvs_progress_bar.showEvent = self.on_progress_bar_show_event
+        self.check_pvs_progress_bar.hideEvent = self.on_progress_bar_hide_event
 
         self.check_pvs_btn.clicked.connect(self.start_measurement_pvs_check)
 
@@ -617,12 +615,12 @@ class UIConfigEntryDialog(QDialog):
             status_lbl.setText('ERR')
             status_lbl.setStyleSheet('color: red;')
 
-    def on_progress_bar_show_event(self):
+    def on_progress_bar_show_event(self, event):
         if self.existing_config_frame.isVisible():
             self.existing_config_frame_visible = True
             self.existing_config_frame.setVisible(False)
 
-    def on_progress_bar_hide_event(self):
+    def on_progress_bar_hide_event(self, event):
         if self.existing_config_frame_visible:
             self.existing_config_frame.setVisible(True)
 
@@ -704,21 +702,6 @@ class ObjectNameCBFilter(QObject):
             self.focusOut.emit()
         elif event.type() == QEvent.FocusIn:
             self.focusIn.emit()
-
-        # return False so that the widget will also handle the event
-        return False
-
-
-class ProgressBarFilter(QObject):
-    """ Show & Hide events filter for the PV connection test progress bar. """
-    showEventSignal = pyqtSignal()
-    hideEventSignal = pyqtSignal()
-
-    def eventFilter(self, widget, event):
-        if event.type() == QEvent.Show:
-            self.showEventSignal.emit()
-        elif event.type() == QEvent.Hide:
-            self.hideEventSignal.emit()
 
         # return False so that the widget will also handle the event
         return False
