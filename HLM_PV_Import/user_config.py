@@ -20,11 +20,15 @@ class UserConfig:
         self.logging_periods = self._get_logging_periods()
 
     def run_checks(self):
-        self._check_config_records_id_is_not_empty()
-        self._check_records_have_at_least_one_measurement_pv()
-        self._check_config_records_unique()
-        self._check_config_records_exist()
-        self._check_measurement_pvs_connect()
+        try:
+            self._check_config_records_id_is_not_empty()
+            self._check_records_have_at_least_one_measurement_pv()
+            self._check_config_records_unique()
+            self._check_config_records_exist()
+            self._check_measurement_pvs_connect()
+        except PVConfigurationException as e:
+            log_error(str(e))
+            raise e
 
     def _check_config_records_unique(self):
         """
@@ -35,9 +39,8 @@ class UserConfig:
         """
         duplicate_records = list(unique_everseen(duplicates(self.records)))
         if duplicate_records:
-            err_msg = f'User configuration contains duplicate entry record names: {duplicate_records}'
-            log_error(err_msg)
-            raise PVConfigurationException(err_msg)
+            raise PVConfigurationException(f'User configuration contains duplicate entry '
+                                           f'record names: {duplicate_records}')
 
     def _check_config_records_id_is_not_empty(self):
         """
@@ -48,9 +51,7 @@ class UserConfig:
         """
         for record in self.records:
             if not record:
-                err_msg = 'One or more elements in the user configuration is empty/null/None.'
-                log_error(err_msg)
-                raise PVConfigurationException(err_msg)
+                raise PVConfigurationException('One or more elements in the user configuration is empty/null/None.')
 
     def _check_config_records_exist(self):
         """
@@ -66,9 +67,8 @@ class UserConfig:
                 not_found.append(record)
 
         if not_found:
-            err_msg = f'User configuration contains records IDs that were not found in the DB: {not_found}'
-            log_error(err_msg)
-            raise PVConfigurationException(err_msg)
+            raise PVConfigurationException(f'User configuration contains records IDs '
+                                           f'that were not found in the DB: {not_found}')
 
     def _check_measurement_pvs_connect(self):
         """
@@ -84,7 +84,6 @@ class UserConfig:
 
         if not_connected:
             err_msg = f'Could not connect to one or more PVs: {not_connected}'
-            log_error(err_msg)
             print(f'PVConfig WARNING: {err_msg}')
         else:
             print('PVConfig: All PVs connected.')
@@ -107,9 +106,7 @@ class UserConfig:
                 records_with_no_pvs.append(record_id)
 
         if records_with_no_pvs:
-            err_msg = f'Records {records_with_no_pvs} have no measurement PVs.'
-            log_error(err_msg)
-            raise PVConfigurationException(err_msg)
+            raise PVConfigurationException(f'Records {records_with_no_pvs} have no measurement PVs.')
 
     def get_measurement_pvs(self, no_duplicates=True, full_names=False):
         """
