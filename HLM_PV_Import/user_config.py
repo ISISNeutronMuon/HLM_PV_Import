@@ -17,7 +17,7 @@ class UserConfig:
     def __init__(self):
         self.entries = self._get_all_entries()
         self.records = [entry[PVConfigConst.OBJ] for entry in self.entries]
-        self.logging_periods = self._get_logging_periods()
+        self.logging_periods = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in self.entries}
 
     def run_checks(self):
         try:
@@ -163,17 +163,6 @@ class UserConfig:
             record_meas = {key: val for key, val in record_meas.items() if val}
 
         return record_meas
-
-    def _get_logging_periods(self):
-        """
-        Gets the record IDs and their respective logging period from the configuration.
-
-        Returns:
-            (dict): The record IDs and their logging period.
-        """
-        entries = self.entries
-        log_periods = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in entries}
-        return log_periods
 
     def _get_pv_config(self, pv_name):
         """

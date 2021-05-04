@@ -197,7 +197,7 @@ class TestUserConfig(unittest.TestCase):
         expected_value = {1: 60, 2: 1, 3: 40}
 
         # Act
-        result = self.config._get_logging_periods()
+        result = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in self.config.entries}
 
         # Assert
         self.assertCountEqual(expected_value, result)
