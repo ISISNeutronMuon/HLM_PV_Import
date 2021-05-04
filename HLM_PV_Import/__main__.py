@@ -29,7 +29,7 @@ def main():
     # Start the monitors and continuously store the PV data received on every update
     pv_monitors.start_monitors()
 
-    # Start the PV import main loop to check each record
+    # Start the PV Import main loop
     pv_import.start()
 
 

@@ -18,8 +18,8 @@ class PvImport:
         self.running = False
 
         # Initialize tasks
-        for record in self.config.records:
-            self.tasks[record] = 0
+        for obj_id in self.config.object_ids:
+            self.tasks[obj_id] = 0
 
     def start(self):
         """
@@ -35,21 +35,21 @@ class PvImport:
             # pv_data = copy.deepcopy(self.pv_monitors.get_data())
             # print(f"({datetime.now().strftime('%H:%M:%S')}) {len(pv_data)} {pv_data}")
 
-            for record in self.config.records:
+            for object_id in self.config.object_ids:
 
-                # Check record next logging time in tasks, if not yet then go to next record
-                if self.tasks[record] > time.time():
+                # Check the object's next logging time in tasks, if not yet then go to next object_id
+                if self.tasks[object_id] > time.time():
                     continue
-                # If record is ready to be updated, set curr time + log period in minutes as next run, then proceed
-                self.tasks[record] = time.time() + (60 * self.config.logging_periods[record])
+                # If object is ready to be updated, set curr time + log period in minutes as next run, then proceed
+                self.tasks[object_id] = time.time() + (60 * self.config.logging_periods[object_id])
 
-                # Get the entry record's PVs, the initialize the blank measurement values dict (with None values)
-                record_meas = self.config.get_record_measurement_pvs(record, full_names=True)
+                # Get the object's PVs, the initialize the blank measurement values dict (with None values)
+                object_meas = self.config.get_entry_measurement_pvs(object_id, full_names=True)
                 mea_values = defaultdict(lambda: None)
 
                 # Iterate through the list of PVs, get the values from the PV monitor data dict, and add them to the
                 # measurement values.
-                for mea_number, pv_name in record_meas.items():
+                for mea_number, pv_name in object_meas.items():
                     # If the measurement doesn't have an assigned PV, go to the next one.
                     if not pv_name:
                         continue
@@ -68,14 +68,14 @@ class PvImport:
                         log_error(f'{e}')
                         continue
 
-                # If none of the measurement PVs values were found from the PV monitors data dict,
-                # skip to the next record.
+                # If none of the measurement PVs values were found in the PV monitors data,
+                # skip to the next object.
                 if all(value is None for value in mea_values.values()):
-                    print(f'No PV values for object with record ID {record}, skipping. ')
+                    print(f'No PV values for object with ID {object_id}, skipping. ')
                     continue
 
-                # Add a measurement with the values for the record/object
-                add_measurement(object_id=record, mea_values=mea_values, mea_valid=True)
+                # Create a new measurement with the PV values for the object
+                add_measurement(object_id=object_id, mea_values=mea_values, mea_valid=True)
 
     def stop(self):
         """

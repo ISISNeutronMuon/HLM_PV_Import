@@ -126,7 +126,7 @@ class DBLogger:
         Logs details of the measurement added to the DB.
 
         Args:
-            record_no (int): The measurement record ID
+            record_no (int): The measurement record object ID
             obj_id (int): The ID of the object the values are for.
             obj_name (str): The name of the object.
             values (dict/list): The values of the measurement.
