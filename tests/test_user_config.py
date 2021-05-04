@@ -42,6 +42,7 @@ class TestUserConfig(unittest.TestCase):
     ])
     def test_GIVEN_pvs_WHEN_check_records_has_measurement_pvs_THEN_no_exception(self, entries):
         self.config.entries = entries
+        self.config.records = [entry[PVConfigConst.OBJ] for entry in self.config.entries]
         self.config._check_records_have_at_least_one_measurement_pv()
 
     @parameterized.expand([
@@ -53,6 +54,7 @@ class TestUserConfig(unittest.TestCase):
     def test_GIVEN_no_pvs_WHEN_check_if_records_have_measurement_pvs_THEN_exception_raised(self, entries):
         with patch('HLM_PV_Import.user_config.log_error'):
             self.config.entries = entries
+            self.config.records = [entry[PVConfigConst.OBJ] for entry in self.config.entries]
             with self.assertRaises(PVConfigurationException):
                 self.config._check_records_have_at_least_one_measurement_pv()
 

@@ -16,7 +16,7 @@ class UserConfig:
 
     def __init__(self):
         self.entries = self._get_all_entries()
-        self.records = [entry[PVConfigConst.OBJ] for entry in self.entries]
+        self.records = [entry[PVConfigConst.OBJ] for entry in self.entries]  # object IDs
         self.logging_periods = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in self.entries}
 
         # Run config checks
@@ -37,10 +37,10 @@ class UserConfig:
         Raises:
             ValueError: if duplicate record names were found
         """
-        duplicate_records = list(unique_everseen(duplicates(self.records)))
-        if duplicate_records:
+        duplicate_obj_ids = list(unique_everseen(duplicates(self.records)))
+        if duplicate_obj_ids:
             raise PVConfigurationException(f'User configuration contains duplicate entry '
-                                           f'record names: {duplicate_records}')
+                                           f'object IDs: {duplicate_obj_ids}')
 
     def _check_config_records_id_is_not_empty(self):
         """
@@ -95,14 +95,12 @@ class UserConfig:
         Raises:
             ValueError: If one or more records has no measurement PVs.
         """
-        records = [entry[PVConfigConst.OBJ] for entry in self.entries]
         records_with_no_pvs = []
-        for record_id in records:
+        for record_id in self.records:
             try:
-                pvs = self.get_record_measurement_pvs(record_id)
+                if not self.get_record_measurement_pvs(record_id):
+                    records_with_no_pvs.append(record_id)
             except KeyError:
-                pvs = None
-            if not pvs:
                 records_with_no_pvs.append(record_id)
 
         if records_with_no_pvs:
