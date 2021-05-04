@@ -6,45 +6,12 @@ from ServiceManager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEM
     SERVICE_SETTINGS_TEMPLATE, MANAGER_SETTINGS_DIR, MANAGER_LOGS_FILE, SERVICE_NAME, PV_CONFIG_FILE_NAME
 from ServiceManager.logger import logger
 from ServiceManager.db_utilities import DBUtils, DBConnectionError
-
-
-def pv_name_without_prefix_and_domain(name):
-    """
-    Given a PV name, remove the prefix and domain and return only the PV name.
-
-    Args:
-        name(str): the full PV name
-    Returns:
-        name(str): the PV name without prefix and domain
-    """
-    name = name.replace(f'{Settings.Service.CA.get_pv_prefix()}:', '') \
-               .replace(f'{Settings.Service.CA.get_pv_domain()}:', '')
-    return name
+from HLM_PV_Import.utilities import get_full_pv_name as get_full_pv_name_
 
 
 def get_full_pv_name(name):
-    """
-    Adds the prefix and domain to the PV if it doesn't have them.
-
-    Args:
-        name (str): The PV name.
-
-    Returns:
-        (str) The full PV name.
-    """
-    if not name:
-        return None
-    name = pv_name_without_prefix_and_domain(name)
-    pv_prefix = Settings.Service.CA.get_pv_prefix()
-    pv_domain = Settings.Service.CA.get_pv_domain()
-
-    if pv_prefix:
-        pv_prefix = f'{pv_prefix}:'
-    if pv_domain:
-        pv_domain = f'{pv_domain}:'
-    name = f'{pv_prefix}{pv_domain}{name}'
-
-    return name
+    return get_full_pv_name_(name, pv_prefix=Settings.Service.CA.get_pv_prefix(),
+                             pv_domain=Settings.Service.CA.get_pv_domain())
 
 
 def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):
@@ -421,14 +388,16 @@ class _CA:
         self.update()
 
     def get_pv_prefix(self):
-        return self.config_parser['ChannelAccess']['PV_PREFIX']
+        return self.config_parser['ChannelAccess']['PV_PREFIX'] + \
+               ':' if self.config_parser['ChannelAccess']['PV_PREFIX'] else ''
 
     def set_pv_prefix(self, new_prefix: str):
         self.config_parser['ChannelAccess']['PV_PREFIX'] = new_prefix
         self.update()
 
     def get_pv_domain(self):
-        return self.config_parser['ChannelAccess']['PV_DOMAIN']
+        return self.config_parser['ChannelAccess']['PV_DOMAIN'] + \
+               ':' if self.config_parser['ChannelAccess']['PV_DOMAIN'] else ''
 
     def set_pv_domain(self, new_domain: str):
         self.config_parser['ChannelAccess']['PV_DOMAIN'] = new_domain
