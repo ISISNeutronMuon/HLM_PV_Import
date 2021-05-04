@@ -34,8 +34,8 @@ def pv_name_without_prefix_and_domain(name):
     Returns:
         name(str): the PV name without prefix and domain
     """
-    name = name.replace(f'{CA.PV_PREFIX}:', '').replace(f'{CA.PV_DOMAIN}:', '')
-    return name
+
+    return name.replace(CA.PV_PREFIX, '').replace(CA.PV_DOMAIN, '')
 
 
 def get_full_pv_name(name):
@@ -51,13 +51,7 @@ def get_full_pv_name(name):
     if not name:
         return None
     name = pv_name_without_prefix_and_domain(name)
-    pv_prefix = CA.PV_PREFIX
-    pv_domain = CA.PV_DOMAIN
-    if pv_prefix:
-        pv_prefix = f'{pv_prefix}:'
-    if pv_domain:
-        pv_domain = f'{pv_domain}:'
-    name = f'{pv_prefix}{pv_domain}{name}'
+    name = f'{CA.PV_PREFIX}{CA.PV_DOMAIN}{name}'
     return name
 
 
