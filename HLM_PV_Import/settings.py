@@ -29,8 +29,8 @@ class CA:
     CONN_TIMEOUT = config['ChannelAccess'].getfloat('ConnectionTimeout')
     STALE_AFTER = config['ChannelAccess'].getfloat('PvStaleAfter')
     ADD_STALE_PVS = config['ChannelAccess'].getboolean('AddStalePvs')
-    PV_PREFIX = config['ChannelAccess']['PV_PREFIX']
-    PV_DOMAIN = config['ChannelAccess']['PV_DOMAIN']
+    PV_PREFIX = config['ChannelAccess']['PV_PREFIX'] + ':' if config['ChannelAccess']['PV_PREFIX'] else ''
+    PV_DOMAIN = config['ChannelAccess']['PV_DOMAIN'] + ':' if config['ChannelAccess']['PV_DOMAIN'] else ''
 
 
 class LoggersConst:
