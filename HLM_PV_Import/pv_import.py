@@ -17,13 +17,6 @@ class PvImport:
         self.tasks = {}
         self.running = False
 
-    def set_up(self):
-        """
-        Requirements and checks before importing PV data.
-        """
-        # Check if the user configuration is valid
-        self.config.run_checks()
-
         # Initialize tasks
         for record in self.config.records:
             self.tasks[record] = 0

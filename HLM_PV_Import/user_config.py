@@ -19,7 +19,7 @@ class UserConfig:
         self.records = [entry[PVConfigConst.OBJ] for entry in self.entries]
         self.logging_periods = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in self.entries}
 
-    def run_checks(self):
+        # Run config checks
         try:
             self._check_config_records_id_is_not_empty()
             self._check_records_have_at_least_one_measurement_pv()

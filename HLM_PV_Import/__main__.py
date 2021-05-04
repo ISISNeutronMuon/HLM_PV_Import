@@ -25,7 +25,6 @@ def main():
     # running content checks for the user config, and looping through each record every few seconds to check for
     # records scheduled to be updated with a new measurement.
     pv_import = PvImport(pv_monitors, config)
-    pv_import.set_up()
 
     # Start the monitors and continuously store the PV data received on every update
     pv_monitors.start_monitors()
