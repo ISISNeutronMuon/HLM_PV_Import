@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QDialog, QPushButton, QLineEdit, QFrame, \
     QComboBox, QLabel, QProgressBar, QSpinBox, QMessageBox, QApplication, QHBoxLayout, QWidget
 from PyQt5 import uic
 
-from ServiceManager.constants import config_entry_ui, loading_animation
+from ServiceManager.constants import config_entry_ui, loading_animation, DbClassIds
 from ServiceManager.settings import Settings, get_full_pv_name
 from ServiceManager.utilities import test_pv_connection
 from ServiceManager.db_utilities import DBUtils, DBUtilsObjectNameAlreadyExists
@@ -26,7 +26,6 @@ class UIConfigEntryDialog(QDialog):
         self.loading_msg = LoadingPopupWindow()     # Loading splash screen when testing PV connection
         self.pv_check_obj_id = None                 # For PV auto-check. Save object ID and whether it already exists
         self.pv_check_obj_already_exists = None     # before starting the connection test thread.
-        self.existing_config_frame_visible = None   # For alternating between the Load config and PV check progress bar
         self.existing_config_pvs = {}               # Store existing object config measurement PVs when 'Load' clicked
         self.type_and_comment_updated = False       # If the object type and comment were updated by an existing object
         # endregion
@@ -453,7 +452,6 @@ class UIConfigEntryDialog(QDialog):
         else:
             self.obj_type_cb.setEnabled(True)
             self.obj_comment.setEnabled(True)
-
             return
 
         # Don't update details for objects with duplicate names
@@ -494,6 +492,7 @@ class UIConfigEntryDialog(QDialog):
             self.existing_config_frame.hide()
             self.existing_config_load_btn.setEnabled(False)
             self.delete_btn.setEnabled(False)
+            self.existing_config_pvs = {}
             return
 
         self.existing_config_pvs = obj_entry[Settings.Service.PVConfig.MEAS]
@@ -545,7 +544,9 @@ class UIConfigEntryDialog(QDialog):
 
         type_name = self.obj_type_cb.currentText()
         if not type_name:
+            self.clear_measurement_type_labels()
             return
+
         type_id = DBUtils.get_type_id(type_name=type_name)
         if not type_id:
             logger.warning(f'Type ID for {type_name} was not found.')
@@ -554,9 +555,9 @@ class UIConfigEntryDialog(QDialog):
 
         sld = False
         # If class is Vessel, Cryostat or Gas Counter, display types for HLModule (class of Soft. Level Device)
-        if class_id in [2, 4, 7]:  # 2, 4, 7 = Vessel, Cryostat, Gas Counter
+        if class_id in [DbClassIds.VESSEL, DbClassIds.CRYOSTAT, DbClassIds.GAS_COUNTER]:
             sld = True
-            class_id = 17  # 17 - Helium level module
+            class_id = DbClassIds.HE_LVL_MODULE
 
         mea_types = DBUtils.get_class_measurement_types(class_id=class_id)
 
@@ -617,12 +618,11 @@ class UIConfigEntryDialog(QDialog):
 
     def on_progress_bar_show_event(self, event):
         if self.existing_config_frame.isVisible():
-            self.existing_config_frame_visible = True
-            self.existing_config_frame.setVisible(False)
+            self.existing_config_frame.hide()
 
     def on_progress_bar_hide_event(self, event):
-        if self.existing_config_frame_visible:
-            self.existing_config_frame.setVisible(True)
+        if not self.existing_config_frame.isVisible() and self.existing_config_pvs:
+            self.existing_config_frame.show()
 
     def on_mea_pv_text_change(self, mea_no: int):
         """
