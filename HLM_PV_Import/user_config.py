@@ -16,7 +16,7 @@ class UserConfig:
 
     def __init__(self):
         self.entries = self._get_all_entries()
-        self.records = self._get_all_entry_records()
+        self.records = [entry[PVConfigConst.OBJ] for entry in self.entries]
         self.logging_periods = self._get_logging_periods()
 
     def run_checks(self):
@@ -95,7 +95,7 @@ class UserConfig:
         Raises:
             ValueError: If one or more records has no measurement PVs.
         """
-        records = self._get_all_entry_records()
+        records = [entry[PVConfigConst.OBJ] for entry in self.entries]
         records_with_no_pvs = []
         for record_id in records:
             try:
@@ -221,18 +221,6 @@ class UserConfig:
                 raise PVConfigurationException(err_msg)
 
             return data
-
-    def _get_all_entry_records(self):
-        """
-        Get the IDs of all records from the PV config as a list.
-
-        Returns:
-            (list): The record names.
-        """
-        entries = self.entries
-        records = [entry[PVConfigConst.OBJ] for entry in entries]
-
-        return records
 
 
 class PVConfigurationException(ValueError):

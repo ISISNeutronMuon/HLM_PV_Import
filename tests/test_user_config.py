@@ -133,7 +133,7 @@ class TestUserConfig(unittest.TestCase):
         self.config.entries = entries
 
         # Act
-        result = self.config._get_all_entry_records()
+        result = [entry[PVConfigConst.OBJ] for entry in self.config.entries]
 
         # Assert
         self.assertEqual(expected_value, result)
