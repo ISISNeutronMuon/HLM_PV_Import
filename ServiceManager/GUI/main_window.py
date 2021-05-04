@@ -32,19 +32,19 @@ class UIMainWindow(QMainWindow):
             self.setWindowTitle(self.windowTitle() + ' (Administrator)')
 
         # region External windows
-        self.about_w = None                     # "About" dialogue window
-        self.db_settings_w = None               # "DB Settings" dialogue window
-        self.general_settings_w = None          # "General Settings" dialogue window
-        self.ca_settings_w = None               # "Channel Access" dialogue window
-        self.service_dir_path_w = None          # "Service Directory" dialogue window
-        self.config_entry_w = None              # Add/Edit Configuration Entry dialogue window
+        self.about_w = None  # "About" dialogue window
+        self.db_settings_w = None  # "DB Settings" dialogue window
+        self.general_settings_w = None  # "General Settings" dialogue window
+        self.ca_settings_w = None  # "Channel Access" dialogue window
+        self.service_dir_path_w = None  # "Service Directory" dialogue window
+        self.config_entry_w = None  # Add/Edit Configuration Entry dialogue window
         # endregion
 
         # region Attributes
-        self.table_expanded = False             # For toggling table expansion ("Expand Table"/"Service Info")
+        self.table_expanded = False  # For toggling table expansion ("Expand Table"/"Service Info")
         self.expand_table_btn_text = {False: ['  Expand', 'expand.svg'], True: ['  Shrink', 'shrink.svg']}
-        self.column_names = []                  # Config. table header names, for the Filters columns comboBox
-        self.pv_config_data = None              # Store the PV configuration data to be displayed in the config. table
+        self.column_names = []  # Config. table header names, for the Filters columns comboBox
+        self.pv_config_data = None  # Store the PV configuration data to be displayed in the config. table
         # endregion
 
         # region Menu actions & signals
@@ -98,9 +98,13 @@ class UIMainWindow(QMainWindow):
         self.btn_service_restart.setIconSize(QSize(15, 15))
         self.btn_service_restart.setStyleSheet("QPushButton { text-align: left; }")
         if not is_admin():
+            admin_req_msg = 'Run the manager as administrator to start/stop/restart the service.'
             self.btn_service_start.setEnabled(False)
+            self.btn_service_start.setToolTip(self.btn_service_start.toolTip() + f'\n{admin_req_msg}')
             self.btn_service_stop.setEnabled(False)
+            self.btn_service_stop.setToolTip(self.btn_service_stop.toolTip() + f'\n{admin_req_msg}')
             self.btn_service_restart.setEnabled(False)
+            self.btn_service_restart.setToolTip(self.btn_service_restart.toolTip() + f'\n{admin_req_msg}')
 
         self.db_connection_status = self.findChild(QLabel, 'dbConnStatus')
         self.db_connection_refresh_btn = self.findChild(QToolButton, 'refreshDbConnButton')
@@ -224,6 +228,7 @@ class UIMainWindow(QMainWindow):
             QApplication.quit()
         else:
             event.ignore()
+
     # endregion
 
     # region Update Fields & Update Service
@@ -258,6 +263,7 @@ class UIMainWindow(QMainWindow):
 
         self.thread_service_status.start()
         self.thread_service_status.update_status()
+
     # endregion
 
     # region Service control buttons slots
@@ -275,6 +281,7 @@ class UIMainWindow(QMainWindow):
         service_name = Settings.Service.Info.get_name()
         win32serviceutil.RestartService(service_name)
         self.thread_service_status.update_status()
+
     # endregion
 
     # region Action Slots
@@ -342,6 +349,7 @@ class UIMainWindow(QMainWindow):
     def trigger_open_pv_config():
         path = Settings.Service.PVConfig.get_path()
         os.startfile(path)
+
     # endregion
 
     # region PV Configuration Table
@@ -412,8 +420,8 @@ class UIMainWindow(QMainWindow):
         """ Open the Config Entry dialog window. If database is not connected, display error message. """
         if not DBUtils.is_connected():
             QMessageBox.critical(self, 'Database connection required',
-                                       'Database connection is required to edit the PV configuration.',
-                                       QMessageBox.Ok)
+                                 'Database connection is required to edit the PV configuration.',
+                                 QMessageBox.Ok)
             return
 
         if self.config_entry_w is None:
@@ -426,8 +434,8 @@ class UIMainWindow(QMainWindow):
         """ On Edit, open Config Entry dialog window as normal with object selected and PV config loaded. """
         if not DBUtils.is_connected():
             QMessageBox.critical(self, 'Database connection required',
-                                       'Database connection is required to edit the PV configuration.',
-                                       QMessageBox.Ok)
+                                 'Database connection is required to edit the PV configuration.',
+                                 QMessageBox.Ok)
             return
         if self.config_entry_w is None:
             self.config_entry_w = UIConfigEntryDialog()
@@ -475,9 +483,9 @@ class UIMainWindow(QMainWindow):
     def update_config_table(self):
         """ Update the config table contents with the stored entries' data. """
         self.config_table.setSortingEnabled(False)  # otherwise table will not be properly updated if columns are sorted
-        self.config_table.setRowCount(0)            # it will delete the QTableWidgetItems automatically
+        self.config_table.setRowCount(0)  # it will delete the QTableWidgetItems automatically
 
-        pv_config_data = self.pv_config_data        # Get the stored PV config data (from update_config_data)
+        pv_config_data = self.pv_config_data  # Get the stored PV config data (from update_config_data)
 
         for entry in pv_config_data:
             object_id = entry[Settings.Service.PVConfig.OBJ]
@@ -512,6 +520,7 @@ class UIMainWindow(QMainWindow):
         else:
             self.edit_config_btn.setEnabled(False)
             self.delete_config_btn.setEnabled(False)
+
     # endregion
 
     # region Threads
@@ -539,9 +548,9 @@ class UIMainWindow(QMainWindow):
             os.startfile(debug_file_path)
         else:
             QMessageBox.critical(self, 'Service Log File Not Found',
-                                       'The service log file was not found.\n'
-                                       f'"{debug_file_path}" does not exist.',
-                                       QMessageBox.Ok)
+                                 'The service log file was not found.\n'
+                                 f'"{debug_file_path}" does not exist.',
+                                 QMessageBox.Ok)
             return
 
     def update_log_displayed_lines_no(self, value):
@@ -554,6 +563,7 @@ class UIMainWindow(QMainWindow):
         self.service_log_file_open_btn.setEnabled(enabled)
         self.service_log_scroll_down_btn.setEnabled(enabled)
         self.service_log_show_lines_spinbox.setEnabled(enabled)
+
     # endregion
 
     # region Service Status
@@ -595,6 +605,7 @@ class UIMainWindow(QMainWindow):
 
 class DeleteConfigsMessageBox(QMessageBox):
     """ Message Box on deleting configuration entries. Display a list of entries to be deleted and confirm button. """
+
     def __init__(self, obj_list: list):
         super().__init__()
 
