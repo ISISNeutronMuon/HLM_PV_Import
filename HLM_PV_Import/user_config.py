@@ -62,8 +62,7 @@ class UserConfig:
         """
         not_found = []
         for obj_id in self.object_ids:
-            result = get_object(obj_id)
-            if not result:
+            if not get_object(obj_id):
                 not_found.append(obj_id)
 
         if not_found:
@@ -118,20 +117,16 @@ class UserConfig:
         Returns:
             (list): The list of PVs
         """
-        if no_duplicates:
-            config_pvs = set()
-        else:
-            config_pvs = []
-        entries = self.entries
+        config_pvs = []
 
-        for entry in entries:
+        for entry in self.entries:
             measurements = entry[PVConfigConst.MEAS]
-            for mea_no, pv_name in measurements.items():
+            for pv_name in measurements.values():
                 if pv_name:
-                    if no_duplicates:
-                        config_pvs.add(pv_name)
-                    else:
-                        config_pvs.append(pv_name)
+                    config_pvs.append(pv_name)
+
+        if no_duplicates:
+            config_pvs = set(config_pvs)
 
         if isinstance(config_pvs, set):
             config_pvs = list(config_pvs)
@@ -152,14 +147,9 @@ class UserConfig:
         Returns:
             (dict): The measurements PVs, in measurement number/pv name pairs.
         """
-        entry = next((x for x in self.entries if x[PVConfigConst.OBJ] == object_id), None)
-        entry_meas = entry[PVConfigConst.MEAS]
-        if full_names:
-            entry_meas = {key: get_full_pv_name(val) for key, val in entry_meas.items() if val}
-        else:
-            entry_meas = {key: val for key, val in entry_meas.items() if val}
-
-        return entry_meas
+        # Get the measurements of the entry with the given object_id, None if not found
+        entry_meas = next((x[PVConfigConst.MEAS] for x in self.entries if x[PVConfigConst.OBJ] == object_id), None)
+        return {key: get_full_pv_name(val) if full_names else val for key, val in entry_meas.items() if val}
 
     @staticmethod
     def _get_all_entries():
