@@ -80,9 +80,6 @@ class PvMonitors:
         self.subscriptions = {}
         self._channel_data = []
 
-    def get_data(self):
-        return self._pv_data
-
     def get_pv_data(self, pv_name):
         return self._pv_data[pv_name]
 
@@ -96,7 +93,6 @@ class PvMonitors:
             response (caproto._commands.EventAddResponse): The full response from the server, which includes data
                                                             and any metadata.
         """
-        # print(f'Received response from {sub.pv.name}')
         value = response.data[0]
 
         if isinstance(value, bytes):
@@ -113,50 +109,16 @@ class PvMonitors:
         self._channel_data = self.ctx.get_pvs(*self.pv_name_list)
         for pv in self._channel_data:
             sub = pv.subscribe()
-            token = sub.add_callback(self._callback_f)
-            self.subscriptions[pv.name] = {'token': token, 'sub': sub}
-
-    def remove_pv(self, pv_name):
-        """
-        Clears the callback and removes the PV from the PV Data dict.
-        """
-        self.clear_callbacks(pv_name)
-        self._pv_data.pop(pv_name, None)
-
-    def clear_callbacks(self, pv_name):
-        """
-        Cancel future updates by clearing all callbacks on the subscription of the specified PV.
-
-        Args:
-            pv_name (str): The full PV name.
-        """
-        sub = self.subscriptions[pv_name]['sub']
-        sub.clear()
-
-    def add_callback(self, pv_name, callback_f=None):
-        """
-        Initiate updates by adding a user callback to the subscription of the specified PV.
-        If no callback function was specified, use the default callback.
-
-        Args:
-            pv_name (str): The full PV name.
-            callback_f (optional): The user callback function to add, Defaults to default callback.
-        """
-        sub = self.subscriptions[pv_name]['sub']
-
-        if not callback_f:
             sub.add_callback(self._callback_f)
-        else:
-            sub.add_callback(callback_f)
+            self.subscriptions[pv.name] = sub
 
-    def pv_data_is_stale(self, pv_name, print_warning=False):
+    def pv_data_is_stale(self, pv_name):
         """
         Checks whether a PVs data is stale or not, by looking at the time since its last update and the set length of
         time after which a PV is considered stale.
 
         Args:
             pv_name (str): The name of the PV.
-            print_warning (boolean, optional): Print a warning message to console if PV is stale, Defaults to False.
 
         Returns:
             (boolean): True if data is stale, False if not.
@@ -165,7 +127,6 @@ class PvMonitors:
         current_time = time.time()
         time_since_last_update = current_time - last_update
         if time_since_last_update >= TIME_AFTER_STALE:
-            log_stale_pv_warning(pv_name, time_since_last_update, print_err=print_warning)
+            log_stale_pv_warning(pv_name, time_since_last_update)
             return True
-        else:
-            return False
+        return False
