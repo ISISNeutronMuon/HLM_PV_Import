@@ -5,7 +5,6 @@ import sys
 import time
 
 import mysql.connector
-from HLM_PV_Import.utilities import single_tuples_to_strings
 from datetime import datetime
 from HLM_PV_Import.logger import db_logger, logger
 from HLM_PV_Import.settings import HEDB, Tables
@@ -253,7 +252,7 @@ def _select(table, columns='*', filters=None, filters_args=None, f_elem=False):
 
             # If records are made of single-element tuples, convert to list of strings
             if records and len(records[0]) == 1:
-                records = single_tuples_to_strings(records)
+                records = [elem[0] if len(elem) == 1 else elem for elem in records]
 
             if f_elem:
                 if isinstance(records, list) and len(records) == 1:

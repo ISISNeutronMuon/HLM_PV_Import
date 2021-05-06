@@ -10,23 +10,6 @@ class TestUtilities(unittest.TestCase):
         self.utilities = utilities
 
     @parameterized.expand([
-        ([], []),
-        ([('String 1',), ('String 2',), ('String 3',)], ['String 1', 'String 2', 'String 3']),
-        ([('String 1',), ('String 2', 'Extra 2'), ('String 3',)], ['String 1', ('String 2', 'Extra 2'), 'String 3']),
-        (
-            [('String 1', 'Extra 1'), ('String 2', 'Extra 2'), ('String 3', 'Extra 3')],
-            [('String 1', 'Extra 1'), ('String 2', 'Extra 2'), ('String 3', 'Extra 3')]
-        )
-    ])
-    def test_GIVEN_single_element_tuples_WHEN_convert_to_strings_THEN_string_list_is_returned(self, input_val, exp_val):
-
-        # Act
-        result = self.utilities.single_tuples_to_strings(input_val)
-
-        # Assert
-        self.assertEqual(exp_val, result)
-
-    @parameterized.expand([
         (f'{CA.PV_PREFIX}{CA.PV_DOMAIN}NAME1', 'NAME1'),
         (f'{CA.PV_PREFIX}{CA.PV_DOMAIN}A:B:NAME1', 'A:B:NAME1'),
         (f'{CA.PV_DOMAIN}A:B:NAME1', 'A:B:NAME1'),

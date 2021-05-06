@@ -9,65 +9,65 @@ import json
 
 class UserConfig:
     """
-    User configuration class that stores entries, records, available PVs, and methods to work with them, including
-    config schema and content validation.
+    User configuration class that stores the entries, object IDs, available PVs, and methods to work with them,
+    including config schema and content validation.
     """
 
     def __init__(self):
         self.entries = self._get_all_entries()
-        self.records = self._get_all_entry_records()
-        self.logging_periods = self._get_logging_periods()
+        self.object_ids = [entry[PVConfigConst.OBJ] for entry in self.entries]
+        self.logging_periods = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in self.entries}
 
-    def run_checks(self):
-        self._check_config_records_id_is_not_empty()
-        self._check_records_have_at_least_one_measurement_pv()
-        self._check_config_records_unique()
-        self._check_config_records_exist()
-        self._check_measurement_pvs_connect()
+        # Run config checks
+        try:
+            self._check_entries_have_object_ids()
+            self._check_entries_have_measurement_pvs()
+            self._check_no_duplicate_object_ids()
+            self._check_objects_exist()
+            self._check_measurement_pvs_connect()
+        except PVConfigurationException as e:
+            logger.error(e)
+            raise e
 
-    def _check_config_records_unique(self):
+    def _check_no_duplicate_object_ids(self):
         """
-        Checks whether all record names are unique (no double entries) or not (same record name used twice).
+        Checks if all object IDs are unique.
 
         Raises:
-            ValueError: if duplicate record names were found
+            ValueError: if duplicate IDs were found
         """
-        duplicate_records = list(unique_everseen(duplicates(self.records)))
-        if duplicate_records:
-            err_msg = f'User configuration contains duplicate entry record names: {duplicate_records}'
-            logger.error(err_msg)
-            raise PVConfigurationException(err_msg)
+        duplicate_obj_ids = list(unique_everseen(duplicates(self.object_ids)))
+        if duplicate_obj_ids:
+            raise PVConfigurationException(f'User configuration entries contain duplicate'
+                                           f'object IDs: {duplicate_obj_ids}')
 
-    def _check_config_records_id_is_not_empty(self):
+    def _check_entries_have_object_ids(self):
         """
         Throws error if a tag in the user configuration has an empty body (value None).
 
         Raises:
             ValueError: If one or more empty tags were found.
         """
-        for record in self.records:
-            if not record:
-                err_msg = 'One or more elements in the user configuration is empty/null/None.'
-                logger.error(err_msg)
-                raise PVConfigurationException(err_msg)
+        for obj_id in self.object_ids:
+            if not obj_id:
+                raise PVConfigurationException('One or more entries in the user configuration '
+                                               'does not have an object ID.')
 
-    def _check_config_records_exist(self):
+    def _check_objects_exist(self):
         """
-        Checks if the record names from the user configuration exist in the database.
+        Checks if the object IDs from the user configuration exist in the database.
 
         Raises:
-            ValueError: If one or more records were not found.
+            ValueError: If one or more object IDs were not found in the database.
         """
         not_found = []
-        for record in self.records:
-            result = get_object(record)
-            if not result:
-                not_found.append(record)
+        for obj_id in self.object_ids:
+            if not get_object(obj_id):
+                not_found.append(obj_id)
 
         if not_found:
-            err_msg = f'User configuration contains records IDs that were not found in the DB: {not_found}'
-            logger.error(err_msg)
-            raise PVConfigurationException(err_msg)
+            raise PVConfigurationException(f'User configuration contains objects with IDs '
+                                           f'that were not found in the DB: {not_found}')
 
     def _check_measurement_pvs_connect(self):
         """
@@ -86,54 +86,46 @@ class UserConfig:
         else:
             logger.info('PVConfig: All PVs connected.')
 
-    def _check_records_have_at_least_one_measurement_pv(self):
+    def _check_entries_have_measurement_pvs(self):
         """
-        Verifies records have at least one existing PV in the measurements.
+        Verifies that each entry has at least one existing PV in its measurements.
 
         Raises:
-            ValueError: If one or more records has no measurement PVs.
+            ValueError: If one or more entries has no measurement PVs.
         """
-        records = self._get_all_entry_records()
-        records_with_no_pvs = []
-        for record_id in records:
+        objects_with_no_pvs = []
+        for obj_id in self.object_ids:
             try:
-                pvs = self.get_record_measurement_pvs(record_id)
+                if not self.get_entry_measurement_pvs(obj_id):
+                    objects_with_no_pvs.append(obj_id)
             except KeyError:
-                pvs = None
-            if not pvs:
-                records_with_no_pvs.append(record_id)
+                objects_with_no_pvs.append(obj_id)
 
-        if records_with_no_pvs:
-            err_msg = f'Records {records_with_no_pvs} have no measurement PVs.'
-            logger.error(err_msg)
-            raise PVConfigurationException(err_msg)
+        if objects_with_no_pvs:
+            raise PVConfigurationException(f'Objects {objects_with_no_pvs} have no measurement PVs.')
 
     def get_measurement_pvs(self, no_duplicates=True, full_names=False):
         """
         Gets a list of the measurement PVs, ignoring empty/null measurements.
 
         Args:
-            no_duplicates (boolean, optional): If one PV is present in multiple measurements/records, add it to the list
+            no_duplicates (boolean, optional): If one PV is present in multiple entries, add it to the list
                 only once, Defaults to True.
             full_names (boolean, optional): Get the PV names with their prefix and domain, Defaults to False.
 
         Returns:
             (list): The list of PVs
         """
-        if no_duplicates:
-            config_pvs = set()
-        else:
-            config_pvs = []
-        entries = self.entries
+        config_pvs = []
 
-        for entry in entries:
-            record_measurements = entry[PVConfigConst.MEAS]
-            for measurement_no, pv_name in record_measurements.items():
+        for entry in self.entries:
+            measurements = entry[PVConfigConst.MEAS]
+            for pv_name in measurements.values():
                 if pv_name:
-                    if no_duplicates:
-                        config_pvs.add(pv_name)
-                    else:
-                        config_pvs.append(pv_name)
+                    config_pvs.append(pv_name)
+
+        if no_duplicates:
+            config_pvs = set(config_pvs)
 
         if isinstance(config_pvs, set):
             config_pvs = list(config_pvs)
@@ -143,72 +135,31 @@ class UserConfig:
 
         return config_pvs
 
-    def get_record_measurement_pvs(self, record_id, full_names=False):
+    def get_entry_measurement_pvs(self, object_id, full_names=False):
         """
-        Get the measurement PVs of the given record, ignoring empty/null ones.
+        Get the measurement PVs of the entry with the given object ID, ignoring empty/null ones.
 
         Args:
-            record_id (str): The record ID.
+            object_id (str): The object ID.
             full_names (boolean, optional): Get the PV names with their prefix and domain, Defaults to False.
 
         Returns:
             (dict): The measurements PVs, in measurement number/pv name pairs.
         """
-        entries = self.entries
-        record = next((item for item in entries if item[PVConfigConst.OBJ] == record_id), None)
-        record_meas = record[PVConfigConst.MEAS]
-        if full_names:
-            record_meas = {key: get_full_pv_name(val) for key, val in record_meas.items() if val}
-        else:
-            record_meas = {key: val for key, val in record_meas.items() if val}
-
-        return record_meas
-
-    def _get_logging_periods(self):
-        """
-        Gets the record IDs and their respective logging period from the configuration.
-
-        Returns:
-            (dict): The record IDs and their logging period.
-        """
-        entries = self.entries
-        log_periods = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in entries}
-        return log_periods
-
-    def _get_pv_config(self, pv_name):
-        """
-        Get the records containing the given PV as a measurement, as a list.
-
-        Args:
-            pv_name (str): Name of the PV
-
-        Returns:
-            (list): The records having the PV as a measurement.
-        """
-        entries = self.entries
-
-        records = []
-        for entry in entries:
-            measurements = entry[PVConfigConst.MEAS]
-            for mea_no, mea_pv in measurements.items():
-                if mea_pv == pv_name:
-                    records.append(entry)
-
-        if not records:
-            logger.error(f"KeyError: Could not find configuration entry for PV '{pv_name}' in '{PVConfigConst.FILE}'.")
-
-        return records
+        # Get the measurements of the entry with the given object_id, None if not found
+        entry_meas = next((x[PVConfigConst.MEAS] for x in self.entries if x[PVConfigConst.OBJ] == object_id), None)
+        return {key: get_full_pv_name(val) if full_names else val for key, val in entry_meas.items() if val}
 
     @staticmethod
     def _get_all_entries():
         """
-        Get all record PV configs as a list.
+        Get all entries from the configuration as a list.
 
         Returns:
-            (list): The records' PV configurations.
+            (list): The configuration entries.
 
         Raises:
-            PVConfigurationException: If the config file is empty or does not have at least one entry.
+            PVConfigurationException: If the configuration file is either empty or does not have at least one entry.
         """
         config_file = PVConfigConst.PATH
         with open(config_file) as f:
@@ -216,23 +167,11 @@ class UserConfig:
             data = data[PVConfigConst.ROOT]
 
             if not data:
-                err_msg = 'The configuration file has no entries.'
+                err_msg = 'No entries have been found in the configuration file.'
                 logger.error(err_msg)
                 raise PVConfigurationException(err_msg)
 
             return data
-
-    def _get_all_entry_records(self):
-        """
-        Get the IDs of all records from the PV config as a list.
-
-        Returns:
-            (list): The record names.
-        """
-        entries = self.entries
-        records = [entry[PVConfigConst.OBJ] for entry in entries]
-
-        return records
 
 
 class PVConfigurationException(ValueError):

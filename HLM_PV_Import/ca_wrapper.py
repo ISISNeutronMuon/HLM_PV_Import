@@ -26,17 +26,12 @@ def get_connected_pvs(pv_list, timeout=TIMEOUT):
     Returns:
         (list): The connected PVs.
     """
-    connected_pvs = []
 
     ctx = Context()
     pvs = ctx.get_pvs(*pv_list, timeout=timeout)
     time.sleep(timeout)
 
-    for pv in pvs:
-        if pv.connected:
-            connected_pvs.append(pv.name)
-
-    return connected_pvs
+    return [pv.name for pv in pvs if pv.connected]
 
 
 def get_pv_value(name, timeout=TIMEOUT):
