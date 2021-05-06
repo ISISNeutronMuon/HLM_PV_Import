@@ -18,7 +18,7 @@ class TestUserConfig(unittest.TestCase):
         self.config._check_config_records_unique()
 
     def test_GIVEN_duplicate_records_WHEN_check_if_records_unique_THEN_exception_raised(self):
-        with patch('HLM_PV_Import.user_config.log_error'):
+        with patch('HLM_PV_Import.user_config.logger'):
             self.config.records = ['a', 'b', 'b']
             with self.assertRaises(PVConfigurationException):
                 self.config._check_config_records_unique()
@@ -28,7 +28,7 @@ class TestUserConfig(unittest.TestCase):
         self.config._check_config_records_id_is_not_empty()
 
     def test_GIVEN_empty_record_WHEN_check_if_records_tag_empty_THEN_exception_raised(self):
-        with patch('HLM_PV_Import.user_config.log_error'):
+        with patch('HLM_PV_Import.user_config.logger'):
             self.config.records = ['a', 'b', None]
             with self.assertRaises(PVConfigurationException):
                 self.config._check_config_records_id_is_not_empty()
@@ -51,7 +51,7 @@ class TestUserConfig(unittest.TestCase):
         ([{PVConfigConst.OBJ: 3}], )
     ])
     def test_GIVEN_no_pvs_WHEN_check_if_records_have_measurement_pvs_THEN_exception_raised(self, entries):
-        with patch('HLM_PV_Import.user_config.log_error'):
+        with patch('HLM_PV_Import.user_config.logger'):
             self.config.entries = entries
             with self.assertRaises(PVConfigurationException):
                 self.config._check_records_have_at_least_one_measurement_pv()
@@ -64,7 +64,7 @@ class TestUserConfig(unittest.TestCase):
 
     @patch('HLM_PV_Import.db_functions._select')
     def test_GIVEN_nonexistent_records_WHEN_check_if_records_exist_THEN_exception_raised(self, mock_query_res):
-        with patch('HLM_PV_Import.user_config.log_error'):
+        with patch('HLM_PV_Import.user_config.logger'):
             self.config.records = ['a', 'b', 'c']
             mock_query_res.return_value = None
             with self.assertRaises(PVConfigurationException):
