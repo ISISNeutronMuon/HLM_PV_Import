@@ -71,7 +71,7 @@ class PvImport:
                 # If none of the measurement PVs values were found in the PV monitors data,
                 # skip to the next object.
                 if all(value is None for value in mea_values.values()):
-                    logger.warning(f'No PV values for object with record ID {record}, skipping. ')
+                    logger.warning(f'No PV values for object with object ID {object_id}, skipping. ')
                     continue
 
                 # Create a new measurement with the PV values for the object

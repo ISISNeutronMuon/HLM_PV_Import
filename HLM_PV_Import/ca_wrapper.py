@@ -1,10 +1,8 @@
 """
 Wrap caproto to give utilities methods for access in one place
 """
-from caproto import CaprotoTimeoutError
-from caproto.sync.client import read
 from caproto.threading.client import Context
-from HLM_PV_Import.logger import pv_logger, logger
+from HLM_PV_Import.logger import pv_logger
 from HLM_PV_Import.settings import CA
 import time
 
@@ -32,35 +30,6 @@ def get_connected_pvs(pv_list, timeout=TIMEOUT):
     time.sleep(timeout)
 
     return [pv.name for pv in pvs if pv.connected]
-
-
-def get_pv_value(name, timeout=TIMEOUT):
-    """
-    Get the current value of the PV.
-
-    Args:
-        name (str): The PV.
-        timeout (int, optional): PV connection timeout.
-
-    Returns:
-        The PV value.
-
-    Raises:
-        CaprotoTimeoutError: If cannot connect to PV.
-    """
-
-    try:
-        res = read(pv_name=name, timeout=timeout)
-    except CaprotoTimeoutError as e:
-        logger.error(f"Unable to connect to PV '{name}': {e}")
-        raise
-
-    value = res.data[0]
-
-    if isinstance(value, bytes):
-        value = value.decode('utf-8')
-
-    return value
 
 
 class PvMonitors:

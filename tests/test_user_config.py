@@ -18,7 +18,7 @@ class TestUserConfig(unittest.TestCase):
         self.config._check_no_duplicate_object_ids()
 
     def test_GIVEN_duplicate_ids_WHEN_check_if_object_ids_unique_THEN_exception_raised(self):
-        with patch('HLM_PV_Import.user_config.log_error'):
+        with patch('HLM_PV_Import.user_config.logger'):
             self.config.object_ids = ['a', 'b', 'b']
             with self.assertRaises(PVConfigurationException):
                 self.config._check_no_duplicate_object_ids()
@@ -28,7 +28,7 @@ class TestUserConfig(unittest.TestCase):
         self.config._check_entries_have_object_ids()
 
     def test_GIVEN_no_id_WHEN_check_if_entry_has_object_id_THEN_exception_raised(self):
-        with patch('HLM_PV_Import.user_config.log_error'):
+        with patch('HLM_PV_Import.user_config.logger'):
             self.config.object_ids = ['a', 'b', None]
             with self.assertRaises(PVConfigurationException):
                 self.config._check_entries_have_object_ids()
@@ -52,7 +52,7 @@ class TestUserConfig(unittest.TestCase):
         ([{PVConfigConst.OBJ: 3}], )
     ])
     def test_GIVEN_no_pvs_WHEN_check_if_entries_have_measurement_pvs_THEN_exception_raised(self, entries):
-        with patch('HLM_PV_Import.user_config.log_error'):
+        with patch('HLM_PV_Import.user_config.logger'):
             self.config.entries = entries
             self.config.object_ids = [entry[PVConfigConst.OBJ] for entry in self.config.entries]
             with self.assertRaises(PVConfigurationException):
@@ -66,7 +66,7 @@ class TestUserConfig(unittest.TestCase):
 
     @patch('HLM_PV_Import.db_functions._select')
     def test_GIVEN_objects_not_found_WHEN_check_if_objects_exist_THEN_exception_raised(self, mock_query_res):
-        with patch('HLM_PV_Import.user_config.log_error'):
+        with patch('HLM_PV_Import.user_config.logger'):
             self.config.object_ids = ['a', 'b', 'c']
             mock_query_res.return_value = None
             with self.assertRaises(PVConfigurationException):
@@ -172,3 +172,27 @@ class TestUserConfig(unittest.TestCase):
 
         # Assert
         self.assertCountEqual(expected_value, result)
+
+    @parameterized.expand([
+        (
+            'MOTHER_DEWAR:HE_LEVEL',
+            f'{CA.PV_PREFIX}{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL'),
+        (
+            f'{CA.PV_PREFIX}{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL',
+            f'{CA.PV_PREFIX}{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL'
+        ),
+        (
+            f'{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL',
+            f'{CA.PV_PREFIX}{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL'
+        ),
+        (
+            f'{CA.PV_PREFIX}MOTHER_DEWAR:HE_LEVEL',
+            f'{CA.PV_PREFIX}{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL'
+        )
+    ])
+    def test_GIVEN_pv_name_WHEN_get_full_name_THEN_full_name_is_returned(self, pv_name, expected_name):
+        # Act
+        result = self.config._get_full_pv_name(pv_name)
+
+        # Assert
+        self.assertEqual(expected_name, result)

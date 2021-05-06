@@ -1,8 +1,7 @@
 from iteration_utilities import duplicates, unique_everseen
 from HLM_PV_Import.logger import logger
-from HLM_PV_Import.settings import PVConfigConst
+from HLM_PV_Import.settings import PVConfigConst, CA
 from HLM_PV_Import.db_functions import get_object
-from HLM_PV_Import.utilities import get_full_pv_name
 from HLM_PV_Import.ca_wrapper import get_connected_pvs
 import json
 
@@ -131,7 +130,7 @@ class UserConfig:
             config_pvs = list(config_pvs)
 
         if full_names:
-            config_pvs = [get_full_pv_name(pv) for pv in config_pvs]
+            config_pvs = [self._get_full_pv_name(pv) for pv in config_pvs]
 
         return config_pvs
 
@@ -148,7 +147,7 @@ class UserConfig:
         """
         # Get the measurements of the entry with the given object_id, None if not found
         entry_meas = next((x[PVConfigConst.MEAS] for x in self.entries if x[PVConfigConst.OBJ] == object_id), None)
-        return {key: get_full_pv_name(val) if full_names else val for key, val in entry_meas.items() if val}
+        return {key: self._get_full_pv_name(val) if full_names else val for key, val in entry_meas.items() if val}
 
     @staticmethod
     def _get_all_entries():
@@ -172,6 +171,20 @@ class UserConfig:
                 raise PVConfigurationException(err_msg)
 
             return data
+
+    @staticmethod
+    def _get_full_pv_name(pv_name):
+        """
+        Adds the prefix and domain to the PV name.
+
+        Args:
+            pv_name (str): The PV name.
+        Returns:
+            (str) The full PV name, with its prefix and domain.
+        """
+        pv_name = pv_name.replace(CA.PV_PREFIX, '').replace(CA.PV_DOMAIN, '')
+
+        return f'{CA.PV_PREFIX}{CA.PV_DOMAIN}{pv_name}' if pv_name else None
 
 
 class PVConfigurationException(ValueError):

@@ -10,16 +10,6 @@ from caproto.threading import client
 class TestWrapper(unittest.TestCase):
 
     @parameterized.expand([
-        ([b'val'], 'val'),
-        (['val'], 'val')
-    ])
-    @patch('HLM_PV_Import.ca_wrapper.read')
-    def test_WHEN_get_pv_value_THEN_return_string(self, return_val, exp_val, mock_read):
-        mock_read.return_value.data = return_val
-        result = ca_wrapper.get_pv_value('')
-        self.assertEqual(exp_val, result)
-
-    @parameterized.expand([
         ({'1': True, '2': True, '3': False, '4': False, '5': True}, ['1', '2', '5']),
         ({'1': True, '2': True, '3': True, '4': True, '5': True}, ['1', '2', '3', '4', '5']),
         ({'1': False, '2': False, '3': False, '4': False, '5': False}, []),
