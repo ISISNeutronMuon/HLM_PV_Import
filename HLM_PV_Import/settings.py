@@ -29,14 +29,16 @@ class CA:
     CONN_TIMEOUT = config['ChannelAccess'].getfloat('ConnectionTimeout')
     STALE_AFTER = config['ChannelAccess'].getfloat('PvStaleAfter')
     ADD_STALE_PVS = config['ChannelAccess'].getboolean('AddStalePvs')
-    PV_PREFIX = config['ChannelAccess']['PV_PREFIX']
-    PV_DOMAIN = config['ChannelAccess']['PV_DOMAIN']
+    PV_PREFIX = config['ChannelAccess']['PV_PREFIX'] + ':' if config['ChannelAccess']['PV_PREFIX'] else ''
+    PV_DOMAIN = config['ChannelAccess']['PV_DOMAIN'] + ':' if config['ChannelAccess']['PV_DOMAIN'] else ''
 
 
-class LoggersConst:
-    LOGS_DIR = 'logs'
-    ERR_LOG_DIR = os.path.join(BASE_PATH, LOGS_DIR, 'err', '')
-    DB_LOG_DIR = os.path.join(BASE_PATH, LOGS_DIR, 'db', '')
+class LoggingFiles:
+    LOGS_DIR = os.path.join(BASE_PATH, 'logs')
+    ERR_LOG = os.path.join(LOGS_DIR, 'error', 'error.log')
+    DB_LOG = os.path.join(LOGS_DIR, 'db', 'db.log')
+    PVS_LOG = os.path.join(LOGS_DIR, 'pvs', 'pvs.log')
+    SRV_LOG = os.path.join(LOGS_DIR, 'service', 'service.log')
 
 
 class Service:

@@ -5,7 +5,7 @@ from datetime import datetime
 
 import mysql.connector
 from ServiceManager.utilities import single_tuples_to_strings
-from ServiceManager.logger import logger
+from ServiceManager.logger import manager_logger
 
 
 class Tables:
@@ -122,7 +122,7 @@ class DatabaseUtilities:
         already_exists = self.get_object_id(object_name=name)
         if already_exists:
             msg = f'Could not create object - Object with name "{name}" already exists in the database.'
-            logger.error(msg)
+            manager_logger.error(msg)
             raise DBUtilsObjectNameAlreadyExists(msg)
 
         data = {'OB_NAME': name, 'OB_OBJECTTYPE_ID': type_id, 'OB_COMMENT': comment}
@@ -192,7 +192,7 @@ class DatabaseUtilities:
                 return records
 
         except mysql.connector.Error as e:
-            logger.error(f'{e}')
+            manager_logger.error(f'{e}')
         finally:
             if cursor:
                 cursor.close()
@@ -224,10 +224,10 @@ class DatabaseUtilities:
                 if record_no == 0:  # If table has no AUTO_INCREMENT column
                     record_no = self._get_table_last_id(table)
 
-                logger.info(f"Added record no. {record_no} to {table}")
+                manager_logger.info(f"Added record no. {record_no} to {table}")
 
         except mysql.connector.Error as e:
-            logger.error(f'{e}')
+            manager_logger.error(f'{e}')
         finally:
             if cursor:
                 cursor.close()

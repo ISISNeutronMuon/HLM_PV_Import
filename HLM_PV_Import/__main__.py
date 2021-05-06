@@ -6,6 +6,7 @@ from HLM_PV_Import.ca_wrapper import PvMonitors
 from HLM_PV_Import.user_config import UserConfig
 from HLM_PV_Import.pv_import import PvImport
 from HLM_PV_Import.settings import CA
+from HLM_PV_Import.logger import logger
 import os
 
 
@@ -16,7 +17,7 @@ def main():
     # Get the user configuration and the list of measurement PVs
     config = UserConfig()
     pv_list = config.get_measurement_pvs(no_duplicates=True, full_names=True)
-    print(f'PVs to monitor: {pv_list}')
+    logger.info(f'PVs to monitor: {pv_list}')
 
     # Initialize the PV monitoring and set up the monitors for each measurement PV from the user config
     pv_monitors = PvMonitors(pv_list)
