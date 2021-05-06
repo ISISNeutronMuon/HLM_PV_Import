@@ -9,6 +9,15 @@ PV_CONFIG_FILE_NAME = 'pv_config.json'
 VER = '1.0.0'
 B_DATE = '18 December 2020'
 
+
+# GAM DB
+class DbClassIds:
+    VESSEL = 2
+    CRYOSTAT = 4
+    GAS_COUNTER = 7
+    HE_LVL_MODULE = 17
+
+
 if getattr(sys, 'frozen', False):
     # BASE_PATH = os.path.dirname(sys.executable)
     # noinspection PyProtectedMember

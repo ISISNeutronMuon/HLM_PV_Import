@@ -8,6 +8,11 @@ from HLM_PV_Import.pv_import import PvImport
 from HLM_PV_Import.settings import CA
 from HLM_PV_Import.logger import logger
 import os
+import sys
+
+this = sys.modules[__name__]
+
+this.pv_import = None
 
 
 def main():
@@ -25,14 +30,14 @@ def main():
     # Initialize and set-up the PV import in charge of preparing the PV data, handling logging periods & tasks,
     # running content checks for the user config, and looping through each record every few seconds to check for
     # records scheduled to be updated with a new measurement.
-    pv_import = PvImport(pv_monitors, config)
-    pv_import.set_up()
+    this.pv_import = PvImport(pv_monitors, config)
+    this.pv_import.set_up()
 
     # Start the monitors and continuously store the PV data received on every update
     pv_monitors.start_monitors()
 
     # Start the PV import main loop to check each record
-    pv_import.start()
+    this.pv_import.start()
 
 
 if __name__ == '__main__':
