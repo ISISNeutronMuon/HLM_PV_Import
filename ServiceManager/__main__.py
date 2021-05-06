@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QApplication, QErrorMessage
 from ServiceManager.GUI.main_window import UIMainWindow
 from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
 from ServiceManager.constants import icon_path
-from ServiceManager.logger import logger
+from ServiceManager.logger import manager_logger
 from ServiceManager.settings import Settings
 
 
@@ -47,7 +47,7 @@ class App:
 def excepthook(exc_type, exc_value, exc_tb):
     traceback_ = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
     err_msg = f'An unhandled exception has occurred:\n {traceback_}'
-    logger.error(err_msg)
+    manager_logger.error(err_msg)
     err_msg = err_msg.replace('\n', '<br>')
     error_dialog = QErrorMessage()
     error_dialog.setWindowTitle('HLM PV Import - Error')
@@ -63,10 +63,10 @@ def main():
     freeze_support()
 
     sys.excepthook = excepthook
-    logger.info("Starting application.")
+    manager_logger.info("Starting application.")
     e = App()
     ret = e.app.exec_()
-    logger.info("Event loop exited.")
+    manager_logger.info("Event loop exited.")
     e.app.quit()
     sys.exit(ret)
 

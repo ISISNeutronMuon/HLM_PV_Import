@@ -8,7 +8,7 @@ from ServiceManager.constants import config_entry_ui, loading_animation
 from ServiceManager.settings import Settings, get_full_pv_name
 from ServiceManager.utilities import test_pv_connection
 from ServiceManager.db_utilities import DBUtils, DBUtilsObjectNameAlreadyExists
-from ServiceManager.logger import logger
+from ServiceManager.logger import manager_logger
 
 from caproto import CaprotoTimeoutError
 
@@ -550,7 +550,7 @@ class UIConfigEntryDialog(QDialog):
             return
         type_id = DBUtils.get_type_id(type_name=type_name)
         if not type_id:
-            logger.warning(f'Type ID for {type_name} was not found.')
+            manager_logger.warning(f'Type ID for {type_name} was not found.')
 
         class_id = DBUtils.get_class_id(type_id=type_id)
 
@@ -758,7 +758,7 @@ class CheckPVsThread(QThread):
 
     def run(self):
         self._running = True
-        logger.info(f'Checking connection of measurement PVs: {self.pv_names}')
+        manager_logger.info(f'Checking connection of measurement PVs: {self.pv_names}')
         connected = []
         failed = []
         self.display_progress_bar.emit(True)
@@ -767,13 +767,13 @@ class CheckPVsThread(QThread):
                 pv_connected = test_pv_connection(name=pv_name, timeout=2)
                 if pv_connected:
                     if not self._running:
-                        logger.info('Stopped PV connection check.')
+                        manager_logger.info('Stopped PV connection check.')
                         break
                     self.mea_status_update.emit(index, True)
                     connected.append(pv_name)
                 else:
                     if not self._running:
-                        logger.info('Stopped PV connection check.')
+                        manager_logger.info('Stopped PV connection check.')
                         break
                     self.mea_status_update.emit(index, False)
                     failed.append(pv_name)
@@ -781,7 +781,7 @@ class CheckPVsThread(QThread):
             self.progress_bar_update.emit(index + 1)
 
         if self._running:
-            logger.info(f'PV connection check finished. Connected: {connected}. Failed: {failed}')
+            manager_logger.info(f'PV connection check finished. Connected: {connected}. Failed: {failed}')
 
         self.results = {'connected': connected, 'failed': failed}
 

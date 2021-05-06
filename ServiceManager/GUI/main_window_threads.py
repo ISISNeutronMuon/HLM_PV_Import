@@ -3,7 +3,7 @@ import time
 import psutil
 from collections import deque, defaultdict
 from PyQt5.QtCore import QTimer, QThread, QEventLoop, pyqtSignal
-from ServiceManager.logger import logger
+from ServiceManager.logger import manager_logger
 from ServiceManager.settings import Settings
 from ServiceManager.utilities import is_admin
 
@@ -20,7 +20,7 @@ class ServiceLogUpdaterThread(QThread):
         try:
             last_modified = os.path.getmtime(debug_log_path)
         except FileNotFoundError as e:
-            logger.info(e)
+            manager_logger.error(e)
             self.enable_or_disable_buttons.emit(False)
             self.file_not_found.emit()
             self.last_widget_update = 0
@@ -73,7 +73,7 @@ class ServiceStatusCheckThread(QThread):
         try:
             service = psutil.win_service_get(service_name)
         except psutil.NoSuchProcess as e:
-            logger.info(e)
+            manager_logger.warning(e)
             self.update_status_title.emit(f"Service {service_name} not found")
             self.update_status_style.emit(f"background-color: {self.status_color[None]}; padding: 20px;")
             self.update_service_details.emit(self.none_dict)

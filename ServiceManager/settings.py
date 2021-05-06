@@ -4,7 +4,7 @@ import configparser
 import win32serviceutil
 from ServiceManager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEMPLATE, SERVICE_SETTINGS_FILE_NAME, \
     SERVICE_SETTINGS_TEMPLATE, MANAGER_SETTINGS_DIR, MANAGER_LOGS_FILE, SERVICE_NAME, PV_CONFIG_FILE_NAME
-from ServiceManager.logger import logger
+from ServiceManager.logger import manager_logger
 from ServiceManager.db_utilities import DBUtils, DBConnectionError
 from HLM_PV_Import.utilities import get_full_pv_name as get_full_pv_name_
 
@@ -136,7 +136,7 @@ class ServiceSettings:
                                     password=self.HeliumDB.get_pass())
             connected = True
         except DBConnectionError:
-            logger.warning('Could not establish DB connection.')
+            manager_logger.error('Could not establish DB connection.')
             connected = False
         finally:
             return connected
@@ -189,7 +189,7 @@ class _PVConfig:
             data = data[Settings.Service.PVConfig.ROOT]
 
             if not data:
-                logger.info('PV configuration file is empty or does not exist.')
+                manager_logger.warning('PV configuration file is empty or does not exist.')
             return data
 
     def get_entry_with_id(self, obj_id: int):
@@ -239,14 +239,14 @@ class _PVConfig:
                     overwritten = True
                     break
             if not overwritten:
-                logger.info(f'WARNING: Entry with object ID {new_entry[self.OBJ]} was not overwritten.')
+                manager_logger.warning(f'Entry with object ID {new_entry[self.OBJ]} was not overwritten.')
         else:
             data.append(new_entry)
         data = {self.ROOT: data}
 
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
-        logger.info(f'Added new PV configuration entry: {new_entry}')
+        manager_logger.info(f'Added new PV configuration entry: {new_entry}')
 
     def delete_entry(self, object_id: int):
         file_path = self.get_path()
@@ -259,14 +259,14 @@ class _PVConfig:
                 break
 
         if not deleted:
-            logger.info(f'WARNING: Entry with object ID {object_id} should have been deleted but was not.')
+            manager_logger.warning(f'Entry with object ID {object_id} should have been deleted but was not.')
 
         data = {self.ROOT: data}
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
         if deleted:
-            logger.info(f'Deleted PV configuration entry for object ID: {object_id}.')
+            manager_logger.info(f'Deleted PV configuration entry for object ID: {object_id}.')
 
 
 class _Logging:
@@ -298,7 +298,7 @@ class _HeliumDB:
         try:
             return win32serviceutil.GetServiceCustomOption(serviceName=service_name, option='DB_HE_USER')
         except Exception as e:
-            logger.error(e)
+            manager_logger.error(e)
 
     @staticmethod
     def get_pass():
@@ -308,7 +308,7 @@ class _HeliumDB:
         try:
             return win32serviceutil.GetServiceCustomOption(serviceName=service_name, option='DB_HE_PASS')
         except Exception as e:
-            logger.error(e)
+            manager_logger.error(e)
 
     def set_name(self, new_name: str):
         self.config_parser['HeRecoveryDB']['Name'] = new_name
@@ -322,27 +322,27 @@ class _HeliumDB:
     def set_user(new_user):
         service_name = Settings.Service.Info.get_name()
         if not service_name:
-            logger.info('WARNING: DB Connection user could not be set as Service Name was not found.')
+            manager_logger.warning('DB Connection user could not be set as Service Name was not found.')
             return
         try:
             win32serviceutil.SetServiceCustomOption(
                 serviceName=service_name, option='DB_HE_USER', value=new_user
             )
         except Exception as e:
-            logger.error(e)
+            manager_logger.error(e)
 
     @staticmethod
     def set_pass(new_pass):
         service_name = Settings.Service.Info.get_name()
         if not service_name:
-            logger.info('WARNING: DB Connection password could not be set as Service Name was not found.')
+            manager_logger.warning('DB Connection password could not be set as Service Name was not found.')
             return
         try:
             win32serviceutil.SetServiceCustomOption(
                 serviceName=service_name, option='DB_HE_PASS', value=new_pass
             )
         except Exception as e:
-            logger.error(e)
+            manager_logger.error(e)
 
 
 class _Info:

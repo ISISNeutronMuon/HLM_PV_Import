@@ -26,13 +26,9 @@ LOGGING_CONFIG = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '{asctime} {process:d}:{thread:d} {module} {levelname} \t {message}',
+            'format': '{asctime} {process:d}:{thread:d} {levelname} {module} \t {message}',
             'style': '{',
-        },
-        'simple': {
-            'format': '{asctime} {module} {levelname} \t {message}',
-            'style': '{',
-        },
+        }
     },
     'handlers': {
         'console': {

@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QMainWindow, QPushButton, QAction, QMessageBox, QPla
     QToolButton
 from PyQt5 import uic
 
-from ServiceManager.logger import logger
+from ServiceManager.logger import manager_logger
 from ServiceManager.settings import Settings
 from ServiceManager.constants import main_window_ui, ASSETS_PATH
 from ServiceManager.GUI.about import UIAbout
@@ -350,7 +350,7 @@ class UIMainWindow(QMainWindow):
         try:
             self.pv_config_data = Settings.Service.PVConfig.get_entries()
         except FileNotFoundError as e:
-            logger.info(e)
+            manager_logger.error(e)
             self.pv_config_data = []
             return
 

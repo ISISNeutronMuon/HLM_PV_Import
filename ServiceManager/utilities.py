@@ -1,6 +1,6 @@
 import ctypes
 from PyQt5.QtGui import QPalette, QColor
-from ServiceManager.logger import logger
+from ServiceManager.logger import manager_logger
 from caproto.sync.client import read
 
 
@@ -22,7 +22,7 @@ def test_pv_connection(name: str, timeout: int = 1):
     try:
         read(pv_name=name, timeout=timeout)
     except Exception as e:
-        logger.info(e)
+        manager_logger.error(e)
         return False
 
     return True
@@ -33,7 +33,7 @@ def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
     except Exception as e:
-        logger.warning(e)
+        manager_logger.error(e)
         return False
 
 

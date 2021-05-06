@@ -23,7 +23,7 @@ def make_db_connection():
         this.connection = mysql.connector.connect(host=HEDB.HOST, database=HEDB.NAME,
                                                   user=HEDB.USER, password=HEDB.PASS)
     except Exception as e:
-        sys.stderr.write(f'{e}\n')
+        logger.error(e)
         this.connection = None
 
 
