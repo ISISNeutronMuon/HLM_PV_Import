@@ -6,12 +6,13 @@ from ServiceManager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEM
     SERVICE_SETTINGS_TEMPLATE, MANAGER_SETTINGS_DIR, MANAGER_LOGS_FILE, SERVICE_NAME, PV_CONFIG_FILE_NAME
 from ServiceManager.logger import manager_logger
 from ServiceManager.db_utilities import DBUtils, DBConnectionError
-from HLM_PV_Import.utilities import get_full_pv_name as get_full_pv_name_
 
 
 def get_full_pv_name(name):
-    return get_full_pv_name_(name, pv_prefix=Settings.Service.CA.get_pv_prefix(),
-                             pv_domain=Settings.Service.CA.get_pv_domain())
+    if not name:
+        return None
+    name = name.replace(Settings.Service.CA.get_pv_prefix(), '').replace(Settings.Service.CA.get_pv_domain(), '')
+    return f'{Settings.Service.CA.get_pv_prefix()}{Settings.Service.CA.get_pv_domain()}{name}'
 
 
 def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):

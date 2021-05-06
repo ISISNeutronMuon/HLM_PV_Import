@@ -25,37 +25,32 @@ def single_tuples_to_strings(tuple_list):
     return string_list
 
 
-def pv_name_without_prefix_and_domain(name, pv_prefix=CA.PV_PREFIX, pv_domain=CA.PV_DOMAIN):
+def pv_name_without_prefix_and_domain(name):
     """
     Given a PV name, remove the prefix and domain and return only the PV name.
 
     Args:
         name(str): the full PV name
-        pv_prefix (str, optional): The PV prefix.
-        pv_domain (str, optional): The PV domain.
     Returns:
         name(str): the PV name without prefix and domain
     """
-    name = name.replace(pv_prefix, '').replace(pv_domain, '')
+    name = name.replace(CA.PV_PREFIX, '').replace(CA.PV_DOMAIN, '')
     return name
 
 
-def get_full_pv_name(name, pv_prefix=CA.PV_PREFIX, pv_domain=CA.PV_DOMAIN):
+def get_full_pv_name(name):
     """
     Adds the prefix and domain to the PV if it doesn't have them.
 
     Args:
         name (str): The PV name.
-        pv_prefix (str, optional): The PV prefix.
-        pv_domain (str, optional): The PV domain.
-
     Returns:
         (str) The full PV name.
     """
     if not name:
         return None
     name = pv_name_without_prefix_and_domain(name)
-    name = f'{pv_prefix}{pv_domain}{name}'
+    name = f'{CA.PV_PREFIX}{CA.PV_DOMAIN}{name}'
 
     return name
 
