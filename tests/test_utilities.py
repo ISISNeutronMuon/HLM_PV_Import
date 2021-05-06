@@ -58,22 +58,3 @@ class TestUtilities(unittest.TestCase):
 
         # Assert
         self.assertEqual(exp_val, result)
-
-    def test_GIVEN_pv_names_WHEN_remove_raw_and_sim_pvs_THEN_correct_list_returned(self):
-        # Arrange
-        prefix = self.utilities.CA.PV_PREFIX
-        domain = self.utilities.CA.PV_DOMAIN
-
-        pv_names = [
-            f'{prefix}:{domain}:230ABC:ALARM',
-            f'{prefix}:{domain}:ALARM:_RAW',
-            f'{prefix}:{domain}:SIM:230ABC:ALARM',
-            f'{prefix}:{domain}:230ABC:ANOTHER'
-        ]
-        expected_result = [f'{prefix}:{domain}:230ABC:ALARM', f'{prefix}:{domain}:230ABC:ANOTHER']
-
-        # Act
-        result = self.utilities.remove_raw_and_sim_pvs(pv_names)
-
-        # Assert
-        self.assertEqual(result, expected_result)
