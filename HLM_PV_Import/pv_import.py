@@ -2,7 +2,7 @@ from HLM_PV_Import.ca_wrapper import PvMonitors
 from HLM_PV_Import.user_config import UserConfig
 from HLM_PV_Import.db_functions import add_measurement
 from HLM_PV_Import.settings import PvImportConfig
-from HLM_PV_Import.logger import log_error
+from HLM_PV_Import.logger import logger
 from HLM_PV_Import.settings import CA
 from collections import defaultdict
 import time
@@ -40,7 +40,7 @@ class PvImport:
 
             # For debugging
             # pv_data = copy.deepcopy(self.pv_monitors.get_data())
-            # print(f"({datetime.now().strftime('%H:%M:%S')}) {len(pv_data)} {pv_data}")
+            # logger.info(f"({datetime.now().strftime('%H:%M:%S')}) {len(pv_data)} {pv_data}")
 
             for record in self.config.records:
 
@@ -72,13 +72,13 @@ class PvImport:
                         pv_value = self.pv_monitors.get_pv_data(pv_name)
                         mea_values[mea_number] = pv_value
                     except Exception as e:
-                        log_error(f'{e}')
+                        logger.error(e)
                         continue
 
                 # If none of the measurement PVs values were found from the PV monitors data dict,
                 # skip to the next record.
                 if all(value is None for value in mea_values.values()):
-                    print(f'No PV values for object with record ID {record}, skipping. ')
+                    logger.warning(f'No PV values for object with record ID {record}, skipping. ')
                     continue
 
                 # Add a measurement with the values for the record/object

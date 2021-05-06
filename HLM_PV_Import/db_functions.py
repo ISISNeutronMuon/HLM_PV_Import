@@ -7,12 +7,8 @@ import time
 import mysql.connector
 from HLM_PV_Import.utilities import single_tuples_to_strings
 from datetime import datetime
-from HLM_PV_Import.logger import log_db_error, DBLogger
+from HLM_PV_Import.logger import db_logger, logger
 from HLM_PV_Import.settings import HEDB, Tables
-
-# setup the database events logger
-db_logger = DBLogger()
-db_logger.make_log()
 
 # Explicit access to module level variables by accessing them explicitly on the module
 this = sys.modules[__name__]
@@ -46,7 +42,7 @@ def db_is_connected(attempt: int = 1):
     else:
         time.sleep(this.reconnect_wait_time)
         this.reconnect_wait_time = HEDB.reconnect_wait_increase(current_wait=this.reconnect_wait_time)
-        print(f'Connection to the database was lost, attempting to reconnect. (Attempt: {attempt})')
+        logger.warning(f'Connection to the database was lost, attempting to reconnect. (Attempt: {attempt})')
         make_db_connection()
         return db_is_connected(attempt + 1)
 
@@ -117,8 +113,7 @@ def add_measurement(object_id, mea_values: dict, mea_valid=True):
     _insert(Tables.MEASUREMENT, data=measurement_dict)
 
     last_id = _get_table_last_id(Tables.MEASUREMENT)
-    db_logger.log_new_measurement(record_no=last_id, obj_id=object_id,
-                                  obj_name=record_name, values=mea_values, print_msg=True, print_only=True)
+    logger.info(f'Added measurement {last_id} for {record_name} ({object_id}) with values: {dict(mea_values)}')
 
 
 def get_object_sld(object_id: int):
@@ -223,7 +218,7 @@ def _get_table_columns(table, names_only=False):
             return records
 
     except mysql.connector.Error as e:
-        log_db_error(f'{e}', print_err=True)
+        logger(e)
     finally:
         if cursor:
             cursor.close()
@@ -267,7 +262,7 @@ def _select(table, columns='*', filters=None, filters_args=None, f_elem=False):
             return records
 
     except mysql.connector.Error as e:
-        log_db_error(f'{e}', print_err=True)
+        logger.error(e)
     finally:
         if cursor:
             cursor.close()
@@ -300,10 +295,10 @@ def _insert(table, data):
             if record_no == 0:  # If table has no AUTO_INCREMENT column
                 record_no = _get_table_last_id(table)
 
-            db_logger.log_insert(table=table, record_id=record_no)
+            db_logger.info(f"Added record no. {record_no} to {table}")
 
     except mysql.connector.Error as e:
-        log_db_error(f'{e}', print_err=True)
+        logger.error(e)
     finally:
         if cursor:
             cursor.close()

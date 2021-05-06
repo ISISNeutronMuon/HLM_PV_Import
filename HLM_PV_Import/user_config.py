@@ -1,8 +1,7 @@
 from iteration_utilities import duplicates, unique_everseen
-from HLM_PV_Import.logger import log_config_error
+from HLM_PV_Import.logger import logger
 from HLM_PV_Import.settings import PVConfigConst
 from HLM_PV_Import.db_functions import get_object
-from HLM_PV_Import.logger import log_error
 from HLM_PV_Import.utilities import get_full_pv_name
 from HLM_PV_Import.ca_wrapper import get_connected_pvs
 import json
@@ -36,7 +35,7 @@ class UserConfig:
         duplicate_records = list(unique_everseen(duplicates(self.records)))
         if duplicate_records:
             err_msg = f'User configuration contains duplicate entry record names: {duplicate_records}'
-            log_error(err_msg)
+            logger.error(err_msg)
             raise PVConfigurationException(err_msg)
 
     def _check_config_records_id_is_not_empty(self):
@@ -49,7 +48,7 @@ class UserConfig:
         for record in self.records:
             if not record:
                 err_msg = 'One or more elements in the user configuration is empty/null/None.'
-                log_error(err_msg)
+                logger.error(err_msg)
                 raise PVConfigurationException(err_msg)
 
     def _check_config_records_exist(self):
@@ -67,7 +66,7 @@ class UserConfig:
 
         if not_found:
             err_msg = f'User configuration contains records IDs that were not found in the DB: {not_found}'
-            log_error(err_msg)
+            logger.error(err_msg)
             raise PVConfigurationException(err_msg)
 
     def _check_measurement_pvs_connect(self):
@@ -77,17 +76,15 @@ class UserConfig:
         Raises:
             ValueError: If one or more PVs were not found.
         """
-        print('PVConfig: Checking measurement PVs...')
+        logger.info('PVConfig: Checking measurement PVs...')
         config_pvs = self.get_measurement_pvs(no_duplicates=True, full_names=True)
         connected_pvs = get_connected_pvs(config_pvs)
         not_connected = set(config_pvs) ^ set(connected_pvs)
 
         if not_connected:
-            err_msg = f'Could not connect to one or more PVs: {not_connected}'
-            log_error(err_msg)
-            print(f'PVConfig WARNING: {err_msg}')
+            logger.warning(f'PVConfig: Could not connect to one or more PVs: {not_connected}')
         else:
-            print('PVConfig: All PVs connected.')
+            logger.info('PVConfig: All PVs connected.')
 
     def _check_records_have_at_least_one_measurement_pv(self):
         """
@@ -108,7 +105,7 @@ class UserConfig:
 
         if records_with_no_pvs:
             err_msg = f'Records {records_with_no_pvs} have no measurement PVs.'
-            log_error(err_msg)
+            logger.error(err_msg)
             raise PVConfigurationException(err_msg)
 
     def get_measurement_pvs(self, no_duplicates=True, full_names=False):
@@ -198,7 +195,7 @@ class UserConfig:
                     records.append(entry)
 
         if not records:
-            log_config_error(pv_name=f'{pv_name}', config_file=PVConfigConst.FILE, print_err=True)
+            logger.error(f"KeyError: Could not find configuration entry for PV '{pv_name}' in '{PVConfigConst.FILE}'.")
 
         return records
 
@@ -220,7 +217,7 @@ class UserConfig:
 
             if not data:
                 err_msg = 'The configuration file has no entries.'
-                log_error(err_msg)
+                logger.error(err_msg)
                 raise PVConfigurationException(err_msg)
 
             return data

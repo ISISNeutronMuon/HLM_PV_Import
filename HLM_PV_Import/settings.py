@@ -33,10 +33,12 @@ class CA:
     PV_DOMAIN = config['ChannelAccess']['PV_DOMAIN'] + ':' if config['ChannelAccess']['PV_DOMAIN'] else ''
 
 
-class LoggersConst:
-    LOGS_DIR = 'logs'
-    ERR_LOG_DIR = os.path.join(BASE_PATH, LOGS_DIR, 'err', '')
-    DB_LOG_DIR = os.path.join(BASE_PATH, LOGS_DIR, 'db', '')
+class LoggingFiles:
+    LOGS_DIR = os.path.join(BASE_PATH, 'logs')
+    ERR_LOG = os.path.join(LOGS_DIR, 'error', 'error.log')
+    DB_LOG = os.path.join(LOGS_DIR, 'db', 'db.log')
+    PVS_LOG = os.path.join(LOGS_DIR, 'pvs', 'pvs.log')
+    SRV_LOG = os.path.join(LOGS_DIR, 'service', 'service.log')
 
 
 class Service:

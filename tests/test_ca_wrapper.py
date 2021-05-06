@@ -86,7 +86,7 @@ class TestPvMonitors(unittest.TestCase):
         with patch('time.time') as mock_time, patch('HLM_PV_Import.logger.log_error'):
 
             # Arrange
-            ca_wrapper.TIME_AFTER_STALE = 1  # set 1 second old as stale data
+            ca_wrapper.STALE_AGE = 1  # set 1 second old as stale data
             self.pvm._pv_last_update['pv_name'] = last_update
             mock_time.return_value = current_time
 

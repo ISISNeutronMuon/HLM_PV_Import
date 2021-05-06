@@ -534,7 +534,7 @@ class UIMainWindow(QMainWindow):
             setValue(self.service_log_txt.verticalScrollBar().maximum())
 
     def open_service_log(self):
-        debug_file_path = Settings.Service.Logging.get_debug_log_path()
+        debug_file_path = Settings.Service.Logging.get_log_path()
         if os.path.exists(debug_file_path):
             os.startfile(debug_file_path)
         else:

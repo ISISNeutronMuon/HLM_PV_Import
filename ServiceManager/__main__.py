@@ -63,10 +63,10 @@ def main():
     freeze_support()
 
     sys.excepthook = excepthook
-    print("Starting application.")
+    logger.info("Starting application.")
     e = App()
     ret = e.app.exec_()
-    print("Event loop exited.")
+    logger.info("Event loop exited.")
     e.app.quit()
     sys.exit(ret)
 

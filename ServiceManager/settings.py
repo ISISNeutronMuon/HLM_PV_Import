@@ -273,10 +273,10 @@ class _Logging:
     def __init__(self, service_path):
         self.service_path = service_path
         logs_dir = os.path.join(service_path, 'logs')
-        self._debug_log_path = os.path.join(logs_dir, 'debug', 'debug.log')
+        self._log_path = os.path.join(logs_dir, 'service', 'service.log')
 
-    def get_debug_log_path(self):
-        return self._debug_log_path
+    def get_log_path(self):
+        return self._log_path
 
 
 class _HeliumDB:
