@@ -1,9 +1,9 @@
 from HLM_PV_Import.ca_wrapper import PvMonitors
 from HLM_PV_Import.user_config import UserConfig
-from HLM_PV_Import.db_functions import add_measurement
 from HLM_PV_Import.settings import PvImportConfig
 from HLM_PV_Import.logger import logger
 from HLM_PV_Import.settings import CA
+from DB.db_func import add_measurement
 from collections import defaultdict
 import time
 

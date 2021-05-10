@@ -82,12 +82,17 @@ LOGGING_CONFIG = {
         'db': {
             'handlers': ['db_file', 'err_file'],
             'level': 'DEBUG',
-            'propagate': False,
+            'propagate': False
         },
         'pv': {
             'handlers': ['pvs_file', 'err_file'],
             'level': 'DEBUG',
-            'propagate': False,
+            'propagate': False
+        },
+        'exc': {
+            'handlers': ['err_file'],
+            'level': 'ERROR',
+            'propagate': False
         }
     }
 }
@@ -97,8 +102,9 @@ logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger('log')
 db_logger = logging.getLogger('db')
 pv_logger = logging.getLogger('pv')
+exc_logger = logging.getLogger('exc')
 
 
 def log_exception(type_, value, traceback):
     """ Log unhandled exceptions """
-    logger.error("Unhandled exception occurred", exc_info=(type_, value, traceback))
+    exc_logger.error("Exception occurred", exc_info=(type_, value, traceback))

@@ -48,8 +48,3 @@ logging.config.dictConfig(LOGGING_CONFIG)
 
 # Create logger
 manager_logger = logging.getLogger('manager_log')
-
-
-def log_exception(type_, value, traceback):
-    """ Log unhandled exceptions """
-    manager_logger.error("Unhandled exception occurred", exc_info=(type_, value, traceback))

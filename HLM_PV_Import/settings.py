@@ -58,7 +58,7 @@ class HEDB:
     RECONNECT_WAIT = 5  # base wait time between attempts in seconds
 
     @staticmethod
-    def reconnect_wait_increase(current_wait):  # increasing wait time between attempts for each failed attempt
+    def increase_reconnect_wait_time(current_wait):  # increasing wait time between attempts for each failed attempt
         """
         Args:
             current_wait (int): Current wait time between attempts, in seconds.
@@ -66,14 +66,8 @@ class HEDB:
         return current_wait*2 if current_wait*2 < 14400 else 14400  # 14400 = maximum wait time between attempts, in sec
 
 
-# Helium DB Tables
-class Tables:
-    MEASUREMENT = 'gam_measurement'
-    OBJECT = 'gam_object'
-    OBJECT_TYPE = 'gam_objecttype'
-    OBJECT_CLASS = 'gam_objectclass'
-    OBJECT_RELATION = 'gam_objectrelation'
-    FUNCTION = 'gam_function'
+class ObjectTypeIDs:
+    SLD = 18
 
 
 # PV Import Configuration
