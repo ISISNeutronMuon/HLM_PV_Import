@@ -106,5 +106,5 @@ exc_logger = logging.getLogger('exc')
 
 
 def log_exception(type_, value, traceback):
-    """ Log unhandled exceptions """
+    """ Log exception traceback """
     exc_logger.error("Exception occurred", exc_info=(type_, value, traceback))

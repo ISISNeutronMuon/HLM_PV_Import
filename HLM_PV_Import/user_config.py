@@ -1,8 +1,8 @@
 from iteration_utilities import duplicates, unique_everseen
 from HLM_PV_Import.logger import logger
-from HLM_PV_Import.settings import PVConfigConst, CA
+from HLM_PV_Import.settings import PVConfig, CA
 from HLM_PV_Import.ca_wrapper import get_connected_pvs
-from DB.db_func import get_object
+from HLM_PV_Import.db_func import get_object
 import json
 
 
@@ -14,8 +14,8 @@ class UserConfig:
 
     def __init__(self):
         self.entries = self._get_all_entries()
-        self.object_ids = [entry[PVConfigConst.OBJ] for entry in self.entries]
-        self.logging_periods = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in self.entries}
+        self.object_ids = [entry[PVConfig.OBJ] for entry in self.entries]
+        self.logging_periods = {entry[PVConfig.OBJ]: entry[PVConfig.LOG_PERIOD] for entry in self.entries}
 
         # Run config checks
         try:
@@ -118,7 +118,7 @@ class UserConfig:
         config_pvs = []
 
         for entry in self.entries:
-            measurements = entry[PVConfigConst.MEAS]
+            measurements = entry[PVConfig.MEAS]
             for pv_name in measurements.values():
                 if pv_name:
                     config_pvs.append(pv_name)
@@ -146,7 +146,7 @@ class UserConfig:
             (dict): The measurements PVs, in measurement number/pv name pairs.
         """
         # Get the measurements of the entry with the given object_id, None if not found
-        entry_meas = next((x[PVConfigConst.MEAS] for x in self.entries if x[PVConfigConst.OBJ] == object_id), None)
+        entry_meas = next((x[PVConfig.MEAS] for x in self.entries if x[PVConfig.OBJ] == object_id), None)
         return {key: self._get_full_pv_name(val) if full_names else val for key, val in entry_meas.items() if val}
 
     @staticmethod
@@ -160,10 +160,10 @@ class UserConfig:
         Raises:
             PVConfigurationException: If the configuration file is either empty or does not have at least one entry.
         """
-        config_file = PVConfigConst.PATH
+        config_file = PVConfig.PATH
         with open(config_file) as f:
             data = json.load(f)
-            data = data[PVConfigConst.ROOT]
+            data = data[PVConfig.ROOT]
 
             if not data:
                 err_msg = 'No entries have been found in the configuration file.'

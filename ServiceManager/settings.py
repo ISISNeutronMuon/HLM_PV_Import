@@ -1,41 +1,14 @@
-import json
 import os
+import sys
+import json
 import configparser
 import win32serviceutil
 from ServiceManager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEMPLATE, SERVICE_SETTINGS_FILE_NAME, \
     SERVICE_SETTINGS_TEMPLATE, MANAGER_SETTINGS_DIR, MANAGER_LOGS_FILE, SERVICE_NAME, PV_CONFIG_FILE_NAME
-from ServiceManager.logger import manager_logger
-from ServiceManager.db_utilities import DBUtils, DBConnectionError
-
-
-def get_full_pv_name(name):
-    if not name:
-        return None
-    name = name.replace(Settings.Service.CA.get_pv_prefix(), '').replace(Settings.Service.CA.get_pv_domain(), '')
-    return f'{Settings.Service.CA.get_pv_prefix()}{Settings.Service.CA.get_pv_domain()}{name}'
-
-
-def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):
-    """
-    Creates the settings file and its directory, if it doesn't exist, and writes the given config template with
-    blank values to it.
-
-    Args:
-        path (str): The full path to the file.
-        template (dict): The template containing sections (keys, str) and their options (values, list of str).
-        parser (ConfigParser): The ConfigParser object.
-    """
-    # Create file and directory if not exists and write config template to it with blank values
-    settings_dir = os.path.dirname(path)
-    if not os.path.exists(settings_dir):  # If settings directory does not exist either, create it too
-        os.makedirs(settings_dir)
-
-    for section, options in template.items():
-        parser.add_section(section)
-        for option_key, option_val in options.items():
-            parser[f'{section}'][f'{option_key}'] = option_val
-    with open(path, 'w') as settings_file:
-        parser.write(settings_file)
+from ServiceManager.logger import manager_logger, log_exception
+from ServiceManager.utilities import setup_settings_file
+from ServiceManager.db_func import db_connect, db_connected, DBConnectionError
+from shared import db_models
 
 
 class _Settings:
@@ -129,18 +102,14 @@ class ServiceSettings:
             self.config_parser.write(settings_file)
 
     def connect_to_db(self):
-        connected = None
+        db_models.initialize_database(name=self.HeliumDB.get_name(), host=self.HeliumDB.get_host(),
+                                      user=self.HeliumDB.get_user(), password=self.HeliumDB.get_pass())
         try:
-            DBUtils.make_connection(host=self.HeliumDB.get_host(),
-                                    database=self.HeliumDB.get_name(),
-                                    user=self.HeliumDB.get_user(),
-                                    password=self.HeliumDB.get_pass())
-            connected = True
+            db_connect()
         except DBConnectionError:
-            manager_logger.error('Could not establish DB connection.')
-            connected = False
+            log_exception(*sys.exc_info())
         finally:
-            return connected
+            return db_connected()
 
 
 # region Service Settings Subclasses
@@ -410,6 +379,12 @@ class _CA:
     def set_add_stale_pvs(self, checked: bool):
         self.config_parser['ChannelAccess']['AddStalePvs'] = f'{checked}'
         self.update()
+
+    def get_full_pv_name(self, name):
+        if not name:
+            return None
+        name = name.replace(self.get_pv_prefix(), '').replace(self.get_pv_domain(), '')
+        return f'{self.get_pv_prefix()}{self.get_pv_domain()}{name}'
 
 
 # endregion

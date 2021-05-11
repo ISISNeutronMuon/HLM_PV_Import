@@ -73,7 +73,7 @@ class TestPvMonitors(unittest.TestCase):
         (1, 1, False)
     ])
     def test_GIVEN_pv_name_WHEN_check_if_data_is_stale_THEN_correct_check(self, last_update, current_time, expected):
-        with patch('time.time') as mock_time, patch('HLM_PV_Import.logger.log_error'):
+        with patch('time.time') as mock_time, patch('HLM_PV_Import.ca_wrapper.pv_logger'):
 
             # Arrange
             ca_wrapper.STALE_AGE = 1  # set 1 second old as stale data

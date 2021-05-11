@@ -2,6 +2,7 @@ import sys
 import os
 import configparser
 import win32serviceutil
+from shared.const import *
 
 if getattr(sys, 'frozen', False):
     # If the application is run as a bundle, the PyInstaller bootloader
@@ -20,9 +21,10 @@ else:
     BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 
 
+PVConfig.PATH = os.path.join(BASE_PATH, PVConfig.FILE)
+
 config = configparser.ConfigParser()
 config.read(os.path.join(BASE_PATH, 'settings.ini'))
-
 
 class CA:
     EPICS_CA_ADDR_LIST = config['ChannelAccess']['EPICS_CA_ADDR_LIST']  # Epics channel access address list
@@ -54,32 +56,7 @@ class HEDB:
     USER = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_USER')
     PASS = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_PASS')
 
-    RECONNECT_ATTEMPTS_MAX = 1000
-    RECONNECT_WAIT = 5  # base wait time between attempts in seconds
-
-    @staticmethod
-    def increase_reconnect_wait_time(current_wait):  # increasing wait time between attempts for each failed attempt
-        """
-        Args:
-            current_wait (int): Current wait time between attempts, in seconds.
-        """
-        return current_wait*2 if current_wait*2 < 14400 else 14400  # 14400 = maximum wait time between attempts, in sec
-
-
-class ObjectTypeIDs:
-    SLD = 18
-
 
 # PV Import Configuration
 class PvImportConfig:
     LOOP_TIMER = config['PVImport'].getfloat('LoopTimer')
-
-
-# User Configuration
-class PVConfigConst:
-    FILE = 'pv_config.json'
-    PATH = os.path.join(BASE_PATH, FILE)
-    ROOT = 'records'
-    OBJ = 'object_id'
-    MEAS = 'measurements'
-    LOG_PERIOD = 'logging_period'

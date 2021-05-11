@@ -1,4 +1,7 @@
+import configparser
 import ctypes
+import os
+
 from PyQt5.QtGui import QPalette, QColor
 from ServiceManager.logger import manager_logger
 from caproto.sync.client import read
@@ -65,22 +68,24 @@ def set_colored_text(label, text, color):
     label.setText(text)
 
 
-def single_tuples_to_strings(tuple_list):
+def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):
     """
-    Given a list of tuples, convert all single-element tuples into a string of the first element. Tuples in the list
-    with multiple elements will not be affected.
+    Creates the settings file and its directory, if it doesn't exist, and writes the given config template with
+    blank values to it.
 
     Args:
-        tuple_list (list): the list of tuples to convert
-    Returns:
-        (list) the list of strings made from the first element of the tuples
-
+        path (str): The full path to the file.
+        template (dict): The template containing sections (keys, str) and their options (values, list of str).
+        parser (ConfigParser): The ConfigParser object.
     """
+    # Create file and directory if not exists and write config template to it with blank values
+    settings_dir = os.path.dirname(path)
+    if not os.path.exists(settings_dir):  # If settings directory does not exist either, create it too
+        os.makedirs(settings_dir)
 
-    string_list = []
-    for elem in tuple_list:
-        if len(elem) == 1:
-            string_list.append(elem[0])
-        else:
-            string_list.append(elem)
-    return string_list
+    for section, options in template.items():
+        parser.add_section(section)
+        for option_key, option_val in options.items():
+            parser[f'{section}'][f'{option_key}'] = option_val
+    with open(path, 'w') as settings_file:
+        parser.write(settings_file)

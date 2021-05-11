@@ -1,6 +1,5 @@
 from peewee import MySQLDatabase, AutoField, CharField, DecimalField, TextField, IntegerField, SQL, Model, \
     ForeignKeyField, DateTimeField
-from HLM_PV_Import.settings import HEDB
 from playhouse.shortcuts import ReconnectMixin
 
 
@@ -9,8 +8,11 @@ class ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
     pass
 
 
-database = ReconnectMySQLDatabase(HEDB.NAME, user=HEDB.USER, password=HEDB.PASS, host=HEDB.HOST, port=3306,
-                                  autoconnect=False)
+database = ReconnectMySQLDatabase(None)
+
+
+def initialize_database(name, user, password, host, port=3306):
+    database.init(name, user=user, password=password, host=host, port=port)
 
 
 class UnknownField(object):

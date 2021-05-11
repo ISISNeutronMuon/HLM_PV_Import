@@ -19,7 +19,7 @@ from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
 from ServiceManager.GUI.config_entry import UIConfigEntryDialog
 from ServiceManager.utilities import is_admin, set_colored_text
 from ServiceManager.GUI.main_window_threads import ServiceLogUpdaterThread, ServiceStatusCheckThread
-from ServiceManager.db_utilities import DBUtils
+from ServiceManager.db_func import db_connected, get_object_name, get_object_type, get_sld_id
 
 
 class UIMainWindow(QMainWindow):
@@ -220,7 +220,7 @@ class UIMainWindow(QMainWindow):
         self.update_fields()
 
     def closeEvent(self, event: QCloseEvent):
-        quit_msg = "Are you sure you want to exit the program?"
+        quit_msg = "Close the application?"
         reply = QMessageBox.question(self, 'HLM PV Import', quit_msg, QMessageBox.Yes, QMessageBox.No)
 
         if reply == QMessageBox.Yes:
@@ -244,12 +244,12 @@ class UIMainWindow(QMainWindow):
         self.update_db_connection_status()
 
     def refresh_db_connection(self):
-        if not DBUtils.is_connected():
-            Settings.Service.connect_to_db()
+        manager_logger.info("Refreshing database connection...")
+        Settings.Service.connect_to_db()
         self.update_db_connection_status()
 
     def update_db_connection_status(self):
-        if DBUtils.is_connected():
+        if db_connected():
             set_colored_text(self.db_connection_status, 'connected', QColor('green'))
 
         else:
@@ -418,7 +418,7 @@ class UIMainWindow(QMainWindow):
 
     def new_config_btn_clicked(self):
         """ Open the Config Entry dialog window. If database is not connected, display error message. """
-        if not DBUtils.is_connected():
+        if not db_connected():
             QMessageBox.critical(self, 'Database connection required',
                                  'Database connection is required to edit the PV configuration.',
                                  QMessageBox.Ok)
@@ -432,7 +432,7 @@ class UIMainWindow(QMainWindow):
 
     def edit_config_btn_clicked(self):
         """ On Edit, open Config Entry dialog window as normal with object selected and PV config loaded. """
-        if not DBUtils.is_connected():
+        if not db_connected():
             QMessageBox.critical(self, 'Database connection required',
                                  'Database connection is required to edit the PV configuration.',
                                  QMessageBox.Ok)
@@ -492,9 +492,9 @@ class UIMainWindow(QMainWindow):
             # store the entry data in a list, prepare to add to table as row
             entry_data = [
                 object_id,
-                DBUtils.get_object_name(object_id),
-                DBUtils.get_object_type(object_id, name_only=True),
-                DBUtils.get_object_sld(object_id, id_only=True),
+                get_object_name(object_id),
+                get_object_type(object_id),
+                get_sld_id(object_id),
                 entry[Settings.Service.PVConfig.LOG_PERIOD],
                 *[entry[Settings.Service.PVConfig.MEAS].get(x) for x in ['1', '2', '3', '4', '5']]
             ]

@@ -5,8 +5,10 @@ Helium Level Monitoring Project - HeRecovery Database PV Import
 from HLM_PV_Import.ca_wrapper import PvMonitors
 from HLM_PV_Import.user_config import UserConfig
 from HLM_PV_Import.pv_import import PvImport
-from HLM_PV_Import.settings import CA
+from HLM_PV_Import.settings import CA, HEDB
 from HLM_PV_Import.logger import logger
+from shared.db_models import initialize_database
+from HLM_PV_Import.db_func import db_connect, check_db_connection
 import os
 import sys
 
@@ -18,6 +20,11 @@ this.pv_import = None
 def main():
     # Setup the channel access address list in order to connect to PVs
     os.environ['EPICS_CA_ADDR_LIST'] = CA.EPICS_CA_ADDR_LIST
+
+    # Initialize and establish the database connection
+    initialize_database(name=HEDB.NAME, user=HEDB.USER, password=HEDB.PASS, host=HEDB.HOST)
+    db_connect()
+    check_db_connection()
 
     # Get the user configuration and the list of measurement PVs
     config = UserConfig()

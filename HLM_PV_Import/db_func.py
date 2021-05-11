@@ -1,29 +1,38 @@
-from peewee import DoesNotExist
-from functools import wraps
-from DB.models import *
 import sys
 import time
 from datetime import datetime
+from functools import wraps
+
+from shared.db_models import *
+from shared.utils import get_sld_id
 from HLM_PV_Import.logger import logger, db_logger, log_exception
-from HLM_PV_Import.settings import HEDB, ObjectTypeIDs
+
+RECONNECT_ATTEMPTS_MAX = 1000
+RECONNECT_WAIT = 5  # base wait time between attempts in seconds
+RECONNECT_MAX_WAIT_TIME = 14400  # maximum wait time between attempts, in sec
 
 
-def _make_db_connection():
+def increase_reconnect_wait_time(current_wait):  # increasing wait time in s between attempts for each failed attempt
+    return current_wait*2 if current_wait*2 < RECONNECT_MAX_WAIT_TIME else RECONNECT_MAX_WAIT_TIME
+
+
+def db_connect():
     try:
         database.connect(reuse_if_open=True)
-        logger.info('Database connection successfully established.')
+        logger.info('Database connection successful.')
     except Exception as e:
         logger.error(e)
+        log_exception(*sys.exc_info())
 
 
-def _check_db_connection(attempt: int = 1, wait_until_reconnect: int = HEDB.RECONNECT_WAIT):
+def check_db_connection(attempt: int = 1, wait_until_reconnect: int = RECONNECT_WAIT):
     """
     Check if DB is connected, and if not re-attempt to establish a connection.
     With each attempt, the interval between attempts will increase.
     """
     if database.is_connection_usable():
         return True
-    elif attempt > HEDB.RECONNECT_ATTEMPTS_MAX:
+    elif attempt > RECONNECT_ATTEMPTS_MAX:
         conn_aborted = 'Connection to the database was lost and could not be re-established.'
         logger.error(conn_aborted)
         raise Exception(conn_aborted)
@@ -31,33 +40,25 @@ def _check_db_connection(attempt: int = 1, wait_until_reconnect: int = HEDB.RECO
         logger.error(f'Connection to the database could not be established, re-attempting to connect in '
                      f'{wait_until_reconnect}s. (Attempt: {attempt})')
         time.sleep(wait_until_reconnect)
-        time_until_next_reconnect = HEDB.increase_reconnect_wait_time(current_wait=wait_until_reconnect)
-        _make_db_connection()
-        _check_db_connection(attempt=attempt + 1, wait_until_reconnect=time_until_next_reconnect)
+        time_until_next_reconnect = increase_reconnect_wait_time(current_wait=wait_until_reconnect)
+        db_connect()
+        check_db_connection(attempt=attempt + 1, wait_until_reconnect=time_until_next_reconnect)
 
 
-def _check_connection(func):
+def check_connection(func):
     """
     Decorator to check that the DB is connected before function is called.
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
-        try:
-            _check_db_connection()
-            return func(*args, **kwargs)
-        except Exception as e:
-            logger.error(e)
-            log_exception(*sys.exc_info())
+        check_db_connection()
+        return func(*args, **kwargs)
 
     return wrapper
 
 
-# Attempt to establish the connection and check if it has been successful, otherwise retry
-_make_db_connection()
-_check_db_connection()
-
-
-@_check_connection
+@check_connection
 def get_object(object_id):
     """
     Gets the record of the object with the given ID.
@@ -69,42 +70,7 @@ def get_object(object_id):
     return GamObject.get_or_none(GamObject.ob_id == object_id)
 
 
-@_check_connection
-def get_object_id(object_name):
-    """
-    Get the ID of the object with the given name.
-
-    Returns:
-        (int): The object ID.
-    """
-    return GamObject.get_or_none(GamObject.ob_name == object_name).ob_id
-
-
-@_check_connection
-def get_sld_id(object_id: int):
-    """
-    Get the ID of the object's SLD (Software Level Device) if it has one.
-
-    Args:
-        object_id (int): The object ID.
-
-    Returns:
-        (int): The SLD object ID.
-    """
-    try:
-        sld_relation = (GamObjectrelation
-                        .select(GamObjectrelation.or_object_id_assigned)
-                        .join(GamObject, on=GamObjectrelation.or_object_id_assigned == GamObject.ob_id)
-                        .where(GamObjectrelation.or_object == object_id, GamObjectrelation.or_date_removal.is_null(),
-                               GamObject.ob_objecttype == ObjectTypeIDs.SLD)
-                        .order_by(GamObjectrelation.or_id.desc())
-                        .get())
-        return sld_relation.or_object_id_assigned
-    except DoesNotExist:
-        return None
-
-
-@_check_connection
+@check_connection
 def add_measurement(object_id, mea_values: dict, mea_valid=True):
     """
     Adds a measurement to the database. If the object currently has a Software Level Device, the measurement object will
@@ -129,7 +95,7 @@ def add_measurement(object_id, mea_values: dict, mea_valid=True):
 
     mea_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    last_mea_id = GamMeasurement.insert(
+    record_id = GamMeasurement.insert(
         mea_object=object_id,
         mea_date=mea_date,
         mea_date2=mea_date,
@@ -143,6 +109,6 @@ def add_measurement(object_id, mea_values: dict, mea_valid=True):
         mea_bookingcode=0  # 0 = measurement is not from the balance program (HZB)
     ).execute()
 
-    logger.info(f'Added measurement {last_mea_id} for {obj.ob_name} ({object_id}) with values: {dict(mea_values)}')
+    logger.info(f'Added measurement {record_id} for {obj.ob_name} ({object_id}) with values: {dict(mea_values)}')
     # noinspection PyProtectedMember
-    db_logger.info(f"Added record no. {last_mea_id} to {GamMeasurement._meta.table_name}")
+    db_logger.info(f"Added record no. {record_id} to {GamMeasurement._meta.table_name}")

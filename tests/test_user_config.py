@@ -2,7 +2,7 @@ from parameterized import parameterized
 import unittest
 from mock import patch
 from HLM_PV_Import.user_config import *
-from HLM_PV_Import.settings import PVConfigConst
+from HLM_PV_Import.settings import PVConfig
 
 
 class TestUserConfig(unittest.TestCase):
@@ -34,41 +34,41 @@ class TestUserConfig(unittest.TestCase):
                 self.config._check_entries_have_object_ids()
 
     @parameterized.expand([
-        ([{PVConfigConst.OBJ: 1, PVConfigConst.LOG_PERIOD: 60, PVConfigConst.MEAS: {'1': 'a'}}], ),
+        ([{PVConfig.OBJ: 1, PVConfig.LOG_PERIOD: 60, PVConfig.MEAS: {'1': 'a'}}],),
         ([
-            {PVConfigConst.OBJ: 2, PVConfigConst.LOG_PERIOD: 1, PVConfigConst.MEAS: {'1': 'b', '2': 'c'}},
-            {PVConfigConst.OBJ: 3, PVConfigConst.LOG_PERIOD: 40, PVConfigConst.MEAS: {'1': 'd', '2': 'a'}}
+            {PVConfig.OBJ: 2, PVConfig.LOG_PERIOD: 1, PVConfig.MEAS: {'1': 'b', '2': 'c'}},
+            {PVConfig.OBJ: 3, PVConfig.LOG_PERIOD: 40, PVConfig.MEAS: {'1': 'd', '2': 'a'}}
         ], )
     ])
     def test_GIVEN_pvs_WHEN_check_if_entries_have_measurement_pvs_THEN_no_exception(self, entries):
         self.config.entries = entries
-        self.config.object_ids = [entry[PVConfigConst.OBJ] for entry in self.config.entries]
+        self.config.object_ids = [entry[PVConfig.OBJ] for entry in self.config.entries]
         self.config._check_entries_have_measurement_pvs()
 
     @parameterized.expand([
-        ([{PVConfigConst.OBJ: 1, PVConfigConst.LOG_PERIOD: 60, PVConfigConst.MEAS: {'1': None}}], ),
-        ([{PVConfigConst.OBJ: 2, PVConfigConst.LOG_PERIOD: 1, PVConfigConst.MEAS: {}}], ),
-        ([{PVConfigConst.OBJ: 3, PVConfigConst.LOG_PERIOD: 40}], ),
-        ([{PVConfigConst.OBJ: 3}], )
+        ([{PVConfig.OBJ: 1, PVConfig.LOG_PERIOD: 60, PVConfig.MEAS: {'1': None}}],),
+        ([{PVConfig.OBJ: 2, PVConfig.LOG_PERIOD: 1, PVConfig.MEAS: {}}],),
+        ([{PVConfig.OBJ: 3, PVConfig.LOG_PERIOD: 40}],),
+        ([{PVConfig.OBJ: 3}],)
     ])
     def test_GIVEN_no_pvs_WHEN_check_if_entries_have_measurement_pvs_THEN_exception_raised(self, entries):
         with patch('HLM_PV_Import.user_config.logger'):
             self.config.entries = entries
-            self.config.object_ids = [entry[PVConfigConst.OBJ] for entry in self.config.entries]
+            self.config.object_ids = [entry[PVConfig.OBJ] for entry in self.config.entries]
             with self.assertRaises(PVConfigurationException):
                 self.config._check_entries_have_measurement_pvs()
 
-    @patch('HLM_PV_Import.db_functions._select')
-    def test_GIVEN_objects_exist_WHEN_check_if_objects_exist_THEN_no_exception(self, mock_query_res):
+    @patch('HLM_PV_Import.user_config.get_object')
+    def test_GIVEN_objects_exist_WHEN_check_if_objects_exist_THEN_no_exception(self, mock_obj_res):
         self.config.object_ids = ['a', 'b', 'c']
-        mock_query_res.return_value = 1
+        mock_obj_res.return_value = 1
         self.config._check_objects_exist()
 
-    @patch('HLM_PV_Import.db_functions._select')
-    def test_GIVEN_objects_not_found_WHEN_check_if_objects_exist_THEN_exception_raised(self, mock_query_res):
+    @patch('HLM_PV_Import.user_config.get_object')
+    def test_GIVEN_objects_not_found_WHEN_check_if_objects_exist_THEN_exception_raised(self, mock_obj_res):
         with patch('HLM_PV_Import.user_config.logger'):
             self.config.object_ids = ['a', 'b', 'c']
-            mock_query_res.return_value = None
+            mock_obj_res.return_value = None
             with self.assertRaises(PVConfigurationException):
                 self.config._check_objects_exist()
 
@@ -83,23 +83,23 @@ class TestUserConfig(unittest.TestCase):
     @parameterized.expand([
         (
             [
-                {PVConfigConst.OBJ: 1, PVConfigConst.LOG_PERIOD: 60, PVConfigConst.MEAS: {'1': 'a'}}
+                {PVConfig.OBJ: 1, PVConfig.LOG_PERIOD: 60, PVConfig.MEAS: {'1': 'a'}}
             ],
             ['a'], True
         ),
         (
             [
-                {PVConfigConst.OBJ: 1, PVConfigConst.LOG_PERIOD: 60, PVConfigConst.MEAS: {'1': 'a'}},
-                {PVConfigConst.OBJ: 2, PVConfigConst.LOG_PERIOD: 1, PVConfigConst.MEAS: {'1': 'b', '2': 'c', '3': 'a'}},
-                {PVConfigConst.OBJ: 3, PVConfigConst.LOG_PERIOD: 40, PVConfigConst.MEAS: {'1': 'a', '2': 'b', '3': None}}
+                {PVConfig.OBJ: 1, PVConfig.LOG_PERIOD: 60, PVConfig.MEAS: {'1': 'a'}},
+                {PVConfig.OBJ: 2, PVConfig.LOG_PERIOD: 1, PVConfig.MEAS: {'1': 'b', '2': 'c', '3': 'a'}},
+                {PVConfig.OBJ: 3, PVConfig.LOG_PERIOD: 40, PVConfig.MEAS: {'1': 'a', '2': 'b', '3': None}}
             ],
             ['a', 'b', 'c'], True
         ),
         (
             [
-                {PVConfigConst.OBJ: 1, PVConfigConst.LOG_PERIOD: 60, PVConfigConst.MEAS: {'1': 'a'}},
-                {PVConfigConst.OBJ: 2, PVConfigConst.LOG_PERIOD: 1, PVConfigConst.MEAS: {'1': 'b', '2': 'c', '3': 'a'}},
-                {PVConfigConst.OBJ: 3, PVConfigConst.LOG_PERIOD: 40, PVConfigConst.MEAS: {'1': 'a', '2': 'b', '3': 'd'}}
+                {PVConfig.OBJ: 1, PVConfig.LOG_PERIOD: 60, PVConfig.MEAS: {'1': 'a'}},
+                {PVConfig.OBJ: 2, PVConfig.LOG_PERIOD: 1, PVConfig.MEAS: {'1': 'b', '2': 'c', '3': 'a'}},
+                {PVConfig.OBJ: 3, PVConfig.LOG_PERIOD: 40, PVConfig.MEAS: {'1': 'a', '2': 'b', '3': 'd'}}
             ],
             ['a', 'b', 'c', 'a', 'a', 'b', 'd'], False
         )
@@ -117,15 +117,15 @@ class TestUserConfig(unittest.TestCase):
     @parameterized.expand([
         (
             [
-                {PVConfigConst.OBJ: 1, PVConfigConst.LOG_PERIOD: 60, PVConfigConst.MEAS: {'1': 'a'}},
-                {PVConfigConst.OBJ: 2, PVConfigConst.LOG_PERIOD: 1, PVConfigConst.MEAS: {'1': 'b', '2': 'c', '3': 'a'}},
-                {PVConfigConst.OBJ: 3, PVConfigConst.LOG_PERIOD: 40, PVConfigConst.MEAS: {'1': 'a', '2': 'b', '3': 'd'}}
+                {PVConfig.OBJ: 1, PVConfig.LOG_PERIOD: 60, PVConfig.MEAS: {'1': 'a'}},
+                {PVConfig.OBJ: 2, PVConfig.LOG_PERIOD: 1, PVConfig.MEAS: {'1': 'b', '2': 'c', '3': 'a'}},
+                {PVConfig.OBJ: 3, PVConfig.LOG_PERIOD: 40, PVConfig.MEAS: {'1': 'a', '2': 'b', '3': 'd'}}
             ],
             [1, 2, 3]
         ),
         (
             [
-                {PVConfigConst.OBJ: 1, PVConfigConst.LOG_PERIOD: 60, PVConfigConst.MEAS: {'1': 'a'}}
+                {PVConfig.OBJ: 1, PVConfig.LOG_PERIOD: 60, PVConfig.MEAS: {'1': 'a'}}
             ],
             [1]
         )
@@ -135,7 +135,7 @@ class TestUserConfig(unittest.TestCase):
         self.config.entries = entries
 
         # Act
-        result = [entry[PVConfigConst.OBJ] for entry in self.config.entries]
+        result = [entry[PVConfig.OBJ] for entry in self.config.entries]
 
         # Assert
         self.assertEqual(expected_value, result)
@@ -147,9 +147,9 @@ class TestUserConfig(unittest.TestCase):
     def test_GIVEN_pvs_WHEN_get_entries_measurement_pvs_THEN_correct_pvs_returned(self, object_id, expected_value):
         # Arrange
         self.config.entries = [
-            {PVConfigConst.OBJ: 1, PVConfigConst.LOG_PERIOD: 60, PVConfigConst.MEAS: {'1': 'a'}},
-            {PVConfigConst.OBJ: 2, PVConfigConst.LOG_PERIOD: 1, PVConfigConst.MEAS: {'1': 'b', '2': 'c'}},
-            {PVConfigConst.OBJ: 3, PVConfigConst.LOG_PERIOD: 40, PVConfigConst.MEAS: {'1': 'd', '2': 'a'}}
+            {PVConfig.OBJ: 1, PVConfig.LOG_PERIOD: 60, PVConfig.MEAS: {'1': 'a'}},
+            {PVConfig.OBJ: 2, PVConfig.LOG_PERIOD: 1, PVConfig.MEAS: {'1': 'b', '2': 'c'}},
+            {PVConfig.OBJ: 3, PVConfig.LOG_PERIOD: 40, PVConfig.MEAS: {'1': 'd', '2': 'a'}}
         ]
 
         # Act
@@ -161,14 +161,14 @@ class TestUserConfig(unittest.TestCase):
     def test_GIVEN_entries_WHEN_get_logging_periods_THEN_objects_and_their_logging_periods_returned(self):
         # Arrange
         self.config.entries = [
-                {PVConfigConst.OBJ: 1, PVConfigConst.LOG_PERIOD: 60, PVConfigConst.MEAS: {'1': 'a'}},
-                {PVConfigConst.OBJ: 2, PVConfigConst.LOG_PERIOD: 1, PVConfigConst.MEAS: {'1': 'b', '2': 'c'}},
-                {PVConfigConst.OBJ: 3, PVConfigConst.LOG_PERIOD: 40, PVConfigConst.MEAS: {'1': 'd', '2': 'a'}}
+                {PVConfig.OBJ: 1, PVConfig.LOG_PERIOD: 60, PVConfig.MEAS: {'1': 'a'}},
+                {PVConfig.OBJ: 2, PVConfig.LOG_PERIOD: 1, PVConfig.MEAS: {'1': 'b', '2': 'c'}},
+                {PVConfig.OBJ: 3, PVConfig.LOG_PERIOD: 40, PVConfig.MEAS: {'1': 'd', '2': 'a'}}
         ]
         expected_value = {1: 60, 2: 1, 3: 40}
 
         # Act
-        result = {entry[PVConfigConst.OBJ]: entry[PVConfigConst.LOG_PERIOD] for entry in self.config.entries}
+        result = {entry[PVConfig.OBJ]: entry[PVConfig.LOG_PERIOD] for entry in self.config.entries}
 
         # Assert
         self.assertCountEqual(expected_value, result)

@@ -4,13 +4,11 @@ from PyQt5.QtWidgets import QDialog, QPushButton, QLineEdit, QFrame, \
     QComboBox, QLabel, QProgressBar, QSpinBox, QMessageBox, QApplication, QHBoxLayout, QWidget
 from PyQt5 import uic
 
-from ServiceManager.constants import config_entry_ui, loading_animation, DbClassIds
-from ServiceManager.settings import Settings, get_full_pv_name
+from ServiceManager.constants import config_entry_ui, loading_animation, DBClassIDs, DBTypeIDs
+from ServiceManager.settings import Settings
 from ServiceManager.utilities import test_pv_connection
-from ServiceManager.db_utilities import DBUtils, DBUtilsObjectNameAlreadyExists
 from ServiceManager.logger import manager_logger
-
-from caproto import CaprotoTimeoutError
+from ServiceManager.db_func import *
 
 
 class UIConfigEntryDialog(QDialog):
@@ -50,8 +48,8 @@ class UIConfigEntryDialog(QDialog):
         self.obj_detail_id = self.findChild(QLineEdit, 'objectIdLineEdit')
         self.obj_detail_class = self.findChild(QLineEdit, 'objectClassLineEdit')
         self.obj_detail_func = self.findChild(QLineEdit, 'objectFunctionLineEdit')
-        self.obj_detail_sdl_name = self.findChild(QLineEdit, 'SLDNameLineEdit')
-        self.obj_detail_sdl_id = self.findChild(QLineEdit, 'SLDIDLineEdit')
+        self.obj_detail_sld_name = self.findChild(QLineEdit, 'SLDNameLineEdit')
+        self.obj_detail_sld_id = self.findChild(QLineEdit, 'SLDIDLineEdit')
 
         self.mea_pv_name_1 = self.findChild(QLineEdit, 'measurement1LineEdit')
         self.mea_pv_name_2 = self.findChild(QLineEdit, 'measurement2LineEdit')
@@ -161,14 +159,14 @@ class UIConfigEntryDialog(QDialog):
         self.obj_name_cb.lineEdit().clear()
         self.obj_name_cb.addItem(None)
         try:
-            self.obj_name_cb.addItems(DBUtils.get_all_object_names())
+            self.obj_name_cb.addItems(get_all_object_names())
         except TypeError:
             pass
 
         self.obj_type_cb.clear()
         self.obj_type_cb.addItem(None)
         try:
-            self.obj_type_cb.addItems(DBUtils.get_all_type_names())
+            self.obj_type_cb.addItems(get_all_type_names())
         except TypeError:
             pass
 
@@ -215,7 +213,7 @@ class UIConfigEntryDialog(QDialog):
             return
 
         object_name = self.obj_name_cb.lineEdit().text()
-        object_id = DBUtils.get_object_id(object_name)
+        object_id = get_object_id(object_name)
 
         # If object with the given name was not found in the database, ask whether to create a new one
         if not object_id:
@@ -225,7 +223,7 @@ class UIConfigEntryDialog(QDialog):
                 self.set_red_border(self.obj_type_frame)
                 return
 
-            type_id = DBUtils.get_type_id(type_name=type_name)
+            type_id = get_type_id(type_name=type_name)
             if not type_id:
                 self.set_message_colored_text(f'Type "{type_name}" was not found.', 'red')
                 self.set_red_border(self.obj_type_frame)
@@ -241,29 +239,31 @@ class UIConfigEntryDialog(QDialog):
             comment = self.obj_comment.text()
 
             try:
-                DBUtils.add_object(object_name, type_id, comment)
-            except DBUtilsObjectNameAlreadyExists:
+                add_object(object_name, type_id, comment)
+            except DBObjectNameAlreadyExists:
                 self.set_message_colored_text(f'Object "{object_name}" already exists in the database.', 'red')
                 self.set_red_border(self.obj_name_frame)
                 return
+            except Exception as e:
+                logger.error(f'Exception occurred when adding new object to DB, aborting PV Config entry creation: {e}')
+                return
 
-            # Update the ID with that of the newly created object
-            object_id = DBUtils.get_object_id(object_name)
+            # Set the object ID as that of the newly created object
+            object_id = get_object_id(object_name)
 
             # If the object is a Vessel, Cryostat or Gas Counter, create a Software Level Device and make relation
-            class_id = DBUtils.get_class_id(type_id)
-            # Class ID: Vessel = 2, Cryostat = 4, Gas Counter = 7. SLD Type ID: 18
-            if class_id in [2, 4, 7]:
-                # add SLD
+            class_id = get_class_id(type_id)
+            if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT, DBClassIDs.GAS_COUNTER]:
+                # add SLD object to DB
                 sld_name = f'SLD "{object_name}" (ID: {object_id})'
                 sld_comment = f'Software Level Device for {type_name} "{object_name}" (ID: {object_id})'
-                sld_type_id = 18
-                DBUtils.add_object(name=sld_name, type_id=sld_type_id, comment=sld_comment)
+                sld_type_id = DBTypeIDs.SLD
+                add_object(name=sld_name, type_id=sld_type_id, comment=sld_comment)
                 # make relation
-                sld_id = DBUtils.get_object_id(object_name=sld_name)
-                DBUtils.add_relation(or_object_id=object_id, or_object_id_assigned=sld_id)
+                sld_id = get_object_id(object_name=sld_name)
+                add_relation(or_object_id=object_id, or_object_id_assigned=sld_id)
 
-        # Check if object already has a PV configuration (worth checking even for objects not in the DB before)
+        # Check if object already has a PV configuration (worth checking even for objects not in the DB)
         existing_ids = Settings.Service.PVConfig.get_entry_object_ids()
         already_exists = False
         if object_id in existing_ids:  # if it does already have a config, ask if overwrite
@@ -371,7 +371,7 @@ class UIConfigEntryDialog(QDialog):
         Delete the PV configuration of the current object.
         """
         object_name = self.obj_name_cb.lineEdit().text()
-        object_id = DBUtils.get_object_id(object_name)
+        object_id = get_object_id(object_name)
 
         if not object_id:
             self.set_message_colored_text(f'Object ID for "{object_name}" was not found.', 'red')
@@ -416,8 +416,8 @@ class UIConfigEntryDialog(QDialog):
         self.obj_detail_class.clear()
         self.obj_detail_func.clear()
 
-        self.obj_detail_sdl_name.clear()
-        self.obj_detail_sdl_id.clear()
+        self.obj_detail_sld_name.clear()
+        self.obj_detail_sld_id.clear()
 
         self.last_details_update_obj = None
 
@@ -445,7 +445,7 @@ class UIConfigEntryDialog(QDialog):
         self.clear_details()
         self.message_lbl.clear()
 
-        obj_id = DBUtils.get_object_id(current_object)  # search for object in DB
+        obj_id = get_object_id(current_object)  # search for object in DB
         if obj_id:
             self.obj_type_cb.setEnabled(False)
             self.obj_comment.setEnabled(False)
@@ -465,23 +465,21 @@ class UIConfigEntryDialog(QDialog):
 
     def update_details(self, obj_id: int, current_object: str):
         """ Fetches the object record data and updates the details widgets with it. """
-        obj_record = DBUtils.get_object(obj_id)
-        obj_class_record = DBUtils.get_object_class(object_id=obj_id)
-        type_name = DBUtils.get_object_type(object_id=obj_id, name_only=True)
+        obj_record = get_object(obj_id)
+        obj_class_name = get_object_class(object_id=obj_id)
+        type_name = get_object_type(object_id=obj_id)
 
-        self.obj_comment.setText(obj_record[0][4])
+        self.obj_comment.setText(obj_record.ob_comment if obj_record else None)
         self.obj_type_cb.setCurrentText(type_name)
         self.type_and_comment_updated = True
 
-        self.obj_detail_name.setText(DBUtils.get_object_name(obj_id))
+        self.obj_detail_name.setText(get_object_name(obj_id))
         self.obj_detail_id.setText(f'{obj_id}')
-        self.obj_detail_class.setText(obj_class_record[0][2])
-        self.obj_detail_func.setText(DBUtils.get_object_function(object_id=obj_id, name_only=True))
+        self.obj_detail_class.setText(obj_class_name)
+        self.obj_detail_func.setText(get_object_function(object_id=obj_id))
 
-        sld_record = DBUtils.get_object_sld(object_id=obj_id)
-        if sld_record:
-            self.obj_detail_sdl_name.setText(sld_record[0][2])
-            self.obj_detail_sdl_id.setText(f'{sld_record[0][0]}')
+        self.obj_detail_sld_name.setText(get_object_sld(obj_id))
+        self.obj_detail_sld_id.setText(f'{get_sld_id(obj_id)}')
 
         self.last_details_update_obj = current_object
 
@@ -547,20 +545,19 @@ class UIConfigEntryDialog(QDialog):
             self.clear_measurement_type_labels()
             return
 
-        type_id = DBUtils.get_type_id(type_name=type_name)
+        type_id = get_type_id(type_name=type_name)
         if not type_id:
             manager_logger.warning(f'Type ID for {type_name} was not found.')
 
-        class_id = DBUtils.get_class_id(type_id=type_id)
+        class_id = get_class_id(type_id=type_id)
 
         sld = False
         # If class is Vessel, Cryostat or Gas Counter, display types for HLModule (class of Soft. Level Device)
-        if class_id in [DbClassIds.VESSEL, DbClassIds.CRYOSTAT, DbClassIds.GAS_COUNTER]:
+        if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT, DBClassIDs.GAS_COUNTER]:
             sld = True
-            class_id = DbClassIds.HE_LVL_MODULE
+            class_id = DBClassIDs.HE_LVL_MODULE
 
-        mea_types = DBUtils.get_class_measurement_types(class_id=class_id)
-
+        mea_types = get_measurement_types(object_class_id=class_id)
         for index, type_lbl in enumerate(self.mea_type_labels):
             if sld is True:
                 type_lbl.setText(f'SLD: {mea_types[index + 1]}')
@@ -598,7 +595,7 @@ class UIConfigEntryDialog(QDialog):
         for pv_name in self.mea_pv_names:
             name = pv_name.text()
             if name:
-                full_name = get_full_pv_name(name)
+                full_name = Settings.Service.CA.get_full_pv_name(name)
                 names.append(full_name)
             else:
                 names.append(None)
