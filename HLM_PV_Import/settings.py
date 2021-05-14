@@ -26,13 +26,14 @@ PVConfig.PATH = os.path.join(BASE_PATH, PVConfig.FILE)
 config = configparser.ConfigParser()
 config.read(os.path.join(BASE_PATH, 'settings.ini'))
 
+
 class CA:
     EPICS_CA_ADDR_LIST = config['ChannelAccess']['EPICS_CA_ADDR_LIST']  # Epics channel access address list
     CONN_TIMEOUT = config['ChannelAccess'].getfloat('ConnectionTimeout')
     STALE_AFTER = config['ChannelAccess'].getfloat('PvStaleAfter')
     ADD_STALE_PVS = config['ChannelAccess'].getboolean('AddStalePvs')
-    PV_PREFIX = config['ChannelAccess']['PV_PREFIX'] + ':' if config['ChannelAccess']['PV_PREFIX'] else ''
-    PV_DOMAIN = config['ChannelAccess']['PV_DOMAIN'] + ':' if config['ChannelAccess']['PV_DOMAIN'] else ''
+    PV_PREFIX = config['ChannelAccess']['PV_PREFIX'] if config['ChannelAccess']['PV_PREFIX'] else ''
+    PV_DOMAIN = config['ChannelAccess']['PV_DOMAIN'] if config['ChannelAccess']['PV_DOMAIN'] else ''
 
 
 class LoggingFiles:

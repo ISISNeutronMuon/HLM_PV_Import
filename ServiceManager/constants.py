@@ -5,6 +5,7 @@ from shared.const import *
 # About
 VER = '1.0.0'
 B_DATE = '18 December 2020'
+ISIS_URL = "https://www.isis.stfc.ac.uk/Pages/home.aspx"
 
 
 if getattr(sys, 'frozen', False):

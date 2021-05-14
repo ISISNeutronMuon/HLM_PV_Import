@@ -16,20 +16,7 @@ class UICASettings(QDialog):
         self._settings_changed = False
 
         # region Get widgets
-        self.addr_list = self.findChild(QListWidget, 'addressList')
-        self.addr_new_btn = self.findChild(QPushButton, 'newAddress')
-        self.addr_edit_btn = self.findChild(QPushButton, 'editAddress')
-        self.addr_del_btn = self.findChild(QPushButton, 'deleteAddress')
-
-        self.pv_prefix_ln = self.findChild(QLineEdit, 'pVPrefixLineEdit')
-        self.pv_domain_ln = self.findChild(QLineEdit, 'pVDomainLineEdit')
-        self.pv_stale_ln = self.findChild(QLineEdit, 'pVDataStaleLineEdit')
-        self.pv_timeout_ln = self.findChild(QLineEdit, 'pVConnTimeoutLineEdit')
-        self.add_stale_pvs = self.findChild(QCheckBox, 'addStalePvCB')
-
-        self.button_box = self.findChild(QDialogButtonBox, 'buttonBox')
         self.apply_btn = self.button_box.button(QDialogButtonBox.Apply)
-        self.message = self.findChild(QLabel, 'message')
         # endregion
 
         # region Connect signals to slots
@@ -37,13 +24,11 @@ class UICASettings(QDialog):
         self.addr_edit_btn.clicked.connect(self.edit_address)
         self.addr_del_btn.clicked.connect(self.delete_address)
 
-        self.pv_timeout_ln.textChanged.connect(lambda _: self.settings_changed(True))
-        self.pv_stale_ln.textChanged.connect(lambda _: self.settings_changed(True))
-        self.pv_prefix_ln.textChanged.connect(lambda _: self.settings_changed(True))
-        self.pv_domain_ln.textChanged.connect(lambda _: self.settings_changed(True))
+        self.text_settings = [self.pv_timeout_ln, self.pv_stale_ln, self.pv_prefix_ln, self.pv_domain_ln]
+        [x.textChanged.connect(lambda _: self.settings_changed(True)) for x in self.text_settings]
         self.add_stale_pvs.stateChanged.connect(lambda _: self.settings_changed(True))
 
-        self.button_box.rejected.connect(self.on_rejected)
+        self.button_box.rejected.connect(self.close)
         self.button_box.accepted.connect(self.on_accepted)
         self.apply_btn.clicked.connect(self.on_apply)
         # endregion
@@ -64,7 +49,7 @@ class UICASettings(QDialog):
         pv_domain = self.pv_domain_ln.text()
         pv_stale_threshold = self.pv_stale_ln.text()
         conn_timeout = self.pv_timeout_ln.text()
-        
+
         Settings.Service.CA.set_pv_prefix(pv_prefix)
         Settings.Service.CA.set_pv_domain(pv_domain)
         Settings.Service.CA.set_pv_stale_after(pv_stale_threshold)
@@ -104,9 +89,6 @@ class UICASettings(QDialog):
             self.on_apply()
         self.close()
 
-    def on_rejected(self):
-        self.close()
-
     def on_apply(self):
         self.apply_new_settings()
         self.update_fields()
@@ -115,14 +97,19 @@ class UICASettings(QDialog):
 
     def closeEvent(self, event: QCloseEvent):
         if self._settings_changed:
-            quit_msg = "Any changes will be lost. Cancel anyway?"
-            reply = QMessageBox.question(self, 'HLM PV Import',
-                                         quit_msg, QMessageBox.Yes, QMessageBox.No)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("Any changes will be lost.\nApply settings?")
+            msg.setWindowTitle('Unsaved changes')
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+            reply = msg.exec_()
 
-            if reply == QMessageBox.Yes:
-                event.accept()
-            else:
+            if reply == QMessageBox.Cancel:
                 event.ignore()
+            else:
+                if reply == QMessageBox.Yes:
+                    self.apply_new_settings()
+                event.accept()
 
     def showEvent(self, event: QShowEvent):
         self.update_fields()
@@ -147,6 +134,7 @@ class UICASettings(QDialog):
         item_row = self.addr_list.row(selected_item)
         self.addr_list.takeItem(item_row)
         # Items removed from a list widget will not be managed by Qt, and will need to be deleted manually.
+        # https://doc.qt.io/qt-5/qlistwidget.html#takeItem
         del selected_item
         self.settings_changed()
 

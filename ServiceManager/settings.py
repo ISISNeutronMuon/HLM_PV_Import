@@ -358,16 +358,16 @@ class _CA:
         self.update()
 
     def get_pv_prefix(self):
-        return self.config_parser['ChannelAccess']['PV_PREFIX'] + \
-               ':' if self.config_parser['ChannelAccess']['PV_PREFIX'] else ''
+        return self.config_parser['ChannelAccess']['PV_PREFIX'] \
+            if self.config_parser['ChannelAccess']['PV_PREFIX'] else ''
 
     def set_pv_prefix(self, new_prefix: str):
         self.config_parser['ChannelAccess']['PV_PREFIX'] = new_prefix
         self.update()
 
     def get_pv_domain(self):
-        return self.config_parser['ChannelAccess']['PV_DOMAIN'] + \
-               ':' if self.config_parser['ChannelAccess']['PV_DOMAIN'] else ''
+        return self.config_parser['ChannelAccess']['PV_DOMAIN'] \
+            if self.config_parser['ChannelAccess']['PV_DOMAIN'] else ''
 
     def set_pv_domain(self, new_domain: str):
         self.config_parser['ChannelAccess']['PV_DOMAIN'] = new_domain

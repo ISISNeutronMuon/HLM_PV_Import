@@ -26,15 +26,9 @@ class PvImport:
         Starts the PV data importing loop.
         """
         self.running = True  # in case it was previously stopped
-        start_time = time.time()
 
         while self.running:
-            time.sleep(LOOP_TIMER - ((time.time() - start_time) % LOOP_TIMER))
-
-            # For debugging
-            # pv_data = copy.deepcopy(self.pv_monitors.get_data())
-            # logger.info(f"({datetime.now().strftime('%H:%M:%S')}) {len(pv_data)} {pv_data}")
-
+            time.sleep(LOOP_TIMER)
             for object_id in self.config.object_ids:
 
                 # Check the object's next logging time in tasks, if not yet then go to next object_id
@@ -75,7 +69,7 @@ class PvImport:
                     continue
 
                 # Create a new measurement with the PV values for the object
-                add_measurement(object_id=object_id, mea_values=mea_values, mea_valid=True)
+                add_measurement(object_id=object_id, mea_values=mea_values)
 
     def stop(self):
         """

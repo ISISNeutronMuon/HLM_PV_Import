@@ -2,6 +2,7 @@ import configparser
 import ctypes
 import os
 
+from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QPalette, QColor
 from ServiceManager.logger import manager_logger
 from caproto.sync.client import read
@@ -66,6 +67,10 @@ def set_colored_text(label, text, color):
     pal.setColor(QPalette.WindowText, color)
     label.setPalette(pal)
     label.setText(text)
+
+
+def set_red_border(frame: QObject, highlight: bool = True):
+    frame.setStyleSheet(f"QObject#{frame.objectName()} {{{'border: 1px solid red;' if highlight else ''}}}")
 
 
 def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):

@@ -71,7 +71,7 @@ def get_object(object_id):
 
 
 @check_connection
-def add_measurement(object_id, mea_values: dict, mea_valid=True):
+def add_measurement(object_id, mea_values: dict):
     """
     Adds a measurement to the database. If the object currently has a Software Level Device, the measurement object will
     be the SLD. Otherwise, the measurement will be added to the object itself.
@@ -105,7 +105,7 @@ def add_measurement(object_id, mea_values: dict, mea_valid=True):
         mea_value3=mea_values['3'],
         mea_value4=mea_values['4'],
         mea_value5=mea_values['5'],
-        mea_valid=1 if mea_valid is True else 0,
+        mea_valid=1,
         mea_bookingcode=0  # 0 = measurement is not from the balance program (HZB)
     ).execute()
 
