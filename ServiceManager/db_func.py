@@ -1,6 +1,7 @@
 from peewee import DoesNotExist
 from datetime import datetime
 
+from shared.const import DBTypeIDs, DBClassIDs
 from shared.utils import get_sld_id, need_connection
 from shared.db_models import *
 from ServiceManager.logger import manager_logger as logger
@@ -172,7 +173,7 @@ def get_measurement_types(object_class_id: int):
         mea_types = [obj_class.oc_measuretype1, obj_class.oc_measuretype2, obj_class.oc_measuretype3,
                      obj_class.oc_measuretype4, obj_class.oc_measuretype5]
 
-        return {i+1: x for i, x in enumerate(mea_types)}
+        return {i + 1: x for i, x in enumerate(mea_types)}
     except DoesNotExist:
         return None
 
@@ -194,6 +195,14 @@ def get_object_sld(object_id: int):
 
 
 @need_connection
+def create_sld_if_required(object_id: int, object_name: str, type_name: str, class_id: int):
+    if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT, DBClassIDs.GAS_COUNTER]:
+        sld_id = add_object(name=f'SLD "{object_name}" (ID: {object_id})', type_id=DBTypeIDs.SLD,
+                            comment=f'Software Level Device for {type_name} "{object_name}" (ID: {object_id})')
+        add_relation(or_object_id=object_id, or_object_id_assigned=sld_id)
+
+
+@need_connection
 def add_object(name: str, type_id: int, comment: str = None):
     """
     Create a new object with the given name, type and comment.
@@ -202,6 +211,9 @@ def add_object(name: str, type_id: int, comment: str = None):
         name (str): The name of the object.
         type_id (int): The type ID of the object.
         comment (str): Object comment.
+
+    Returns:
+        (int): ID of the added object.
 
     Raises:
         DBObjectNameAlreadyExists: If an object with the given name already exists in the database.
@@ -213,6 +225,8 @@ def add_object(name: str, type_id: int, comment: str = None):
     record_id = GamObject.insert(ob_name=name, ob_objecttype=type_id, ob_comment=comment).execute()
 
     logger.info(f'Created object no. {record_id} ("{name}") of type {type_id}.')
+
+    return record_id
 
 
 @need_connection

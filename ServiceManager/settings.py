@@ -128,12 +128,7 @@ class _PVConfig:
             self.setup_file()
 
     def get_path(self):
-        config_file = self.get_config_file_name()
-        return os.path.join(self.service_path, config_file)
-
-    @staticmethod
-    def get_config_file_name():
-        return PV_CONFIG_FILE_NAME
+        return os.path.join(self.service_path, PV_CONFIG_FILE_NAME)
 
     def setup_file(self):
         """ Creates the user PV-Records config file if it doesn't exist. """
@@ -184,12 +179,7 @@ class _PVConfig:
         Returns:
             (list): List of object IDs.
         """
-        object_ids = []
-        entries = self.get_entries()
-        for entry in entries:
-            object_ids.append(entry[self.OBJ])
-
-        return object_ids
+        return [entry[self.OBJ] for entry in self.get_entries()]
 
     def add_entry(self, new_entry: dict, overwrite: bool = False):
         """
@@ -199,7 +189,6 @@ class _PVConfig:
             new_entry (dict): The record config.
             overwrite (bool, optional): If True, overwrites the entry that matches the object ID, Defaults to False.
         """
-        file_path = self.get_path()
         data = self.get_entries()
         if overwrite:
             overwritten = False
@@ -212,14 +201,12 @@ class _PVConfig:
                 manager_logger.warning(f'Entry with object ID {new_entry[self.OBJ]} was not overwritten.')
         else:
             data.append(new_entry)
-        data = {self.ROOT: data}
 
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
+        data = {self.ROOT: data}
+        self._json_dump(data)
         manager_logger.info(f'Added new PV configuration entry: {new_entry}')
 
     def delete_entry(self, object_id: int):
-        file_path = self.get_path()
         data = self.get_entries()
         deleted = False
         for index, entry in enumerate(data):
@@ -232,11 +219,14 @@ class _PVConfig:
             manager_logger.warning(f'Entry with object ID {object_id} should have been deleted but was not.')
 
         data = {self.ROOT: data}
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
+        self._json_dump(data)
 
         if deleted:
             manager_logger.info(f'Deleted PV configuration entry for object ID: {object_id}.')
+
+    def _json_dump(self, data):
+        with open(self.get_path(), 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
 
 
 class _Logging:
