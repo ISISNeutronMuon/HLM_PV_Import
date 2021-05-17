@@ -47,7 +47,7 @@
    <item>
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="0">
-      <widget class="QCheckBox" name="autoCheckPVConnection">
+      <widget class="QCheckBox" name="check_pv_on_new_entry_cb">
        <property name="toolTip">
         <string>Upon pressing the button to add/edit a configuration, the connection of PVs will be tested automatically. If disabled, this can be done manually through the &quot;Check PVs&quot; button, although a warning will not be shown on add/edit if one or more tests failed.</string>
        </property>
@@ -60,7 +60,7 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QCheckBox" name="autoLoadExistingConfig">
+      <widget class="QCheckBox" name="auto_load_existing_config_cb">
        <property name="toolTip">
         <string>When adding or editing a configuration entry, upon selecting an object, the measurement PV names will be automatically loaded and displayed. If disabled, this can be manually done by pressing the &quot;Load&quot; button when available.</string>
        </property>
@@ -112,7 +112,7 @@
    <item>
     <layout class="QGridLayout" name="gridLayout_2">
      <item row="0" column="1">
-      <widget class="QSpinBox" name="measUpdateIntervalSpinBox">
+      <widget class="QSpinBox" name="default_meas_update_interval_sb">
        <property name="toolTip">
         <string>Default value for how often the measurement values will be updated.</string>
        </property>
@@ -193,7 +193,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QDialogButtonBox" name="button_box">
      <property name="standardButtons">
       <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>

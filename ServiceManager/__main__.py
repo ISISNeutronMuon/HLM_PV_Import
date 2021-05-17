@@ -17,7 +17,7 @@ class App:
         self.app = QApplication([])
         self.app.setWindowIcon(QIcon(icon_path))
 
-        self.window = None
+        self.service_settings_window = None
         self.main_window = None
 
         # Look for the service path in manager settings
@@ -30,18 +30,14 @@ class App:
             Settings.init_service_settings(service_settings_path)
             self.show_main_window()
         else:
-            self.window = UIServicePathDialog()
-            self.window.show()
-            self.window.custom_signals.serviceUpdated.connect(self.show_main_window)
+            self.service_settings_window = UIServicePathDialog()
+            self.service_settings_window.show()
+            self.service_settings_window.custom_signals.serviceUpdated.connect(self.show_main_window)
 
     def show_main_window(self):
         if self.main_window is None:
             self.main_window = UIMainWindow()
         self.main_window.show()
-
-    @staticmethod
-    def raise_error():
-        assert False
 
 
 def excepthook(exc_type, exc_value, exc_tb):
@@ -55,7 +51,6 @@ def excepthook(exc_type, exc_value, exc_tb):
     error_dialog.setFont(QFont('Lucida Console', 9))
     error_dialog.showMessage(err_msg)
     error_dialog.exec()
-    # QApplication.quit()  # or QtWidgets.QApplication.exit(0)
 
 
 def main():
@@ -64,11 +59,10 @@ def main():
 
     sys.excepthook = excepthook
     manager_logger.info("Starting application.")
-    e = App()
-    ret = e.app.exec_()
-    manager_logger.info("Event loop exited.")
-    e.app.quit()
-    sys.exit(ret)
+    service_manager = App()
+    rec = service_manager.app.exec_()
+    manager_logger.info("Exit application.")
+    sys.exit(rec)
 
 
 if __name__ == '__main__':

@@ -4,6 +4,29 @@ from shared.db_models import *
 from shared.const import DBTypeIDs
 
 
+def _end_with_colon(string):
+    return string if string.endswith(':') else f'{string}:'
+
+
+def get_short_pv_name(pv_name, prefix, domain):
+    return pv_name.replace(_end_with_colon(prefix), '').replace(_end_with_colon(domain), '')
+
+
+def get_full_pv_name(pv_name, prefix, domain):
+    """
+    Adds the prefix and domain to the PV name.
+
+    Args:
+        pv_name (str): The PV name.
+        prefix (str): The PV prefix.
+        domain (str): The PV domain.
+    Returns:
+        (str) The full PV name, with its prefix and domain.
+    """
+    pv_name = get_short_pv_name(pv_name, prefix, domain)
+    return f'{_end_with_colon(prefix)}{_end_with_colon(domain)}{pv_name}' if pv_name else None
+
+
 def need_connection(func):
     """
     Call function only if DB connection is usable.

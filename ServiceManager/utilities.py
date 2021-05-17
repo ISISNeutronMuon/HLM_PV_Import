@@ -3,7 +3,9 @@ import ctypes
 import os
 
 from PyQt5.QtCore import QObject
-from PyQt5.QtGui import QPalette, QColor
+from PyQt5.QtGui import QPalette, QColor, QCloseEvent
+from PyQt5.QtWidgets import QMessageBox
+
 from ServiceManager.logger import manager_logger
 from caproto.sync.client import read
 
@@ -18,18 +20,14 @@ def test_pv_connection(name: str, timeout: int = 1):
 
     Returns:
         (boolean): True if connected, False otherwise.
-
-    Raises:
-        CaprotoTimeoutError: If establishing the connection to the PV timed out.
     """
 
     try:
         read(pv_name=name, timeout=timeout)
+        return True
     except Exception as e:
         manager_logger.error(e)
         return False
-
-    return True
 
 
 def is_admin():
@@ -94,3 +92,20 @@ def setup_settings_file(path: str, template: dict, parser: configparser.ConfigPa
             parser[f'{section}'][f'{option_key}'] = option_val
     with open(path, 'w') as settings_file:
         parser.write(settings_file)
+
+
+def apply_unsaved_changes_dialog(event: QCloseEvent, apply_settings_func, settings_changed):
+    if settings_changed:
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText("Any changes will be lost.\nApply settings?")
+        msg.setWindowTitle('Unsaved changes')
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+        reply = msg.exec_()
+
+        if reply == QMessageBox.Cancel:
+            event.ignore()
+        else:
+            if reply == QMessageBox.Yes:
+                apply_settings_func()
+            event.accept()

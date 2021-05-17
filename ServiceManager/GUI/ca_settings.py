@@ -6,6 +6,7 @@ from PyQt5 import uic
 
 from ServiceManager.constants import ca_settings_ui
 from ServiceManager.settings import Settings
+from ServiceManager.utilities import apply_unsaved_changes_dialog
 
 
 class UICASettings(QDialog):
@@ -96,20 +97,7 @@ class UICASettings(QDialog):
         self.message.setText('Settings updated.')
 
     def closeEvent(self, event: QCloseEvent):
-        if self._settings_changed:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setText("Any changes will be lost.\nApply settings?")
-            msg.setWindowTitle('Unsaved changes')
-            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
-            reply = msg.exec_()
-
-            if reply == QMessageBox.Cancel:
-                event.ignore()
-            else:
-                if reply == QMessageBox.Yes:
-                    self.apply_new_settings()
-                event.accept()
+        apply_unsaved_changes_dialog(event, self.apply_new_settings, self._settings_changed)
 
     def showEvent(self, event: QShowEvent):
         self.update_fields()

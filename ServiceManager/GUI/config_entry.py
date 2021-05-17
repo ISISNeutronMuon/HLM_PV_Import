@@ -225,7 +225,7 @@ class UIConfigEntryDialog(QDialog):
         mea_pv_names = [mea[0].text() for mea in self.mea_widgets]
         measurement_pvs = {}
         for index, pv_name in enumerate(mea_pv_names):
-            measurement_pvs[f'{index + 1}'] = pv_name if pv_name else None
+            measurement_pvs[f'{index + 1}'] = Settings.Service.CA.get_short_pv_name(pv_name) if pv_name else None
 
         config_data = {
             Settings.Service.PVConfig.OBJ: object_id,

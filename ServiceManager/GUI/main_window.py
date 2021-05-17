@@ -338,11 +338,8 @@ class UIMainWindow(QMainWindow):
     def trigger_service_directory(self):
         if self.service_dir_path_w is None:
             self.service_dir_path_w = UIServicePathDialog()
-            self.service_dir_path_w.custom_signals.serviceUpdated.connect(self.update_service)
-            self.service_dir_path_w.custom_signals.serviceUpdated.connect(self.update_fields)
-        else:
-            self.service_dir_path_w.update_fields()
-
+            self.service_dir_path_w.service_updated.connect(self.update_service)
+            self.service_dir_path_w.service_updated.connect(self.update_fields)
         self.service_dir_path_w.exec_()
 
     @staticmethod

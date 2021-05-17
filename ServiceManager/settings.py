@@ -9,6 +9,7 @@ from ServiceManager.logger import manager_logger, log_exception
 from ServiceManager.utilities import setup_settings_file
 from ServiceManager.db_func import db_connect, db_connected, DBConnectionError
 from shared import db_models
+from shared.utils import get_full_pv_name as get_full_pv_name_, get_short_pv_name as get_short_pv_name_
 
 
 class _Settings:
@@ -198,13 +199,15 @@ class _PVConfig:
                     overwritten = True
                     break
             if not overwritten:
-                manager_logger.warning(f'Entry with object ID {new_entry[self.OBJ]} was not overwritten.')
+                manager_logger.error(f'Entry with object ID {new_entry[self.OBJ]} was not overwritten.')
+                return
         else:
             data.append(new_entry)
 
         data = {self.ROOT: data}
         self._json_dump(data)
-        manager_logger.info(f'Added new PV configuration entry: {new_entry}')
+        manager_logger.info(f'Added new PV configuration entry: {new_entry}' if not overwrite
+                            else f'Updated PV configuration entry: {new_entry}')
 
     def delete_entry(self, object_id: int):
         data = self.get_entries()
@@ -371,12 +374,10 @@ class _CA:
         self.update()
 
     def get_full_pv_name(self, name):
-        if not name:
-            return None
-        name = name.replace(self.get_pv_prefix(), '').replace(self.get_pv_domain(), '')
-        return f'{self.get_pv_prefix()}{self.get_pv_domain()}{name}'
+        return get_full_pv_name_(name, prefix=self.get_pv_prefix(), domain=self.get_pv_domain())
 
-
+    def get_short_pv_name(self, name):
+        return get_short_pv_name_(name, prefix=self.get_pv_prefix(), domain=self.get_pv_domain())
 # endregion
 
 

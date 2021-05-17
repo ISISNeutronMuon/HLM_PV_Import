@@ -71,7 +71,7 @@
       <number>21</number>
      </property>
      <item row="0" column="0">
-      <widget class="QLabel" name="hostLabel">
+      <widget class="QLabel" name="host_label">
        <property name="minimumSize">
         <size>
          <width>85</width>
@@ -95,10 +95,10 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="hostLineEdit"/>
+      <widget class="QLineEdit" name="host"/>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="dBNameLabel">
+      <widget class="QLabel" name="db_label">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -133,10 +133,10 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="dBNameLineEdit"/>
+      <widget class="QLineEdit" name="db"/>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="userLabel">
+      <widget class="QLabel" name="user_label">
        <property name="minimumSize">
         <size>
          <width>85</width>
@@ -160,7 +160,7 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QLineEdit" name="userLineEdit">
+      <widget class="QLineEdit" name="user">
        <property name="text">
         <string/>
        </property>
@@ -170,7 +170,7 @@
       </widget>
      </item>
      <item row="3" column="0">
-      <widget class="QLabel" name="passLabel">
+      <widget class="QLabel" name="password_label">
        <property name="minimumSize">
         <size>
          <width>85</width>
@@ -196,7 +196,7 @@
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QLineEdit" name="passLineEdit">
+      <widget class="QLineEdit" name="password">
        <property name="text">
         <string/>
        </property>
@@ -241,7 +241,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QDialogButtonBox" name="button_box">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
        <horstretch>0</horstretch>

@@ -5,6 +5,8 @@ from HLM_PV_Import.ca_wrapper import get_connected_pvs
 from HLM_PV_Import.db_func import get_object
 import json
 
+from shared.utils import get_full_pv_name
+
 
 class UserConfig:
     """
@@ -123,14 +125,14 @@ class UserConfig:
                 if pv_name:
                     config_pvs.append(pv_name)
 
+        if full_names:
+            config_pvs = [get_full_pv_name(pv_name, prefix=CA.PV_PREFIX, domain=CA.PV_DOMAIN) for pv_name in config_pvs]
+
         if no_duplicates:
             config_pvs = set(config_pvs)
 
         if isinstance(config_pvs, set):
             config_pvs = list(config_pvs)
-
-        if full_names:
-            config_pvs = [self._get_full_pv_name(pv) for pv in config_pvs]
 
         return config_pvs
 
@@ -147,7 +149,8 @@ class UserConfig:
         """
         # Get the measurements of the entry with the given object_id, None if not found
         entry_meas = next((x[PVConfig.MEAS] for x in self.entries if x[PVConfig.OBJ] == object_id), None)
-        return {key: self._get_full_pv_name(val) if full_names else val for key, val in entry_meas.items() if val}
+        return {key: get_full_pv_name(val, prefix=CA.PV_PREFIX, domain=CA.PV_DOMAIN)
+                if full_names else val for key, val in entry_meas.items() if val}
 
     @staticmethod
     def _get_all_entries():
@@ -172,24 +175,11 @@ class UserConfig:
 
             return data
 
-    @staticmethod
-    def _get_full_pv_name(pv_name):
-        """
-        Adds the prefix and domain to the PV name.
-
-        Args:
-            pv_name (str): The PV name.
-        Returns:
-            (str) The full PV name, with its prefix and domain.
-        """
-        pv_name = pv_name.replace(CA.PV_PREFIX, '').replace(CA.PV_DOMAIN, '')
-
-        return f'{CA.PV_PREFIX}{CA.PV_DOMAIN}{pv_name}' if pv_name else None
-
 
 class PVConfigurationException(ValueError):
     """
     There is a problem with the PV configuration.
     """
+
     def __init__(self, err_msg):
         super(PVConfigurationException, self).__init__(err_msg)
