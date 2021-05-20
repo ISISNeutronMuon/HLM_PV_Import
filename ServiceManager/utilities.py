@@ -2,10 +2,11 @@ import configparser
 import ctypes
 import os
 
-from PyQt5.QtCore import QObject
-from PyQt5.QtGui import QPalette, QColor, QCloseEvent
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtCore import QObject, QSize
+from PyQt5.QtGui import QPalette, QColor, QCloseEvent, QIcon
+from PyQt5.QtWidgets import QMessageBox, QPushButton
 
+from ServiceManager.constants import ASSETS_PATH
 from ServiceManager.logger import manager_logger
 from caproto.sync.client import read
 
@@ -109,3 +110,10 @@ def apply_unsaved_changes_dialog(event: QCloseEvent, apply_settings_func, settin
             if reply == QMessageBox.Yes:
                 apply_settings_func()
             event.accept()
+
+
+def setup_button(button: QPushButton, icon_name: str = None):
+    if icon_name:
+        button.setIcon(QIcon(os.path.join(ASSETS_PATH, icon_name)))
+    button.setIconSize(QSize(15, 15))
+    button.setStyleSheet("QPushButton { text-align: left; }")

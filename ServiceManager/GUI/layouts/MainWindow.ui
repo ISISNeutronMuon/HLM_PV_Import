@@ -19,7 +19,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_10">
     <item>
-     <widget class="QFrame" name="serviceStatusFrame">
+     <widget class="QFrame" name="service_status_frame">
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>
@@ -40,7 +40,7 @@
         <number>5</number>
        </property>
        <item>
-        <widget class="QWidget" name="serviceDetails" native="true">
+        <widget class="QWidget" name="service_status_panel" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="leftMargin">
            <number>0</number>
@@ -57,7 +57,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QLabel" name="statusMessage">
+             <widget class="QLabel" name="service_status_title">
               <property name="minimumSize">
                <size>
                 <width>450</width>
@@ -95,7 +95,7 @@
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_6">
               <item>
-               <widget class="QPushButton" name="serviceStart">
+               <widget class="QPushButton" name="btn_service_start">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -110,7 +110,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="serviceStop">
+               <widget class="QPushButton" name="btn_service_stop">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -125,7 +125,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="serviceRestart">
+               <widget class="QPushButton" name="btn_service_restart">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -168,7 +168,7 @@
                 <item>
                  <layout class="QFormLayout" name="serviceForm1">
                   <item row="0" column="0">
-                   <widget class="QLabel" name="nameLabel">
+                   <widget class="QLabel" name="service_details_name_lbl">
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -180,7 +180,7 @@
                    </widget>
                   </item>
                   <item row="0" column="1">
-                   <widget class="QLineEdit" name="nameText">
+                   <widget class="QLineEdit" name="service_details_name">
                     <property name="focusPolicy">
                      <enum>Qt::NoFocus</enum>
                     </property>
@@ -199,7 +199,7 @@
                    </widget>
                   </item>
                   <item row="1" column="0">
-                   <widget class="QLabel" name="statusLabel">
+                   <widget class="QLabel" name="service_details_status_lbl">
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -211,7 +211,7 @@
                    </widget>
                   </item>
                   <item row="1" column="1">
-                   <widget class="QLineEdit" name="statusText">
+                   <widget class="QLineEdit" name="service_details_status">
                     <property name="focusPolicy">
                      <enum>Qt::NoFocus</enum>
                     </property>
@@ -227,7 +227,7 @@
                    </widget>
                   </item>
                   <item row="2" column="0">
-                   <widget class="QLabel" name="pidLabel">
+                   <widget class="QLabel" name="service_details_pid_lbl">
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -239,7 +239,7 @@
                    </widget>
                   </item>
                   <item row="2" column="1">
-                   <widget class="QLineEdit" name="pidText">
+                   <widget class="QLineEdit" name="service_details_pid">
                     <property name="focusPolicy">
                      <enum>Qt::NoFocus</enum>
                     </property>
@@ -275,7 +275,7 @@
                 <item>
                  <layout class="QFormLayout" name="serviceForm2">
                   <item row="0" column="0">
-                   <widget class="QLabel" name="startUpTypeLabel">
+                   <widget class="QLabel" name="service_details_startup_lbl">
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -287,7 +287,7 @@
                    </widget>
                   </item>
                   <item row="0" column="1">
-                   <widget class="QLineEdit" name="startUpTypeText">
+                   <widget class="QLineEdit" name="service_details_startup">
                     <property name="focusPolicy">
                      <enum>Qt::NoFocus</enum>
                     </property>
@@ -303,7 +303,7 @@
                    </widget>
                   </item>
                   <item row="1" column="0">
-                   <widget class="QLabel" name="descriptionLabel">
+                   <widget class="QLabel" name="service_details_descriptionservice_details_description_lbl">
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -315,7 +315,7 @@
                    </widget>
                   </item>
                   <item row="1" column="1">
-                   <widget class="QLineEdit" name="descriptionText">
+                   <widget class="QLineEdit" name="service_details_description">
                     <property name="focusPolicy">
                      <enum>Qt::NoFocus</enum>
                     </property>
@@ -331,7 +331,7 @@
                    </widget>
                   </item>
                   <item row="2" column="0">
-                   <widget class="QLabel" name="usernameLabel">
+                   <widget class="QLabel" name="service_details_usernameservice_details_username_lbl">
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -343,7 +343,7 @@
                    </widget>
                   </item>
                   <item row="2" column="1">
-                   <widget class="QLineEdit" name="usernameText">
+                   <widget class="QLineEdit" name="service_details_username">
                     <property name="focusPolicy">
                      <enum>Qt::NoFocus</enum>
                     </property>
@@ -365,7 +365,7 @@
               <item>
                <layout class="QFormLayout" name="formLayout">
                 <item row="0" column="0">
-                 <widget class="QLabel" name="binPathLabel">
+                 <widget class="QLabel" name="service_details_binpath_lbl">
                   <property name="font">
                    <font>
                     <pointsize>9</pointsize>
@@ -377,7 +377,7 @@
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QLineEdit" name="binPathText">
+                 <widget class="QLineEdit" name="service_details_binpath">
                   <property name="focusPolicy">
                    <enum>Qt::NoFocus</enum>
                   </property>
@@ -411,7 +411,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
-          <widget class="QToolButton" name="refreshDbConnButton">
+          <widget class="QToolButton" name="db_connection_refresh_btn">
            <property name="maximumSize">
             <size>
              <width>25</width>
@@ -432,7 +432,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="dbConnLbl">
+          <widget class="QLabel" name="db_connection_status_lbl">
            <property name="font">
             <font>
              <pointsize>9</pointsize>
@@ -446,7 +446,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="dbConnStatus">
+          <widget class="QLabel" name="db_connection_status">
            <property name="font">
             <font>
              <pointsize>9</pointsize>
@@ -473,7 +473,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="dbLastCheckedLbl">
+          <widget class="QLabel" name="db_connection_last_checked">
            <property name="font">
             <font>
              <pointsize>8</pointsize>
@@ -490,7 +490,7 @@
      </widget>
     </item>
     <item>
-     <widget class="Line" name="h_line_1">
+     <widget class="Line" name="h_line_one">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -510,7 +510,7 @@
          <item>
           <layout class="QVBoxLayout" name="mainButtons">
            <item>
-            <widget class="QPushButton" name="expandTableButton">
+            <widget class="QPushButton" name="expand_table_btn">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -532,7 +532,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="newButton">
+            <widget class="QPushButton" name="new_config_btn">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -547,7 +547,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="editButton">
+            <widget class="QPushButton" name="edit_config_btn">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -562,7 +562,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="deleteButton">
+            <widget class="QPushButton" name="delete_config_btn">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -584,7 +584,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="filterButton">
+            <widget class="QPushButton" name="show_filter_btn">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -599,7 +599,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="refreshButton">
+            <widget class="QPushButton" name="refresh_btn">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -631,7 +631,7 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_9">
            <item>
-            <widget class="QTableWidget" name="configTable">
+            <widget class="QTableWidget" name="config_table">
              <property name="font">
               <font>
                <pointsize>9</pointsize>
@@ -716,7 +716,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QFrame" name="filterFrame">
+            <widget class="QFrame" name="filter_frame">
              <property name="styleSheet">
               <string notr="true"/>
              </property>
@@ -742,7 +742,7 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_4">
                 <item>
-                 <widget class="QComboBox" name="filterColumnCB">
+                 <widget class="QComboBox" name="filter_columns_cb">
                   <property name="font">
                    <font>
                     <pointsize>9</pointsize>
@@ -757,7 +757,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="filterValueLE">
+                 <widget class="QLineEdit" name="filter_bar">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -786,7 +786,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_5">
                   <item>
-                   <widget class="QPushButton" name="applyFilterBtn">
+                   <widget class="QPushButton" name="apply_filter_btn">
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -804,7 +804,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="clearFilterBtn">
+                   <widget class="QPushButton" name="clear_filter_btn">
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -843,7 +843,7 @@
      </widget>
     </item>
     <item>
-     <widget class="Line" name="h_line_2">
+     <widget class="Line" name="h_line_two">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -862,7 +862,7 @@
         <number>11</number>
        </property>
        <item>
-        <widget class="QWidget" name="serviceLog" native="true">
+        <widget class="QWidget" name="service_log_panel" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <property name="leftMargin">
            <number>0</number>
@@ -881,7 +881,7 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_3">
               <item>
-               <widget class="QLabel" name="serviceLogLabel">
+               <widget class="QLabel" name="service_log_lbl">
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -919,7 +919,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="font_size_lbl">
+               <widget class="QLabel" name="service_log_font_size_lbl">
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -937,7 +937,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="fontSizeCB">
+               <widget class="QComboBox" name="service_log_font_size">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -1061,7 +1061,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QSpinBox" name="logLinesSpinBox">
+               <widget class="QSpinBox" name="service_log_show_lines_spinbox">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -1116,7 +1116,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="logScrollDownButton">
+               <widget class="QPushButton" name="service_log_scroll_down_btn">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -1138,7 +1138,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="openLogFileButton">
+               <widget class="QPushButton" name="service_log_file_open_btn">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -1155,7 +1155,7 @@
              </layout>
             </item>
             <item>
-             <widget class="QPlainTextEdit" name="serviceLogText">
+             <widget class="QPlainTextEdit" name="service_log_txt">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -1220,37 +1220,37 @@
     <property name="title">
      <string>Settings</string>
     </property>
-    <addaction name="actionGeneral"/>
-    <addaction name="actionChannel_Access"/>
-    <addaction name="actionDB_Connection"/>
+    <addaction name="general_settings_action"/>
+    <addaction name="ca_settings_action"/>
+    <addaction name="db_settings_action"/>
     <addaction name="separator"/>
-    <addaction name="actionService_Directory"/>
+    <addaction name="service_directory_action"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionAbout"/>
+    <addaction name="about_action"/>
    </widget>
    <widget class="QMenu" name="menuOpen">
     <property name="title">
      <string>View</string>
     </property>
-    <addaction name="actionManager_Error_Log"/>
-    <addaction name="actionManager_Settings"/>
-    <addaction name="actionManager_Data_Dir"/>
+    <addaction name="manager_log_action"/>
+    <addaction name="manager_settings_action"/>
+    <addaction name="manager_settings_dir_action"/>
     <addaction name="separator"/>
-    <addaction name="actionDebug_log"/>
-    <addaction name="actionService_directory"/>
-    <addaction name="actionService_Settings"/>
+    <addaction name="show_service_log"/>
+    <addaction name="show_service_dir"/>
+    <addaction name="show_service_settings"/>
     <addaction name="separator"/>
-    <addaction name="actionPV_Config"/>
+    <addaction name="open_pv_config_action"/>
    </widget>
    <addaction name="menuSettings"/>
    <addaction name="menuOpen"/>
    <addaction name="menuHelp"/>
   </widget>
-  <action name="actionDB_Connection">
+  <action name="db_settings_action">
    <property name="text">
     <string>DB Connection</string>
    </property>
@@ -1285,7 +1285,7 @@
     <string>Open debug log</string>
    </property>
   </action>
-  <action name="actionAbout">
+  <action name="about_action">
    <property name="text">
     <string>About</string>
    </property>
@@ -1295,52 +1295,52 @@
     <string>About</string>
    </property>
   </action>
-  <action name="actionGeneral">
+  <action name="general_settings_action">
    <property name="text">
     <string>General</string>
    </property>
   </action>
-  <action name="actionChannel_Access">
+  <action name="ca_settings_action">
    <property name="text">
     <string>Channel Access</string>
    </property>
   </action>
-  <action name="actionService_Directory">
+  <action name="service_directory_action">
    <property name="text">
     <string>Service Directory</string>
    </property>
   </action>
-  <action name="actionDebug_log">
+  <action name="show_service_log">
    <property name="text">
     <string>Service Log</string>
    </property>
   </action>
-  <action name="actionService_directory">
+  <action name="show_service_dir">
    <property name="text">
     <string>Service Directory</string>
    </property>
   </action>
-  <action name="actionManager_Error_Log">
+  <action name="manager_log_action">
    <property name="text">
     <string>Manager Log</string>
    </property>
   </action>
-  <action name="actionManager_Settings">
+  <action name="manager_settings_action">
    <property name="text">
     <string>Manager Settings</string>
    </property>
   </action>
-  <action name="actionService_Settings">
+  <action name="show_service_settings">
    <property name="text">
     <string>Service Settings</string>
    </property>
   </action>
-  <action name="actionManager_Data_Dir">
+  <action name="manager_settings_dir_action">
    <property name="text">
     <string>Manager Data Dir.</string>
    </property>
   </action>
-  <action name="actionPV_Config">
+  <action name="open_pv_config_action">
    <property name="text">
     <string>PV Config</string>
    </property>

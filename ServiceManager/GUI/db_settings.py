@@ -51,7 +51,6 @@ class UIDBSettings(QDialog):
 
         for setting_changed, label, admin_req in settings_to_check:
             any_setting_changed |= setting_changed and not(admin_req ^ is_admin())
-            print(any_setting_changed)
             if not admin_req or is_admin():
                 make_bold(label, setting_changed)
 

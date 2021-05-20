@@ -25,7 +25,7 @@ def get_object(object_id):
     Gets the record of the object with the given ID.
 
     Returns:
-        (GamObject): The object with the given ID.
+        (GamObject/None): The object with the given ID, None if not found.
 
     """
     return GamObject.get_or_none(GamObject.ob_id == object_id)
@@ -37,7 +37,7 @@ def get_object_id(object_name):
     Get the ID of the object with the given name.
 
     Returns:
-        (int): The object ID.
+        (int/None): The object ID, None if object with given name not found.
     """
     obj = GamObject.get_or_none(GamObject.ob_name == object_name)
     return obj.ob_id if obj else None
@@ -52,7 +52,7 @@ def get_object_name(object_id):
         object_id (int): The object ID.
 
     Returns:
-        (str): The object name.
+        (str/None): The object name, None if object with given ID not found.
     """
     obj = GamObject.get_or_none(GamObject.ob_id == object_id)
     return obj.ob_name if obj else None
@@ -91,7 +91,7 @@ def get_type_id(type_name: str):
         type_name (str): The object type name.
 
     Returns:
-        type_id (int): The object type ID.
+        type_id (int/None): The object type ID, None if not found.
     """
     obj_type = GamObjecttype.get_or_none(GamObjecttype.ot_name == type_name)
     return obj_type.ot_id if obj_type else None
@@ -106,7 +106,7 @@ def get_object_type(object_id: int):
         object_id (int): The object ID.
 
     Returns:
-        (str): The object type name.
+        (str/None): The object type name, None if not found.
     """
     obj = GamObject.get_or_none(GamObject.ob_id == object_id)
     return obj.ob_objecttype.ot_name if obj else None
@@ -121,7 +121,7 @@ def get_object_class(object_id: int):
         object_id (int): The object ID.
 
     Returns:
-        (str): The object class name.
+        (str/None): The object class name, None if not found.
     """
     obj = GamObject.get_or_none(GamObject.ob_id == object_id)
     return obj.ob_objecttype.ot_objectclass.oc_name if obj else None
@@ -136,7 +136,7 @@ def get_class_id(type_id: int):
         type_id (int): The object type ID.
 
     Returns:
-        (int): The object class ID.
+        (int/None): The object class ID, None if not found.
     """
     obj_type = GamObjecttype.get_or_none(GamObjecttype.ot_id == type_id)
     return obj_type.ot_objectclass.oc_id if obj_type else None
@@ -151,7 +151,7 @@ def get_object_function(object_id: int):
         object_id (int): The DB ID of the object.
 
     Returns:
-        (str): The object function name.
+        (str/None): The object function name, None if not found.
     """
     obj = GamObject.get_or_none(GamObject.ob_id == object_id)
     return obj.ob_objecttype.ot_objectclass.oc_function.of_name if obj else None
@@ -166,14 +166,12 @@ def get_measurement_types(object_class_id: int):
         object_class_id (int): The class ID.
 
     Returns:
-        (dict): The measurement types as a dict (Mea. No. / Type).
+        (list/None): The measurement types, None if class was not found.
     """
     try:
         obj_class = GamObjectclass.get(GamObjectclass.oc_id == object_class_id)
-        mea_types = [obj_class.oc_measuretype1, obj_class.oc_measuretype2, obj_class.oc_measuretype3,
-                     obj_class.oc_measuretype4, obj_class.oc_measuretype5]
-
-        return {i + 1: x for i, x in enumerate(mea_types)}
+        return [obj_class.oc_measuretype1, obj_class.oc_measuretype2, obj_class.oc_measuretype3,
+                obj_class.oc_measuretype4, obj_class.oc_measuretype5]
     except DoesNotExist:
         return None
 
@@ -187,7 +185,7 @@ def get_object_sld(object_id: int):
         object_id (int): The object ID.
 
     Returns:
-        (str): The object's SLD namem.
+        (str/None): The object's SLD name, None if not found.
     """
     sld_id = get_sld_id(object_id)
     sld = GamObject.get_or_none(GamObject.ob_id == sld_id)
@@ -230,23 +228,20 @@ def add_object(name: str, type_id: int, comment: str = None):
 
 
 @need_connection
-def add_relation(or_object_id: int, or_object_id_assigned: int,
-                 start_date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), removal_date=None):
+def add_relation(or_object_id: int, or_object_id_assigned: int):
     """
     Creates a relation between two objects. Note: Dates must be in '%Y-%m-%d %H:%M:%S' format.
 
     Args:
         or_object_id (int): The object ID (the object itself).
         or_object_id_assigned (int): The assigned object ID (e.g. the SLD/ILM Module etc.).
-        start_date (str, optional): The starting date of the relation, Defaults to current time.
-        removal_date (str, optional): The removal date of the relation, Defaults to None.
     """
     record_id = GamObjectrelation.insert(
         or_primary=0,
         or_object=or_object_id,
         or_object_id_assigned=or_object_id_assigned,
-        or_date_assignment=start_date,
-        or_date_removal=removal_date,
+        or_date_assignment=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        or_date_removal=None,
         or_outflow=None,
         or_bookingrequest=None
     ).execute()

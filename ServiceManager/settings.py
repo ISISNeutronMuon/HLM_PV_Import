@@ -4,7 +4,7 @@ import json
 import configparser
 import win32serviceutil
 from ServiceManager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEMPLATE, SERVICE_SETTINGS_FILE_NAME, \
-    SERVICE_SETTINGS_TEMPLATE, MANAGER_SETTINGS_DIR, MANAGER_LOGS_FILE, SERVICE_NAME, PV_CONFIG_FILE_NAME
+    SERVICE_SETTINGS_TEMPLATE, SERVICE_NAME, PV_CONFIG_FILE_NAME
 from ServiceManager.logger import manager_logger, log_exception
 from ServiceManager.utilities import setup_settings_file
 from ServiceManager.db_func import db_connect, db_connected, DBConnectionError
@@ -44,18 +44,6 @@ class ManagerSettings:
         self.config_parser.set('Service', 'Directory', new_path)
         self.update()
 
-    @staticmethod
-    def get_log_path():
-        return MANAGER_LOGS_FILE
-
-    @staticmethod
-    def get_manager_settings_path():
-        return MANAGER_SETTINGS_FILE
-
-    @staticmethod
-    def get_manager_settings_dir():
-        return MANAGER_SETTINGS_DIR
-
     def get_default_meas_update_interval(self):
         return self.config_parser['Defaults'].getint('MeasurementsUpdateInterval')
 
@@ -84,7 +72,6 @@ class ServiceSettings:
         self.config_parser.optionxform = lambda option_: option_  # preserve case for letters
         self.service_path = service_path
         self.settings_path = os.path.join(service_path, SERVICE_SETTINGS_FILE_NAME)
-        self.pv_config_path = os.path.join(service_path, )
 
         if not os.path.exists(self.settings_path):
             setup_settings_file(path=self.settings_path, template=SERVICE_SETTINGS_TEMPLATE, parser=self.config_parser)
@@ -93,7 +80,6 @@ class ServiceSettings:
 
         # Instantiate inner classes
         self.HeliumDB = _HeliumDB(self.config_parser, self.update)
-        self.Info = _Info(self.config_parser)
         self.CA = _CA(self.config_parser, self.update)
         self.Logging = _Logging(self.service_path)
         self.PVConfig = _PVConfig(self.service_path, self.config_parser)
@@ -152,7 +138,7 @@ class _PVConfig:
         config_file = self.get_path()
         with open(config_file) as f:
             data = json.load(f)
-            data = data[Settings.Service.PVConfig.ROOT]
+            data = data[self.ROOT]
 
             if not data:
                 manager_logger.warning('PV configuration file is empty or does not exist.')
@@ -246,6 +232,8 @@ class _HeliumDB:
     def __init__(self, config_parser, update):
         self.config_parser = config_parser
         self.update = update
+        self.user_option = 'DB_HE_USER'
+        self.pass_option = 'DB_HE_PASS'
 
     def get_name(self):
         return self.config_parser['HeRecoveryDB']['Name']
@@ -253,23 +241,18 @@ class _HeliumDB:
     def get_host(self):
         return self.config_parser['HeRecoveryDB']['Host']
 
-    @staticmethod
-    def get_user():
-        service_name = Settings.Service.Info.get_name()
-        if not service_name:
-            return
-        try:
-            return win32serviceutil.GetServiceCustomOption(serviceName=service_name, option='DB_HE_USER')
-        except Exception as e:
-            manager_logger.error(e)
+    def get_user(self):
+        return self._get_credentials(self.user_option)
+
+    def get_pass(self):
+        return self._get_credentials(self.pass_option)
 
     @staticmethod
-    def get_pass():
-        service_name = Settings.Service.Info.get_name()
-        if not service_name:
+    def _get_credentials(service_option):
+        if not SERVICE_NAME:
             return
         try:
-            return win32serviceutil.GetServiceCustomOption(serviceName=service_name, option='DB_HE_PASS')
+            return win32serviceutil.GetServiceCustomOption(serviceName=SERVICE_NAME, option=service_option)
         except Exception as e:
             manager_logger.error(e)
 
@@ -281,40 +264,25 @@ class _HeliumDB:
         self.config_parser['HeRecoveryDB']['Host'] = new_host
         self.update()
 
+    def set_user(self, new_user):
+        self._set_credentials(self.user_option, new_user, 'DB Connection user could not be set as Service Name '
+                                                          'was not found.')
+
+    def set_pass(self, new_pass):
+        self._set_credentials(self.pass_option, new_pass, 'DB Connection password could not be set as Service Name '
+                                                          'was not found.')
+
     @staticmethod
-    def set_user(new_user):
-        service_name = Settings.Service.Info.get_name()
-        if not service_name:
-            manager_logger.warning('DB Connection user could not be set as Service Name was not found.')
+    def _set_credentials(service_option, new_value, err_msg: str):
+        if not SERVICE_NAME:
+            manager_logger.error(err_msg)
             return
         try:
             win32serviceutil.SetServiceCustomOption(
-                serviceName=service_name, option='DB_HE_USER', value=new_user
+                serviceName=SERVICE_NAME, option=service_option, value=new_value
             )
         except Exception as e:
             manager_logger.error(e)
-
-    @staticmethod
-    def set_pass(new_pass):
-        service_name = Settings.Service.Info.get_name()
-        if not service_name:
-            manager_logger.warning('DB Connection password could not be set as Service Name was not found.')
-            return
-        try:
-            win32serviceutil.SetServiceCustomOption(
-                serviceName=service_name, option='DB_HE_PASS', value=new_pass
-            )
-        except Exception as e:
-            manager_logger.error(e)
-
-
-class _Info:
-    def __init__(self, config_parser):
-        self.config_parser = config_parser
-        self.service_name = SERVICE_NAME
-
-    def get_name(self):
-        return self.service_name
 
 
 class _CA:
