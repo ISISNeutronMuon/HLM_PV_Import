@@ -10,7 +10,7 @@ For information regarding both, please check the [HLM PV Import Wiki](https://gi
 * [HLM GAM Database](https://github.com/SampleEnvironment/He-Management/wiki#helium-level-monitoring-database) - the gas management database PV values are being imported into as object measurements
 * [Helium Recovery PLC](https://github.com/ISISComputingGroup/ibex_developers_manual/wiki/Helium-Recovery-PLC) - [FINS PLC](https://github.com/ISISComputingGroup/ibex_developers_manual/wiki/Omron-FINS) used for monitoring various parameters related to the helium gas recovery system
 * [HLM Project Sharepoint](http://www.facilities.rl.ac.uk/isis/projects/heliummgmt/_layouts/viewlsts.aspx?BaseType=1) - project management docs and other useful info
-* [HLM View](https://github.com/ISISNeutronMuon/HLM_View) - data display website
+* [HLM View](https://github.com/ISISNeutronMuon/HLM_View) - data display website repo
 
 ### How to run
 1. Download the code and pip install requirements.
