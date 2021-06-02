@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QCloseEvent, QShowEvent
-from PyQt5.QtWidgets import QDialog, QSpinBox, QDialogButtonBox, QLabel, QCheckBox
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 from PyQt5 import uic
 from ServiceManager.constants import general_settings_ui
 from ServiceManager.settings import Settings
@@ -26,14 +26,14 @@ class UIGeneralSettings(QDialog):
         # endregion
 
     def apply_new_settings(self):
-        Settings.Manager.set_default_meas_update_interval(self.default_meas_update_interval_sb.value())
-        Settings.Manager.set_new_entry_auto_pv_check(self.check_pv_on_new_entry_cb.isChecked())
-        Settings.Manager.set_auto_load_existing_config(self.auto_load_existing_config_cb.isChecked())
+        Settings.Manager.default_update_interval = self.default_meas_update_interval_sb.value()
+        Settings.Manager.auto_pv_check = self.check_pv_on_new_entry_cb.isChecked()
+        Settings.Manager.auto_load_existing_config = self.auto_load_existing_config_cb.isChecked()
 
     def update_fields(self):
-        self.default_meas_update_interval_sb.setValue(Settings.Manager.get_default_meas_update_interval())
-        self.check_pv_on_new_entry_cb.setChecked(Settings.Manager.get_new_entry_auto_pv_check())
-        self.auto_load_existing_config_cb.setChecked(Settings.Manager.get_auto_load_existing_config())
+        self.default_meas_update_interval_sb.setValue(Settings.Manager.default_update_interval)
+        self.check_pv_on_new_entry_cb.setChecked(Settings.Manager.auto_pv_check)
+        self.auto_load_existing_config_cb.setChecked(Settings.Manager.auto_load_existing_config)
         self.message_lbl.clear()
         self.settings_changed(False)
 

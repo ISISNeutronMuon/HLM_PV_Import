@@ -36,7 +36,7 @@ class UIServicePathDialog(QDialog):
         self.update_fields()
 
     def update_fields(self):
-        curr_path = Settings.Manager.get_service_path()
+        curr_path = Settings.Manager.service_path
         self.service_path.setText(curr_path)
         self.initial_service_path = curr_path
         self.ok_btn.setEnabled(False)
@@ -62,9 +62,9 @@ class UIServicePathDialog(QDialog):
     def on_finished(self, result):
         if result == QDialog.Accepted:
             path = self.service_path.text()
-            Settings.Manager.set_service_path(path)
+            Settings.Manager.service_path = path
             manager_logger.info('Service directory path changed.')
-            service_settings_path = Settings.Manager.get_service_path()
+            service_settings_path = Settings.Manager.service_path
             Settings.init_service_settings(service_settings_path)  # Init/Update Service settings with path
             self.service_updated.emit()
 

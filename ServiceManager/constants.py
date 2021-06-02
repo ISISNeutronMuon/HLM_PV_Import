@@ -1,10 +1,11 @@
 import os
 import sys
+# noinspection PyUnresolvedReferences
 from shared.const import *
 
 # About
-VER = '1.0.0'
-B_DATE = '18 December 2020'
+VER = '1.1.0'
+B_DATE = '20 May 2021'
 ISIS_URL = "https://www.isis.stfc.ac.uk/Pages/home.aspx"
 
 

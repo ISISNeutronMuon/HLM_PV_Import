@@ -1,13 +1,11 @@
-from PyQt5.QtCore import QObject, pyqtSignal, QEvent, QThread, Qt, QSize
-from PyQt5.QtGui import QShowEvent, QCloseEvent, QFont, QMovie
-from PyQt5.QtWidgets import QDialog, QFrame, QLabel, QMessageBox, QApplication, QHBoxLayout, QWidget, QLineEdit
+from PyQt5.QtWidgets import QDialog, QApplication, QLineEdit
 from PyQt5 import uic
 
-from ServiceManager.constants import config_entry_ui, loading_animation
+from ServiceManager.constants import config_entry_ui
 from ServiceManager.settings import Settings
-from ServiceManager.utilities import test_pv_connection, set_red_border
-from ServiceManager.logger import manager_logger
+from ServiceManager.utilities import set_red_border
 from ServiceManager.db_func import *
+from ServiceManager.GUI.config_entry_utils import *
 
 
 class UIConfigEntryDialog(QDialog):
@@ -123,7 +121,7 @@ class UIConfigEntryDialog(QDialog):
 
     def update_fields(self):
         self.add_items_to_cb()
-        self.log_interval_sb.setValue(Settings.Manager.get_default_meas_update_interval())
+        self.log_interval_sb.setValue(Settings.Manager.default_update_interval)
         self.obj_comment.clear()
 
         self.clear_details()
@@ -185,7 +183,8 @@ class UIConfigEntryDialog(QDialog):
                 set_red_border(self.obj_name_frame)
                 return
             except Exception as e:
-                logger.error(f'Exception occurred when adding new object to DB, aborting PV Config entry creation: {e}')
+                manager_logger.error(f'Exception occurred when adding new object to DB, aborting PV Config entry '
+                                     f'creation: {e}')
                 return
 
             create_sld_if_required(object_id=object_id, object_name=object_name,
@@ -204,7 +203,7 @@ class UIConfigEntryDialog(QDialog):
         # Test PV connections if auto-check is enabled, by starting the PV check thread. Once finished, it will emit
         # a signal to be picked by the main thread that will call the add_entry method.
         # If the auto-check is disabled, add entry directly.
-        auto_pv_check_enabled = Settings.Manager.get_new_entry_auto_pv_check()
+        auto_pv_check_enabled = Settings.Manager.auto_pv_check
         if auto_pv_check_enabled:
             self.pv_check_obj_id = object_id  # Store the object ID and whether it already has
             self.pv_check_obj_already_exists = already_exists  # a config. To be used after check thread finishes.
@@ -355,7 +354,7 @@ class UIConfigEntryDialog(QDialog):
             self.update_details(obj_id, current_object_name)
 
         if update_meas_pvs:
-            if Settings.Manager.get_auto_load_existing_config():  # If existing config auto-load setting is enabled
+            if Settings.Manager.auto_load_existing_config:  # If existing config auto-load setting is enabled
                 self.clear_measurement_pv_names()  # clear the PV names before updating
             self.check_for_existing_config_pvs(obj_id)
 
@@ -396,7 +395,7 @@ class UIConfigEntryDialog(QDialog):
         self.existing_config_load_btn.setEnabled(True)
         self.existing_config_load_btn.setText('Load')
 
-        if Settings.Manager.get_auto_load_existing_config():  # If existing config auto-load setting is enabled
+        if Settings.Manager.auto_load_existing_config:  # If existing config auto-load setting is enabled
             self.load_existing_config_pvs()  # update all PV names.
 
     def load_existing_config_pvs(self):
@@ -563,154 +562,3 @@ class UIConfigEntryDialog(QDialog):
         self.message_lbl.setText(msg)
         self.message_lbl.setStyleSheet(f'color: {color};')
     # endregion
-
-
-class ObjectNameCBFilter(QObject):
-    """ Focus events filter for the object name comboBox. """
-    focusOut = pyqtSignal()
-
-    def eventFilter(self, widget, event):
-        # FocusOut event
-        if event.type() == QEvent.FocusOut:
-            # Custom actions
-            self.focusOut.emit()
-        return False    # return False so that the widget will also handle the event
-
-
-class CheckPVsThread(QThread):
-    """ Thread to run the PV connection test. """
-
-    # Signals
-    mea_status_update = pyqtSignal(int, bool)
-    progress_bar_update = pyqtSignal(int)
-    display_progress_bar = pyqtSignal(bool)
-    finished_check = pyqtSignal(bool)
-
-    def __init__(self, *args, **kwargs):
-        QThread.__init__(self, *args, **kwargs)
-        self.finished.connect(self._on_finish)
-        self.pv_names = None
-        self._running = None
-        self.results = None
-
-        # If the PV connection test is started from the Save/Add Config button (auto-check before entry add/edit).
-        # This is used when the check is started automatically by the Add Configuration/Save button, and
-        # automatic PV check is enabled in general settings.
-        self._add_entry = False
-
-    def __del__(self):
-        self.wait()
-
-    def stop(self):
-        self._running = False
-        self.exit()
-
-    def _on_finish(self):
-        # clear_progress_bar
-        self.progress_bar_update.emit(0)
-        self.display_progress_bar.emit(False)
-
-        self.finished_check.emit(self._add_entry)
-
-    def set_pv_names(self, pv_names: list):
-        self.pv_names = pv_names
-
-    def add_entry_after_check(self, add_entry: bool):
-        self._add_entry = add_entry
-
-    def run(self):
-        self._running = True
-        manager_logger.info(f'Checking connection of measurement PVs: {self.pv_names}')
-        connected = []
-        failed = []
-        self.display_progress_bar.emit(True)
-        for index, pv_name in enumerate(self.pv_names):
-            if pv_name:
-                pv_connected = test_pv_connection(name=pv_name, timeout=2)
-                if not self._running:
-                    logger.info('Stopped PV connection check.')
-                    break
-                self.mea_status_update.emit(index, pv_connected)
-                if pv_connected:
-                    connected.append(pv_name)
-                else:
-                    failed.append(pv_name)
-
-            self.progress_bar_update.emit(index + 1)
-
-        if self._running:
-            manager_logger.info(f'PV connection check finished. Connected: {connected}. Failed: {failed}')
-
-        self.results = {'connected': connected, 'failed': failed}
-
-
-class LoadingPopupWindow(QWidget):
-    """ Loading splash screen to display during PV connection auto-check. """
-
-    def __init__(self):
-        super().__init__()
-        self.setFixedSize(210, 100)
-        self.setWindowFlags(Qt.SplashScreen | Qt.WindowStaysOnTopHint | Qt.CustomizeWindowHint)
-
-        layout = QHBoxLayout()
-
-        self.label_msg = QLabel()
-        self.label_msg.setText('Checking PVs ...')
-        font = QFont()
-        font.setPointSize(10)
-        self.label_msg.setFont(font)
-
-        self.load_animation_lbl = QLabel()
-        self.movie = QMovie(loading_animation)
-        self.load_animation_lbl.setMovie(self.movie)
-
-        size = QSize(50, 50)
-        self.movie.setScaledSize(size)
-
-        layout.addWidget(self.load_animation_lbl)
-        layout.addWidget(self.label_msg)
-
-        frame = QFrame(self)
-        frame.setFrameShape(QFrame.StyledPanel)
-        frame.setGeometry(self.geometry())
-        frame.setLayout(layout)
-
-    def showEvent(self, e: QShowEvent):
-        self.movie.start()
-
-    def closeEvent(self, e: QCloseEvent):
-        self.movie.stop()
-
-
-class OverwriteMessageBox(QMessageBox):
-    """ Message box displayed on Save/Add Config when the object already has an existing config entry. """
-
-    def __init__(self, object_name: str, object_id: int):
-        super().__init__()
-
-        self.setWindowTitle('Configuration already exists')
-        self.setText(f'{object_name} (ID: {object_id}) already has a PV configuration.\n'
-                     f'Overwrite existing configuration?')
-        self.setIcon(QMessageBox.Warning)
-        self.addButton(QMessageBox.Ok)
-        ok_btn = self.button(QMessageBox.Ok)
-        ok_btn.setText('Overwrite')
-        self.addButton(QMessageBox.Cancel)
-        self.setDefaultButton(QMessageBox.Cancel)
-
-
-class ConfigDeleteMessageBox(QMessageBox):
-    """ Confirmation message box to display on object config entry deletion within the Config Entry dialog window. """
-
-    def __init__(self, object_name: str, object_id: int):
-        super().__init__()
-
-        self.setWindowTitle('Delete configuration')
-        self.setText(f'Deleting configuration for {object_name} (ID: {object_id}).\n'
-                     f'Are you sure?')
-        self.setIcon(QMessageBox.Warning)
-        self.addButton(QMessageBox.Ok)
-        ok_btn = self.button(QMessageBox.Ok)
-        ok_btn.setText('Delete')
-        self.addButton(QMessageBox.Cancel)
-        self.setDefaultButton(QMessageBox.Cancel)

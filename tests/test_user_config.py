@@ -172,27 +172,3 @@ class TestUserConfig(unittest.TestCase):
 
         # Assert
         self.assertCountEqual(expected_value, result)
-
-    @parameterized.expand([
-        (
-            'MOTHER_DEWAR:HE_LEVEL',
-            f'{CA.PV_PREFIX}{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL'),
-        (
-            f'{CA.PV_PREFIX}{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL',
-            f'{CA.PV_PREFIX}{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL'
-        ),
-        (
-            f'{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL',
-            f'{CA.PV_PREFIX}{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL'
-        ),
-        (
-            f'{CA.PV_PREFIX}MOTHER_DEWAR:HE_LEVEL',
-            f'{CA.PV_PREFIX}{CA.PV_DOMAIN}MOTHER_DEWAR:HE_LEVEL'
-        )
-    ])
-    def test_GIVEN_pv_name_WHEN_get_full_name_THEN_full_name_is_returned(self, pv_name, expected_name):
-        # Act
-        result = self.config._get_full_pv_name(pv_name)
-
-        # Assert
-        self.assertEqual(expected_name, result)

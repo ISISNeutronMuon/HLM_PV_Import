@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt, pyqtSignal, QModelIndex
 from PyQt5.QtGui import QCloseEvent, QShowEvent
-from PyQt5.QtWidgets import QDialog, QPushButton, QListWidget, QLineEdit, QDialogButtonBox, QLabel, QListWidgetItem, \
-    QAbstractItemView, QStyledItemDelegate, QWidget, QStyleOptionViewItem, QMessageBox, QCheckBox
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QListWidgetItem, QAbstractItemView, QStyledItemDelegate, \
+    QWidget, QStyleOptionViewItem
 from PyQt5 import uic
 
 from ServiceManager.constants import ca_settings_ui
@@ -43,20 +43,14 @@ class UICASettings(QDialog):
     def apply_new_settings(self):
         # Epics CA Addr. List
         address_list = [self.addr_list.item(i).text() for i in range(self.addr_list.count())]
-        Settings.Service.CA.set_addr_list(address_list)
+        Settings.Service.CA.addr_list = address_list
 
         # PV Settings
-        pv_prefix = self.pv_prefix_ln.text()
-        pv_domain = self.pv_domain_ln.text()
-        pv_stale_threshold = self.pv_stale_ln.text()
-        conn_timeout = self.pv_timeout_ln.text()
-
-        Settings.Service.CA.set_pv_prefix(pv_prefix)
-        Settings.Service.CA.set_pv_domain(pv_domain)
-        Settings.Service.CA.set_pv_stale_after(pv_stale_threshold)
-        Settings.Service.CA.set_conn_timeout(conn_timeout)
-
-        Settings.Service.CA.set_add_stale_pvs(self.add_stale_pvs.isChecked())
+        Settings.Service.CA.stale = self.pv_stale_ln.text()
+        Settings.Service.CA.timeout = self.pv_timeout_ln.text()
+        Settings.Service.CA.prefix = self.pv_prefix_ln.text()
+        Settings.Service.CA.domain = self.pv_domain_ln.text()
+        Settings.Service.CA.add_stale = self.add_stale_pvs.isChecked()
 
     def update_fields(self):
         """
@@ -64,25 +58,18 @@ class UICASettings(QDialog):
         """
         # Update CA Addr List
         self.addr_list.clear()  # Clear the list items, then add the updated ones
-        ca_address_list = Settings.Service.CA.get_addr_list(as_list=True)
-        self.addr_list.addItems(ca_address_list)
+        addr_list = Settings.Service.CA.addr_list.split(' ')  # split the addresses into python list
+        self.addr_list.addItems(addr_list)
         for index in range(self.addr_list.count()):
             item = self.addr_list.item(index)
             item.setFlags(item.flags() | Qt.ItemIsEditable)
 
         # Update PV Settings
-        pv_prefix = Settings.Service.CA.get_pv_prefix()
-        pv_domain = Settings.Service.CA.get_pv_domain()
-        pv_stale = Settings.Service.CA.get_pv_stale_after()
-        pv_timeout = Settings.Service.CA.get_conn_timeout()
-
-        self.add_stale_pvs.setChecked(Settings.Service.CA.get_add_stale_pvs())
-
-        self.pv_prefix_ln.setText(pv_prefix)
-        self.pv_domain_ln.setText(pv_domain)
-        self.pv_stale_ln.setText(pv_stale)
-        self.pv_timeout_ln.setText(pv_timeout)
-
+        self.pv_stale_ln.setText(Settings.Service.CA.stale)
+        self.pv_timeout_ln.setText(Settings.Service.CA.timeout)
+        self.pv_prefix_ln.setText(Settings.Service.CA.prefix)
+        self.pv_domain_ln.setText(Settings.Service.CA.domain)
+        self.add_stale_pvs.setChecked(Settings.Service.CA.add_stale)
         self.message.clear()
 
     def on_accepted(self):

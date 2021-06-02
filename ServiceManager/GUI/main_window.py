@@ -224,7 +224,7 @@ class UIMainWindow(QMainWindow):
     # region Action Slots
     @staticmethod
     def trigger_open_service_dir():
-        service_dir_path = Settings.Manager.get_service_path()
+        service_dir_path = Settings.Manager.service_path
         os.startfile(service_dir_path)
 
     @staticmethod
@@ -422,7 +422,7 @@ class UIMainWindow(QMainWindow):
             setValue(self.service_log_txt.verticalScrollBar().maximum())
 
     def open_service_log(self):
-        log_path = Settings.Service.Logging.get_log_path()
+        log_path = Settings.Service.Logging.log_path
         if os.path.exists(log_path):
             os.startfile(log_path)
         else:

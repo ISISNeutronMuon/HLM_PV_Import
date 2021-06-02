@@ -37,31 +37,39 @@ class ManagerSettings:
         with open(self.settings_path, 'w') as settings_file:
             self.config_parser.write(settings_file)
 
-    def get_service_path(self):
+    @property
+    def service_path(self):
         return self.config_parser['Service']['Directory']
 
-    def set_service_path(self, new_path: str):
+    @service_path.setter
+    def service_path(self, new_path: str):
         self.config_parser.set('Service', 'Directory', new_path)
         self.update()
 
-    def get_default_meas_update_interval(self):
+    @property
+    def default_update_interval(self):
         return self.config_parser['Defaults'].getint('MeasurementsUpdateInterval')
 
-    def set_default_meas_update_interval(self, new_val: int):
+    @default_update_interval.setter
+    def default_update_interval(self, new_val: int):
         self.config_parser['Defaults']['MeasurementsUpdateInterval'] = f'{new_val}'
         self.update()
 
-    def get_new_entry_auto_pv_check(self):
+    @property
+    def auto_pv_check(self):
         return self.config_parser['General'].getboolean('AutoPVConnectionCheck')
 
-    def set_new_entry_auto_pv_check(self, checked: bool):
+    @auto_pv_check.setter
+    def auto_pv_check(self, checked: bool):
         self.config_parser['General']['AutoPVConnectionCheck'] = f'{checked}'
         self.update()
 
-    def get_auto_load_existing_config(self):
+    @property
+    def auto_load_existing_config(self):
         return self.config_parser['General'].getboolean('AutoLoadExistingConfig')
 
-    def set_auto_load_existing_config(self, checked: bool):
+    @auto_load_existing_config.setter
+    def auto_load_existing_config(self, checked: bool):
         self.config_parser['General']['AutoLoadExistingConfig'] = f'{checked}'
         self.update()
 
@@ -89,8 +97,8 @@ class ServiceSettings:
             self.config_parser.write(settings_file)
 
     def connect_to_db(self):
-        db_models.initialize_database(name=self.HeliumDB.get_name(), host=self.HeliumDB.get_host(),
-                                      user=self.HeliumDB.get_user(), password=self.HeliumDB.get_pass())
+        db_models.initialize_database(name=self.HeliumDB.name, host=self.HeliumDB.host,
+                                      user=self.HeliumDB.user, password=self.HeliumDB.password)
         try:
             db_connect()
         except DBConnectionError:
@@ -224,7 +232,8 @@ class _Logging:
         logs_dir = os.path.join(service_path, 'logs')
         self._log_path = os.path.join(logs_dir, 'service', 'service.log')
 
-    def get_log_path(self):
+    @property
+    def log_path(self):
         return self._log_path
 
 
@@ -235,16 +244,20 @@ class _HeliumDB:
         self.user_option = 'DB_HE_USER'
         self.pass_option = 'DB_HE_PASS'
 
-    def get_name(self):
+    @property
+    def name(self):
         return self.config_parser['HeRecoveryDB']['Name']
 
-    def get_host(self):
+    @property
+    def host(self):
         return self.config_parser['HeRecoveryDB']['Host']
 
-    def get_user(self):
+    @property
+    def user(self):
         return self._get_credentials(self.user_option)
 
-    def get_pass(self):
+    @property
+    def password(self):
         return self._get_credentials(self.pass_option)
 
     @staticmethod
@@ -256,19 +269,23 @@ class _HeliumDB:
         except Exception as e:
             manager_logger.error(e)
 
-    def set_name(self, new_name: str):
+    @name.setter
+    def name(self, new_name: str):
         self.config_parser['HeRecoveryDB']['Name'] = new_name
         self.update()
 
-    def set_host(self, new_host: str):
+    @host.setter
+    def host(self, new_host: str):
         self.config_parser['HeRecoveryDB']['Host'] = new_host
         self.update()
 
-    def set_user(self, new_user):
+    @user.setter
+    def user(self, new_user):
         self._set_credentials(self.user_option, new_user, 'DB Connection user could not be set as Service Name '
                                                           'was not found.')
 
-    def set_pass(self, new_pass):
+    @password.setter
+    def password(self, new_pass):
         self._set_credentials(self.pass_option, new_pass, 'DB Connection password could not be set as Service Name '
                                                           'was not found.')
 
@@ -290,62 +307,71 @@ class _CA:
         self.config_parser = config_parser
         self.update = update
         # Setup the channel access address list in order to connect to PVs
-        os.environ['EPICS_CA_ADDR_LIST'] = self.get_addr_list()
+        os.environ['EPICS_CA_ADDR_LIST'] = self.addr_list
 
-    def get_addr_list(self, as_list: bool = False):
-        addr_list = self.config_parser['ChannelAccess']['EPICS_CA_ADDR_LIST']
-        if as_list:
-            addr_list = addr_list.split(' ')
-        return addr_list
+    @property
+    def addr_list(self):
+        return self.config_parser['ChannelAccess']['EPICS_CA_ADDR_LIST']
 
-    def set_addr_list(self, new_list):
+    @addr_list.setter
+    def addr_list(self, new_list):
         if isinstance(new_list, list):
             new_list = ' '.join(new_list)
         self.config_parser['ChannelAccess']['EPICS_CA_ADDR_LIST'] = new_list
         self.update()
 
-    def get_conn_timeout(self):
+    @property
+    def timeout(self):
         return self.config_parser['ChannelAccess']['ConnectionTimeout']
 
-    def set_conn_timeout(self, new_timeout: int):
+    @timeout.setter
+    def timeout(self, new_timeout: int):
         self.config_parser['ChannelAccess']['ConnectionTimeout'] = f'{new_timeout}'
         self.update()
 
-    def get_pv_stale_after(self):
+    @property
+    def stale(self):
         return self.config_parser['ChannelAccess']['PvStaleAfter']
 
-    def set_pv_stale_after(self, new_threshold: int):
+    @stale.setter
+    def stale(self, new_threshold: int):
         self.config_parser['ChannelAccess']['PvStaleAfter'] = f'{new_threshold}'
         self.update()
 
-    def get_pv_prefix(self):
+    @property
+    def prefix(self):
         return self.config_parser['ChannelAccess']['PV_PREFIX'] \
             if self.config_parser['ChannelAccess']['PV_PREFIX'] else ''
 
-    def set_pv_prefix(self, new_prefix: str):
+    @prefix.setter
+    def prefix(self, new_prefix: str):
         self.config_parser['ChannelAccess']['PV_PREFIX'] = new_prefix
         self.update()
 
-    def get_pv_domain(self):
+    @property
+    def domain(self):
         return self.config_parser['ChannelAccess']['PV_DOMAIN'] \
             if self.config_parser['ChannelAccess']['PV_DOMAIN'] else ''
 
-    def set_pv_domain(self, new_domain: str):
+    @domain.setter
+    def domain(self, new_domain: str):
         self.config_parser['ChannelAccess']['PV_DOMAIN'] = new_domain
         self.update()
 
-    def get_add_stale_pvs(self):
+    @property
+    def add_stale(self):
         return self.config_parser['ChannelAccess'].getboolean('AddStalePvs')
 
-    def set_add_stale_pvs(self, checked: bool):
+    @add_stale.setter
+    def add_stale(self, checked: bool):
         self.config_parser['ChannelAccess']['AddStalePvs'] = f'{checked}'
         self.update()
 
     def get_full_pv_name(self, name):
-        return get_full_pv_name_(name, prefix=self.get_pv_prefix(), domain=self.get_pv_domain())
+        return get_full_pv_name_(name, prefix=self.prefix, domain=self.domain)
 
     def get_short_pv_name(self, name):
-        return get_short_pv_name_(name, prefix=self.get_pv_prefix(), domain=self.get_pv_domain())
+        return get_short_pv_name_(name, prefix=self.prefix, domain=self.domain)
 # endregion
 
 

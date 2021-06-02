@@ -21,7 +21,7 @@ class ServiceLogUpdaterThread(QThread):
     enable_or_disable_buttons = pyqtSignal(bool)
 
     def update_log(self):
-        debug_log_path = Settings.Service.Logging.get_log_path()
+        debug_log_path = Settings.Service.Logging.log_path
         try:
             last_modified = os.path.getmtime(debug_log_path)
         except FileNotFoundError as e:

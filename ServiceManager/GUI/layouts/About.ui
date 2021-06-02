@@ -14,9 +14,6 @@
    <string>About</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
-   <property name="bottomMargin">
-    <number>18</number>
-   </property>
    <item>
     <widget class="QPushButton" name="logo">
      <property name="cursor">
@@ -124,7 +121,7 @@
     </spacer>
    </item>
    <item>
-    <widget class="QLabel" name="documentation">
+    <widget class="QLabel" name="link2">
      <property name="maximumSize">
       <size>
        <width>16777215</width>
@@ -132,7 +129,23 @@
       </size>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://github.com/SampleEnvironment/He-Management/wiki&quot;&gt;&lt;span style=&quot; font-size:10pt; font-weight:600; color:#0000ff;&quot;&gt;He Management Wiki&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://github.com/ISISNeutronMuon/HLM_PV_Import/wiki&quot;&gt;&lt;span style=&quot; font-size:10pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;HLM PV Import Wiki&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="link1">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://github.com/SampleEnvironment/He-Management/wiki&quot;&gt;&lt;span style=&quot; font-size:10pt; font-weight:600; text-decoration: underline; color:#0000ff;&quot;&gt;Helium Management Wiki&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="openExternalLinks">
       <bool>true</bool>
@@ -155,7 +168,7 @@
    <item>
     <widget class="QLabel" name="copyright">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;Copyright (c) 2020 &lt;br/&gt;Science and Technology Facilities Council&lt;br/&gt;All rights reserved&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;Copyright (c) 2021 &lt;br/&gt;Science and Technology Facilities Council&lt;br/&gt;All rights reserved&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
@@ -187,6 +200,9 @@
        <height>16777215</height>
       </size>
      </property>
+     <property name="layoutDirection">
+      <enum>Qt::LeftToRight</enum>
+     </property>
      <property name="text">
       <string>OK</string>
      </property>
@@ -201,7 +217,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>ok</tabstop>
   <tabstop>logo</tabstop>
  </tabstops>
  <resources/>

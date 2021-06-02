@@ -66,16 +66,16 @@ class UIDBSettings(QDialog):
         self.close()
 
     def save_new_settings(self):
-        Settings.Service.HeliumDB.set_host(self.host.text())
-        Settings.Service.HeliumDB.set_name(self.db.text())
+        Settings.Service.HeliumDB.host = self.host.text()
+        Settings.Service.HeliumDB.name = self.db.text()
 
         if is_admin():
             try:
-                Settings.Service.HeliumDB.set_user(self.user.text())
-                Settings.Service.HeliumDB.set_pass(self.password.text())
+                Settings.Service.HeliumDB.user = self.user.text()
+                Settings.Service.HeliumDB.password = self.password.text()
 
-                registry_user = Settings.Service.HeliumDB.get_user()
-                registry_pass = Settings.Service.HeliumDB.get_pass()
+                registry_user = Settings.Service.HeliumDB.user
+                registry_pass = Settings.Service.HeliumDB.password
 
                 if registry_user == self.user.text() and registry_pass == self.password.text():
                     set_colored_text(label=self.message, text='Updated DB configuration.', color=QColor('green'))
@@ -137,14 +137,14 @@ class UIDBSettings(QDialog):
                 widget.setPlaceholderText(msg)
                 widget.setToolTip('Please restart the app in Administrator Mode to edit this setting.')
         else:
-            self.reg_user = Settings.Service.HeliumDB.get_user()
-            self.reg_pass = Settings.Service.HeliumDB.get_pass()
+            self.reg_user = Settings.Service.HeliumDB.user
+            self.reg_pass = Settings.Service.HeliumDB.password
             self.user.setText(self.reg_user)
             self.password.setText(self.reg_pass)
 
         # Check if host and db name are already in the settings.ini, and if so add them to the fields
-        self.settings_host = Settings.Service.HeliumDB.get_host()
-        self.settings_db = Settings.Service.HeliumDB.get_name()
+        self.settings_host = Settings.Service.HeliumDB.host
+        self.settings_db = Settings.Service.HeliumDB.name
 
         if self.settings_host:
             self.host.setText(self.settings_host)

@@ -79,7 +79,6 @@ def add_measurement(object_id, mea_values: dict):
     Args:
         object_id (int): Record/Object id of the object the measurement is for.
         mea_values (dict): A dict of the measurement values, max 5, in measurement_number(str)/pv_value pairs.
-        mea_valid (boolean, optional): Whether the measurement is valid, Defaults to True.
     """
     obj = GamObject.get(GamObject.ob_id == object_id)
     type_name = obj.ob_objecttype.ot_name

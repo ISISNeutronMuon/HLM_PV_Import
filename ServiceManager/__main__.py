@@ -21,7 +21,7 @@ class App:
         self.main_window = None
 
         # Look for the service path in manager settings
-        service_settings_path = Settings.Manager.get_service_path()
+        service_settings_path = Settings.Manager.service_path
 
         # If service path is found, initialize service settings and open main window
         # Otherwise, open Service Path dialog and ask for the service directory path.
