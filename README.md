@@ -15,7 +15,7 @@ For information regarding both, please check the [HLM PV Import Wiki](https://gi
 ### How to run
 1. Download the code and pip install requirements.
 1. Run `pyinstaller HlmManager.spec` and `pyinstaller HlmService.spec` inside the project root. Both the manager and service should now be bundled, and the .exe files found in `\dist`.
-2. Either copy the service `settings.ini` and `pv_config.json` from [HLM Settings, Config and HLM DB.zip](https://github.com/ISISComputingGroup/IBEX/files/5766092/HLM.Settings.Config.and.HLM.DB.zip) to the same directory as `HlmService.exe`, or run `HlmManager\HlmManager.exe` and select the directory path of `HlmService.exe` when prompted, which should create the PV configuration and service settings files.
+2. Either copy the service `settings.ini` and `pv_config.json` from [HLM Settings, Config and HLM DB.zip](https://github.com/ISISComputingGroup/IBEX/files/5766092/HLM.Settings.Config.and.HLM.DB.zip) to the same directory as `HlmService.exe`, or run `HlmManager\HlmManager.exe` and select the directory path of `HlmService.exe` when prompted, which should create the default PV configuration and service settings files.
 3. `HlmService.exe install` via terminal with admin rights, or put [service_setup.zip](https://github.com/ISISComputingGroup/IBEX/files/5766153/service_setup.zip) in the same directory and run it (does the same thing).
 4. Follow the rest of the [instructions](https://github.com/ISISNeutronMuon/HLM_PV_Import/wiki/Service-Setup-&-Manager-Manual). 
 
