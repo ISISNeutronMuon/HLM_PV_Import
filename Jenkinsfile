@@ -43,6 +43,7 @@ pipeline {
         checkout scm
         bat """
             %HLM_PYTHON% -m venv myvenv
+            echo "helloo"
             myvenv\\Scripts\\activate
             echo "hello"
             %HLM_PYTHON% -m pip install -r requirements.txt
