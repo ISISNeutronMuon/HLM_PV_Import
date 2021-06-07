@@ -8,6 +8,7 @@ $pythonDownloadPath = "python-$pythonVersion.exe"
 $pythonInstallDir = "Python$pythonVersion"
 
 (New-Object Net.WebClient).DownloadFile($pythonUrl, $pythonDownloadPath)
+dir
 & $pythonDownloadPath /quiet InstallAllUsers=1 PrependPath=1 Include_test=0 TargetDir=$pythonInstallDir
 if ($LASTEXITCODE -ne 0) {
     throw "The python installer at '$pythonDownloadPath' exited with error code '$LASTEXITCODE'"
