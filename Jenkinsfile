@@ -6,6 +6,9 @@ pipeline {
   agent {
     label "ndw1757"
   }
+  environment {
+    HLM_PYTHON= "C:/HLM_PV_Import"
+  }
 
   triggers {
     pollSCM('H/2 * * * *')
@@ -39,10 +42,9 @@ pipeline {
         echo "Branch: ${env.BRANCH_NAME}"
         checkout scm
         bat """
-            Powershell.exe -File InstallPython.ps1
-            python -m venv myvenv
+            %HLM_PYTHON% -m venv myvenv
             myvenv/Scripts/activate.bat
-            python -m pip install -r requirements.txt
+            %HLM_PYTHON% -m pip install -r requirements.txt
         """
       }
     }
