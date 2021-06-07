@@ -39,8 +39,7 @@ pipeline {
         echo "Branch: ${env.BRANCH_NAME}"
         checkout scm
         bat """
-            dir
-            Powershell.exe InstallPython.ps1
+            Powershell.exe -File InstallPython.ps1
             python -m venv myvenv
             myvenv/Scripts/activate.bat
             python -m pip install -r requirements.txt
