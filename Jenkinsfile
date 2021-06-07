@@ -39,9 +39,9 @@ pipeline {
         echo "Branch: ${env.BRANCH_NAME}"
         checkout scm
         bat """
-            python -m venv myvenv
+            python3 -m venv myvenv
             myvenv/Scripts/activate.bat
-            python -m pip install -r requirements.txt
+            python3 -m pip install -r requirements.txt
         """
       }
     }
