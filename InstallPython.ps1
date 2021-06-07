@@ -4,8 +4,8 @@
 
 $pythonVersion = "3.8.1"
 $pythonUrl = "https://www.python.org/ftp/python/$pythonVersion/python-$pythonVersion.exe"
-$pythonDownloadPath = "python-$pythonVersion.exe"
-$pythonInstallDir = "Python$pythonVersion"
+$pythonDownloadPath = "python.exe"
+$pythonInstallDir = "Python"
 
 (New-Object Net.WebClient).DownloadFile($pythonUrl, $pythonDownloadPath)
 dir
