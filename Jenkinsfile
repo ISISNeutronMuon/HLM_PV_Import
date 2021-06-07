@@ -8,6 +8,7 @@ pipeline {
   }
   environment {
     HLM_PYTHON= "C:/HLM_PV_Import/python.exe"
+    CRYPTOGRAPHY_DONT_BUILD_RUST= 1
   }
 
   triggers {
