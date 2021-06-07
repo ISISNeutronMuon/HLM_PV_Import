@@ -44,9 +44,8 @@ pipeline {
         bat """
             %HLM_PYTHON% -m venv myvenv
             call "myvenv\\Scripts\\activate.bat"
-            %HLM_PYTHON% -m pip install -r requirements.txt
-            echo "hello2"
-            %HLM_PYTHON% -m unittest discover tests
+            python -m pip install -r requirements.txt
+            python -m unittest discover tests
         """
       }
     }
