@@ -46,6 +46,7 @@ pipeline {
             %HLM_PYTHON% -m venv myvenv
             call "myvenv\\Scripts\\activate.bat"
             python -m pip install -r requirements.txt
+            python setup_jenkins_settings_file.py
             python -m unittest discover tests
         """
       }
