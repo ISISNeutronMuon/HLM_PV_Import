@@ -40,7 +40,7 @@ pipeline {
         checkout scm
         bat """
             python -m venv myvenv
-            myvenv\Scripts\activate.bat
+            myvenv/Scripts/activate.bat
             python -m pip install -r requirements.txt
         """
       }
