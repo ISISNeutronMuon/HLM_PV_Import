@@ -43,9 +43,7 @@ pipeline {
         checkout scm
         bat """
             %HLM_PYTHON% -m venv myvenv
-            echo "helloo"
-            myvenv\\Scripts\\activate
-            echo "hello"
+            call "myvenv\\Scripts\\activate.bat"
             %HLM_PYTHON% -m pip install -r requirements.txt
             echo "hello2"
             %HLM_PYTHON% -m unittest discover tests
