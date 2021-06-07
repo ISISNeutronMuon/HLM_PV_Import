@@ -46,10 +46,17 @@ pipeline {
             %HLM_PYTHON% -m venv myvenv
             call "myvenv\\Scripts\\activate.bat"
             python -m pip install -r requirements.txt
+            python -m pip install unittest-xml-reporting
             python setup_jenkins_settings_file.py
-            python -m unittest discover tests
+            python -m xmlrunner discover tests -o test_results
         """
       }
+    }
+  }
+
+  post {
+    always {
+      junit "test_results/*.xml"
     }
   }
 }
