@@ -7,7 +7,7 @@ pipeline {
     label "ndw1757"
   }
   environment {
-    HLM_PYTHON= "C:/HLM_PV_Import"
+    HLM_PYTHON= "C:/HLM_PV_Import/python.exe"
   }
 
   triggers {
