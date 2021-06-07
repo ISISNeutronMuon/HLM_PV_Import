@@ -38,6 +38,11 @@ pipeline {
       steps {
         echo "Branch: ${env.BRANCH_NAME}"
         checkout scm
+        bat """
+            python -m venv myvenv
+            myvenv\Scripts\activate.bat
+            python -m pip install -r requirements.txt
+        """
       }
     }
   }
