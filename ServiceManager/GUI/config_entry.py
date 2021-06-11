@@ -177,7 +177,7 @@ class UIConfigEntryDialog(QDialog):
         if not object_id:
             type_name = self.obj_type_cb.currentText()
             type_id = get_type_id(type_name=type_name)
-
+            display_group_id = get_display_group_id(display_group=self.obj_display_group_cb.currentText())
             msg_box = QMessageBox.question(self, 'Create new object',
                                            f'Create new object "{object_name}" with type "{type_name}" '
                                            f'and save the PV configuration?',
@@ -186,7 +186,7 @@ class UIConfigEntryDialog(QDialog):
                 return
 
             try:
-                object_id = add_object(object_name, type_id, self.obj_comment.text())
+                object_id = add_object(object_name, type_id, display_group_id, self.obj_comment.text())
             except DBObjectNameAlreadyExists:
                 self.set_message_colored_text(f'Object "{object_name}" already exists in the database.', 'red')
                 set_red_border(self.obj_name_frame)

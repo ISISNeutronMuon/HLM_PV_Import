@@ -110,6 +110,21 @@ def get_type_id(type_name: str):
 
 
 @need_connection
+def get_display_group_id(display_group: str):
+    """
+    Get the ID of the object type with the given name.
+
+    Args:
+        display_group (str): The display group name.
+
+    Returns:
+        type_id (int/None): The object type ID, None if not found.
+    """
+    group = GamDisplaygroup.get_or_none(GamDisplaygroup.dg_name == display_group)
+    return group.dg_id if group else None
+
+
+@need_connection
 def get_object_type(object_id: int):
     """
     Returns the type name of the object with the specified ID.
@@ -219,7 +234,7 @@ def get_object_display_group(object_id: int):
     try:
         display_id = obj.ob_displaygroup
         return display_id.dg_name
-    except DoesNotExist:
+    except (DoesNotExist, AttributeError):
         return
 
 
@@ -232,13 +247,14 @@ def create_sld_if_required(object_id: int, object_name: str, type_name: str, cla
 
 
 @need_connection
-def add_object(name: str, type_id: int, comment: str = None):
+def add_object(name: str, type_id: int, display_group_id: int = None, comment: str = None):
     """
     Create a new object with the given name, type and comment.
 
     Args:
         name (str): The name of the object.
         type_id (int): The type ID of the object.
+        display_group_id (int): The ID of the display group this object is part of.
         comment (str): Object comment.
 
     Returns:
@@ -251,7 +267,8 @@ def add_object(name: str, type_id: int, comment: str = None):
         raise DBObjectNameAlreadyExists(f'Could not create object - '
                                         f'Object with name "{name}" already exists in the database.')
 
-    record_id = GamObject.insert(ob_name=name, ob_objecttype=type_id, ob_comment=comment).execute()
+    record_id = GamObject.insert(ob_name=name, ob_objecttype=type_id, ob_displaygroup=display_group_id,
+                                 ob_comment=comment).execute()
 
     logger.info(f'Created object no. {record_id} ("{name}") of type {type_id}.')
 
