@@ -56,6 +56,8 @@ class UIConfigEntryDialog(QDialog):
         self.object_name_filter.focusOut.connect(self.load_object_data)  # connect filter custom signal to slot
         self.obj_name_cb.installEventFilter(self.object_name_filter)  # install filter to widget
 
+        self.obj_display_group_cb.currentTextChanged.connect(self.message_lbl.clear)
+
         self.obj_type_cb.currentTextChanged.connect(self.message_lbl.clear)
         self.obj_type_cb.currentTextChanged.connect(lambda: set_red_border(self.obj_type_frame, False))
         self.obj_type_cb.currentTextChanged.connect(self.update_measurement_types)
@@ -116,6 +118,13 @@ class UIConfigEntryDialog(QDialog):
         self.obj_type_cb.addItem(None)
         try:
             self.obj_type_cb.addItems(get_all_type_names())
+        except TypeError:
+            pass
+
+        self.obj_display_group_cb.clear()
+        self.obj_display_group_cb.addItem(None)
+        try:
+            self.obj_display_group_cb.addItems(get_all_display_names())
         except TypeError:
             pass
 
@@ -317,6 +326,7 @@ class UIConfigEntryDialog(QDialog):
         """
         if self.type_and_comment_updated:
             self.obj_type_cb.setCurrentIndex(0)
+            self.obj_display_group_cb.setCurrentIndex(0)
             self.obj_comment.clear()
             self.type_and_comment_updated = False
 
@@ -344,6 +354,7 @@ class UIConfigEntryDialog(QDialog):
         self.message_lbl.clear()
 
         obj_id = get_object_id(current_object_name) if current_object_name else False
+        self.obj_display_group_cb.setEnabled(not obj_id)
         self.obj_type_cb.setEnabled(not obj_id)
         self.obj_comment.setEnabled(not obj_id)
         if not obj_id:
@@ -363,9 +374,11 @@ class UIConfigEntryDialog(QDialog):
         obj_record = get_object(obj_id)
         obj_class_name = get_object_class(object_id=obj_id)
         type_name = get_object_type(object_id=obj_id)
+        display_name = get_object_display_group(obj_id)
 
         self.obj_comment.setText(obj_record.ob_comment if obj_record else None)
         self.obj_type_cb.setCurrentText(type_name)
+        self.obj_display_group_cb.setCurrentText(display_name)
         self.type_and_comment_updated = True
 
         self.obj_detail_name.setText(get_object_name(obj_id))

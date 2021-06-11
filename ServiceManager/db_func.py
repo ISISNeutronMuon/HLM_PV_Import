@@ -83,6 +83,18 @@ def get_all_type_names():
 
 
 @need_connection
+def get_all_display_names():
+    """
+    Get a list of all display group names.
+
+    Returns:
+        (list): The display group names.
+    """
+    query = GamDisplaygroup.select(GamDisplaygroup.dg_name)
+    return [x.dg_name for x in query if x]
+
+
+@need_connection
 def get_type_id(type_name: str):
     """
     Get the ID of the object type with the given name.
@@ -190,6 +202,25 @@ def get_object_sld(object_id: int):
     sld_id = get_sld_id(object_id)
     sld = GamObject.get_or_none(GamObject.ob_id == sld_id)
     return sld.ob_name if sld else None
+
+
+@need_connection
+def get_object_display_group(object_id: int):
+    """
+    Get the name of the object's display group if it has one.
+
+    Args:
+        object_id (int): The object ID.
+
+    Returns:
+        (str/None): The object's display group, None if not found.
+    """
+    obj = GamObject.get_or_none(GamObject.ob_id == object_id)
+    try:
+        display_id = obj.ob_displaygroup
+        return display_id.dg_name
+    except DoesNotExist:
+        return
 
 
 @need_connection
