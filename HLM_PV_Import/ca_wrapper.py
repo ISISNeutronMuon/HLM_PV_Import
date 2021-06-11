@@ -1,16 +1,51 @@
 """
 Wrap caproto to give utilities methods for access in one place
 """
-from caproto.threading.client import Context
-from HLM_PV_Import.logger import pv_logger
-from HLM_PV_Import.settings import CA
+import json
 import time
+
+from caproto.threading.client import Context
+from caproto.sync.client import read
+from caproto import CaprotoError
+
+from HLM_PV_Import.logger import pv_logger, logger
+from HLM_PV_Import.settings import CA
+from HLM_PV_Import.utils import dehex_and_decompress, ints_to_string
 
 # Default timeout for reading a PV
 TIMEOUT = CA.CONN_TIMEOUT
 
 # time in s after which PV data is considered stale and will no longer be considered when adding a measurement
 STALE_AGE = CA.STALE_AFTER
+
+# PV that contains the instrument list
+INST_LIST_PV = "CS:INSTLIST"
+
+
+def get_instrument_list():
+    """
+    Retrieve the instrument list.
+
+    Returns:
+       (list): instruments with their host names
+    """
+    err_msg = "Error getting instrument list:"
+
+    try:
+        bytes_data = read(INST_LIST_PV).data
+        raw = ints_to_string([int(x) for x in bytes_data])
+    except CaprotoError as e:
+        logger.error(f"{err_msg} {e}")
+        return []
+
+    try:
+        full_inst_list_string = dehex_and_decompress(raw)
+        full_inst_list = json.loads(full_inst_list_string)
+    except Exception as e:
+        logger.error(f"{err_msg} {e}")
+        return []
+
+    return full_inst_list
 
 
 def get_connected_pvs(pv_list, timeout=TIMEOUT):
@@ -88,11 +123,21 @@ class PvMonitors:
         Returns:
             (boolean): True if data is stale, False if not.
         """
-        last_update = self._pv_last_update[pv_name]
-        current_time = time.time()
-        time_since_last_update = current_time - last_update
+        time_since_last_update = self.get_time_since_last_update(pv_name)
         if time_since_last_update >= STALE_AGE:
             pv_logger.warning(f"Stale PV: '{pv_name}' has not received updates for "
                               f"{'{:.1f}'.format(time_since_last_update)} seconds.")
             return True
         return False
+
+    def get_time_since_last_update(self, pv_name):
+        """
+        Returns how much time in seconds has passed since the given PV's last update.
+
+        Args:
+            pv_name (str): The PV name
+
+        Returns:
+            (int): Time in seconds since last update
+        """
+        return self._pv_last_update[pv_name] - time.time()
