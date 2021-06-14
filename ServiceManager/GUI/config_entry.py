@@ -259,10 +259,8 @@ class UIConfigEntryDialog(QDialog):
             return False
 
         input_valid = True
+        check_length = 50
         self.message_lbl.clear()
-        # if no object name
-        if not self.obj_name_cb.lineEdit().text():
-            input_valid = _set_invalid('Object name is required.', self.obj_name_frame)
         # if no object type
         type_name = self.obj_type_cb.currentText()
         if not type_name:
@@ -271,6 +269,21 @@ class UIConfigEntryDialog(QDialog):
             type_id = get_type_id(type_name=type_name)
             if not type_id:
                 input_valid = _set_invalid(f'Type "{type_name}" was not found.', self.obj_type_frame)
+            else:
+                # if type is valid check if it's one that requires SLD
+                if type_id == 2 or type_id == 4 or type_id == 7:
+                    logger.info(type_id)
+                    logger.info(get_max_object_id())
+                    # remove length of SLD "" (ID: <id>)
+                    check_length -= len(str(get_max_object_id()+1))+13
+        # if no object name
+        if not self.obj_name_cb.lineEdit().text():
+            input_valid = _set_invalid('Object name is required.', self.obj_name_frame)
+        else:
+            if len(self.obj_name_cb.lineEdit().text()) > check_length:
+                input_valid = \
+                    _set_invalid('Object name is too long. Max length for this object is: {}'.format(check_length),
+                                 self.obj_name_frame)
 
         # if no mea pv names
         if not any(mea[0].text() for mea in self.mea_widgets):
