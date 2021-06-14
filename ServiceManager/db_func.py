@@ -44,6 +44,21 @@ def get_object_id(object_name):
 
 
 @need_connection
+def get_max_object_id():
+    """
+    Get the ID highest ID.
+
+    Returns:
+        (int): The highest object ID in the database or zero if there isn't any present.
+    """
+    query = GamObject.select(GamObject.ob_id).order_by(GamObject.ob_id)
+    if not query:
+        return 0
+    else:
+        return query[-1].ob_id
+
+
+@need_connection
 def get_object_name(object_id):
     """
     Gets the name of the object with the given ID.
