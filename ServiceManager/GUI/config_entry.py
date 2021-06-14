@@ -272,10 +272,8 @@ class UIConfigEntryDialog(QDialog):
             else:
                 # if type is valid check if it's one that requires SLD
                 if type_id == 2 or type_id == 4 or type_id == 7:
-                    logger.info(type_id)
-                    logger.info(get_max_object_id())
-                    # remove length of SLD "" (ID: <id>)
-                    check_length -= len(str(get_max_object_id()+1))+13
+                    # remove length of SLD "" (ID: <id>) as this is added to the name of the objects SLD
+                    check_length -= len('SLD "" (ID: {})'.format(get_max_object_id()+1))
         # if no object name
         if not self.obj_name_cb.lineEdit().text():
             input_valid = _set_invalid('Object name is required.', self.obj_name_frame)
