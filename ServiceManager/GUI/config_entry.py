@@ -178,6 +178,8 @@ class UIConfigEntryDialog(QDialog):
 
             try:
                 object_id = add_object(object_name, type_id, self.obj_comment.text())
+                create_sld_if_required(object_id=object_id, object_name=object_name,
+                                       type_name=type_name, class_id=get_class_id(type_id))
             except DBObjectNameAlreadyExists:
                 self.set_message_colored_text(f'Object "{object_name}" already exists in the database.', 'red')
                 set_red_border(self.obj_name_frame)
@@ -186,9 +188,6 @@ class UIConfigEntryDialog(QDialog):
                 manager_logger.error(f'Exception occurred when adding new object to DB, aborting PV Config entry '
                                      f'creation: {e}')
                 return
-
-            create_sld_if_required(object_id=object_id, object_name=object_name,
-                                   type_name=type_name, class_id=get_class_id(type_id))
 
         # Check if object already has a PV configuration (worth checking even for objects not in the DB)
         existing_ids = Settings.Service.PVConfig.get_entry_object_ids()
