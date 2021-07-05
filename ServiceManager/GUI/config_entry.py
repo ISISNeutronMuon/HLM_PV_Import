@@ -187,6 +187,8 @@ class UIConfigEntryDialog(QDialog):
 
             try:
                 object_id = add_object(object_name, type_id, display_group_id, self.obj_comment.text())
+                create_sld_if_required(object_id=object_id, object_name=object_name,
+                                       type_name=type_name, class_id=get_class_id(type_id))
             except DBObjectNameAlreadyExists:
                 self.set_message_colored_text(f'Object "{object_name}" already exists in the database.', 'red')
                 set_red_border(self.obj_name_frame)
@@ -195,9 +197,6 @@ class UIConfigEntryDialog(QDialog):
                 manager_logger.error(f'Exception occurred when adding new object to DB, aborting PV Config entry '
                                      f'creation: {e}')
                 return
-
-            create_sld_if_required(object_id=object_id, object_name=object_name,
-                                   type_name=type_name, class_id=get_class_id(type_id))
 
         # Check if object already has a PV configuration (worth checking even for objects not in the DB)
         existing_ids = Settings.Service.PVConfig.get_entry_object_ids()
@@ -268,11 +267,10 @@ class UIConfigEntryDialog(QDialog):
             return False
 
         input_valid = True
+        object_name_max_length = 50
         self.message_lbl.clear()
-        # if no object name
-        if not self.obj_name_cb.lineEdit().text():
-            input_valid = _set_invalid('Object name is required.', self.obj_name_frame)
-        # if no object type
+
+        # check object type
         type_name = self.obj_type_cb.currentText()
         if not type_name:
             input_valid = _set_invalid('Object type is required.', self.obj_type_frame)
@@ -280,8 +278,21 @@ class UIConfigEntryDialog(QDialog):
             type_id = get_type_id(type_name=type_name)
             if not type_id:
                 input_valid = _set_invalid(f'Type "{type_name}" was not found.', self.obj_type_frame)
+            else:
+                class_id = get_class_id(type_id=type_id)
+                if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT, DBClassIDs.GAS_COUNTER]:
+                    # if object will have an SLD, lower max name length to make space for the SLD object name formatting
+                    object_name_max_length -= len(generate_sld_name(object_name="", object_id=get_max_object_id() + 1))
 
-        # if no mea pv names
+        # check object name
+        if not self.obj_name_cb.lineEdit().text():
+            input_valid = _set_invalid('Object name is required.', self.obj_name_frame)
+        else:
+            if len(self.obj_name_cb.lineEdit().text()) > object_name_max_length:
+                input_valid = _set_invalid('Object name is too long. Max length for this object is: {}'
+                                           .format(object_name_max_length), self.obj_name_frame)
+
+        # check measurement pv names
         if not any(mea[0].text() for mea in self.mea_widgets):
             input_valid = _set_invalid('At least one measurement is required.', self.mea_pvs_frame)
 
