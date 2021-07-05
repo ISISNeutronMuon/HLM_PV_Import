@@ -140,4 +140,4 @@ class PvMonitors:
         Returns:
             (int): Time in seconds since last update
         """
-        return self._pv_last_update[pv_name] - time.time()
+        return time.time() - self._pv_last_update[pv_name]
