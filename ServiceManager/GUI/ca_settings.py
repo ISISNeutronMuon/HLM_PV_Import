@@ -26,7 +26,7 @@ class UICASettings(QDialog):
         self.addr_del_btn.clicked.connect(self.delete_address)
 
         self.text_settings = [self.pv_timeout_ln, self.pv_stale_ln, self.pv_prefix_ln, self.pv_domain_ln]
-        [x.textChanged.connect(lambda _: self.settings_changed(True)) for x in self.text_settings]
+        [line_edit.textChanged.connect(lambda _: self.settings_changed(True)) for line_edit in self.text_settings]
         self.add_stale_pvs.stateChanged.connect(lambda _: self.settings_changed(True))
 
         self.button_box.rejected.connect(self.close)
