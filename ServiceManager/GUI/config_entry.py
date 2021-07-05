@@ -447,8 +447,8 @@ class UIConfigEntryDialog(QDialog):
             class_id = DBClassIDs.HE_LVL_MODULE
 
         mea_types = get_measurement_types(object_class_id=class_id)
-        for i, mea in enumerate(self.mea_widgets):
-            mea[1].setText(f'SLD: {mea_types[i]}' if sld else mea_types[i])
+        for mea_number, mea in enumerate(self.mea_widgets):
+            mea[1].setText(f'SLD: {mea_types[mea_number]}' if sld else mea_types[mea_number])
 
     def toggle_widgets_based_on_pv_check_running(self, pvs_check_running: bool):
         self.check_pvs_btn.setText('Checking connections ...' if pvs_check_running
