@@ -72,7 +72,7 @@ class UserConfig:
 
     def _check_measurement_pvs_connect(self):
         """
-        Checks whether the measurement PVs from the user configuration exist in the database.
+        Checks whether the measurement PVs from the user configuration connect.
 
         Raises:
             ValueError: If one or more PVs were not found.
