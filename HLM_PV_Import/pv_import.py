@@ -8,6 +8,7 @@ from collections import defaultdict
 import time
 
 LOOP_TIMER = PvImportConfig.LOOP_TIMER   # The timer between each PV import loop
+ONE_MINUTE_IN_SECONDS = 60
 
 
 class PvImport:
@@ -35,7 +36,7 @@ class PvImport:
                 if self.tasks[object_id] > time.time():
                     continue
                 # If object is ready to be updated, set curr time + log period in minutes as next run, then proceed
-                self.tasks[object_id] = time.time() + (60 * self.config.logging_periods[object_id])
+                self.tasks[object_id] = time.time() + (ONE_MINUTE_IN_SECONDS * self.config.logging_periods[object_id])
 
                 # Get the object's PVs, the initialize the blank measurement values dict (with None values)
                 object_meas = self.config.get_entry_measurement_pvs(object_id, full_names=True)

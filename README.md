@@ -10,17 +10,19 @@ For information regarding both, please check the [HLM PV Import Wiki](https://gi
 * [HLM GAM Database](https://github.com/SampleEnvironment/He-Management/wiki#helium-level-monitoring-database) - the gas management database PV values are being imported into as object measurements
 * [Helium Recovery PLC](https://github.com/ISISComputingGroup/ibex_developers_manual/wiki/Helium-Recovery-PLC) - [FINS PLC](https://github.com/ISISComputingGroup/ibex_developers_manual/wiki/Omron-FINS) used for monitoring various parameters related to the helium gas recovery system
 * [HLM Project Sharepoint](http://www.facilities.rl.ac.uk/isis/projects/heliummgmt/_layouts/viewlsts.aspx?BaseType=1) - project management docs and other useful info
+* [HLM View](https://github.com/ISISNeutronMuon/HLM_View) - data display website repo
 
-### How to run
+### How to build & run
 1. Download the code and pip install requirements.
-1. Run `pyinstaller HlmManager.spec` and `pyinstaller HlmService.spec` inside the project root. Both the manager and service should now be bundled, and the .exe files found in `\dist`.
-2. Either copy the service `settings.ini` and `pv_config.json` from [HLM Settings, Config and HLM DB.zip](https://github.com/ISISComputingGroup/IBEX/files/5766092/HLM.Settings.Config.and.HLM.DB.zip) to the same directory as `HlmService.exe`, or run `HlmManager\HlmManager.exe` and select the directory path of `HlmService.exe` when prompted, which should create the PV configuration and service settings files.
-3. `HlmService.exe install` via terminal with admin rights, or put [service_setup.zip](https://github.com/ISISComputingGroup/IBEX/files/5766153/service_setup.zip) in the same directory and run it (does the same thing).
-4. Follow the rest of the [instructions](https://github.com/ISISNeutronMuon/HLM_PV_Import/wiki/Service-Setup-&-Manager-Manual). 
+2. Run `pyinstaller HlmManager.spec` and `pyinstaller HlmService.spec` inside the project root. Both the manager and service should now be bundled, and the .exe files found in `\dist`.
+3. Either copy the service `settings.ini` and `pv_config.json` from [HLM Settings, Config and HLM DB.zip](https://github.com/ISISComputingGroup/IBEX/files/5766092/HLM.Settings.Config.and.HLM.DB.zip) to the same directory as `HlmService.exe`, or run `HlmManager\HlmManager.exe` and select the directory path of `HlmService.exe` when prompted, which should create the default PV configuration and service settings files.
+4. `HlmService.exe install` via terminal with admin rights, or put [service_setup.zip](https://github.com/ISISComputingGroup/IBEX/files/5766153/service_setup.zip) in the same directory and run it (does the same thing).
+5. Follow the rest of the [instructions](https://github.com/ISISNeutronMuon/HLM_PV_Import/wiki/Service-Setup-&-Manager-Manual). 
 
 **Notes**: 
-* Do not forget to set up the database as well. The schema creation script can be found in `\\isis\inst$\Kits$\CompGroup\Helium Level Meters\For Review`. Also, when first starting the HLM PV Import manager, configure the "DB Connection" settings. The DB user & password are saved in the windows registry as parameters of the service.  
-* If it helps with setting-up (to check configuration/settings files/registry etc.), the service is currently running on NDAHEMON. 
+* When builing, update the `B_DATE` (and `VER`, if done any changes) in `ServiceManager\constants.py`.
+* Do not forget to set up the database. The schema creation script can be found in `\\isis\inst$\Kits$\CompGroup\Helium Level Meters\For Review`. When first starting the HLM PV Import manager, configure the "DB Connection" settings. The DB user & password are saved in the windows registry as parameters of the service.  
+* If it helps with setting-up (to check configuration/settings files/registry etc.), the service is currently running on the server machine, you can check the files there.
 * The [Helium Recovery PLC](https://github.com/ISISComputingGroup/ibex_developers_manual/wiki/Helium-Recovery-PLC) must also be set up and running on the machine: [Notes on NDAHEMON static build setup](https://github.com/ISISComputingGroup/ibex_developers_manual/wiki/Helium-Recovery-PLC#ndahemon-fins-setup-notes-procserv-no-ibex)
 
 The service directory should look like this (`service_setup.bat` optional, logs will be created once the service has run):

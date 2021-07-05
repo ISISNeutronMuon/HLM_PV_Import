@@ -129,10 +129,7 @@ class UserConfig:
             config_pvs = [get_full_pv_name(pv_name, prefix=CA.PV_PREFIX, domain=CA.PV_DOMAIN) for pv_name in config_pvs]
 
         if no_duplicates:
-            config_pvs = set(config_pvs)
-
-        if isinstance(config_pvs, set):
-            config_pvs = list(config_pvs)
+            config_pvs = list(set(config_pvs))
 
         return config_pvs
 
