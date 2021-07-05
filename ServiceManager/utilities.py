@@ -117,3 +117,7 @@ def setup_button(button: QPushButton, icon_name: str = None):
         button.setIcon(QIcon(os.path.join(ASSETS_PATH, icon_name)))
     button.setIconSize(QSize(15, 15))
     button.setStyleSheet("QPushButton { text-align: left; }")
+
+
+def generate_sld_name(object_name: str, object_id: int):
+    return f'SLD "{object_name}" (ID: {object_id})'

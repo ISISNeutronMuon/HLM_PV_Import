@@ -1,6 +1,7 @@
 from peewee import DoesNotExist
 from datetime import datetime
 
+from ServiceManager.utilities import generate_sld_name
 from shared.const import DBTypeIDs, DBClassIDs
 from shared.utils import get_sld_id, need_connection
 from shared.db_models import *
@@ -210,7 +211,7 @@ def get_object_sld(object_id: int):
 @need_connection
 def create_sld_if_required(object_id: int, object_name: str, type_name: str, class_id: int):
     if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT, DBClassIDs.GAS_COUNTER]:
-        sld_id = add_object(name=f'SLD "{object_name}" (ID: {object_id})', type_id=DBTypeIDs.SLD,
+        sld_id = add_object(name=generate_sld_name(object_name, object_id), type_id=DBTypeIDs.SLD,
                             comment=f'Software Level Device for {type_name} "{object_name}" (ID: {object_id})')
         add_relation(or_object_id=object_id, or_object_id_assigned=sld_id)
 
