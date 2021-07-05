@@ -1,73 +1,15 @@
-import json
 import os
+import sys
+import json
 import configparser
 import win32serviceutil
 from ServiceManager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEMPLATE, SERVICE_SETTINGS_FILE_NAME, \
-    SERVICE_SETTINGS_TEMPLATE, MANAGER_SETTINGS_DIR, MANAGER_LOGS_FILE, SERVICE_NAME, PV_CONFIG_FILE_NAME
-from ServiceManager.logger import logger
-from ServiceManager.db_utilities import DBUtils, DBConnectionError
-
-
-def pv_name_without_prefix_and_domain(name):
-    """
-    Given a PV name, remove the prefix and domain and return only the PV name.
-
-    Args:
-        name(str): the full PV name
-    Returns:
-        name(str): the PV name without prefix and domain
-    """
-    name = name.replace(f'{Settings.Service.CA.get_pv_prefix()}:', '') \
-               .replace(f'{Settings.Service.CA.get_pv_domain()}:', '')
-    return name
-
-
-def get_full_pv_name(name):
-    """
-    Adds the prefix and domain to the PV if it doesn't have them.
-
-    Args:
-        name (str): The PV name.
-
-    Returns:
-        (str) The full PV name.
-    """
-    if not name:
-        return None
-    name = pv_name_without_prefix_and_domain(name)
-    pv_prefix = Settings.Service.CA.get_pv_prefix()
-    pv_domain = Settings.Service.CA.get_pv_domain()
-
-    if pv_prefix:
-        pv_prefix = f'{pv_prefix}:'
-    if pv_domain:
-        pv_domain = f'{pv_domain}:'
-    name = f'{pv_prefix}{pv_domain}{name}'
-
-    return name
-
-
-def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):
-    """
-    Creates the settings file and its directory, if it doesn't exist, and writes the given config template with
-    blank values to it.
-
-    Args:
-        path (str): The full path to the file.
-        template (dict): The template containing sections (keys, str) and their options (values, list of str).
-        parser (ConfigParser): The ConfigParser object.
-    """
-    # Create file and directory if not exists and write config template to it with blank values
-    settings_dir = os.path.dirname(path)
-    if not os.path.exists(settings_dir):  # If settings directory does not exist either, create it too
-        os.makedirs(settings_dir)
-
-    for section, options in template.items():
-        parser.add_section(section)
-        for option_key, option_val in options.items():
-            parser[f'{section}'][f'{option_key}'] = option_val
-    with open(path, 'w') as settings_file:
-        parser.write(settings_file)
+    SERVICE_SETTINGS_TEMPLATE, SERVICE_NAME, PV_CONFIG_FILE_NAME
+from ServiceManager.logger import manager_logger, log_exception
+from ServiceManager.utilities import setup_settings_file
+from ServiceManager.db_func import db_connect, db_connected, DBConnectionError
+from shared import db_models
+from shared.utils import get_full_pv_name as get_full_pv_name_, get_short_pv_name as get_short_pv_name_
 
 
 class _Settings:
@@ -95,43 +37,39 @@ class ManagerSettings:
         with open(self.settings_path, 'w') as settings_file:
             self.config_parser.write(settings_file)
 
-    def get_service_path(self):
+    @property
+    def service_path(self):
         return self.config_parser['Service']['Directory']
 
-    def set_service_path(self, new_path: str):
+    @service_path.setter
+    def service_path(self, new_path: str):
         self.config_parser.set('Service', 'Directory', new_path)
         self.update()
 
-    @staticmethod
-    def get_log_path():
-        return MANAGER_LOGS_FILE
-
-    @staticmethod
-    def get_manager_settings_path():
-        return MANAGER_SETTINGS_FILE
-
-    @staticmethod
-    def get_manager_settings_dir():
-        return MANAGER_SETTINGS_DIR
-
-    def get_default_meas_update_interval(self):
+    @property
+    def default_update_interval(self):
         return self.config_parser['Defaults'].getint('MeasurementsUpdateInterval')
 
-    def set_default_meas_update_interval(self, new_val: int):
+    @default_update_interval.setter
+    def default_update_interval(self, new_val: int):
         self.config_parser['Defaults']['MeasurementsUpdateInterval'] = f'{new_val}'
         self.update()
 
-    def get_new_entry_auto_pv_check(self):
+    @property
+    def auto_pv_check(self):
         return self.config_parser['General'].getboolean('AutoPVConnectionCheck')
 
-    def set_new_entry_auto_pv_check(self, checked: bool):
+    @auto_pv_check.setter
+    def auto_pv_check(self, checked: bool):
         self.config_parser['General']['AutoPVConnectionCheck'] = f'{checked}'
         self.update()
 
-    def get_auto_load_existing_config(self):
+    @property
+    def auto_load_existing_config(self):
         return self.config_parser['General'].getboolean('AutoLoadExistingConfig')
 
-    def set_auto_load_existing_config(self, checked: bool):
+    @auto_load_existing_config.setter
+    def auto_load_existing_config(self, checked: bool):
         self.config_parser['General']['AutoLoadExistingConfig'] = f'{checked}'
         self.update()
 
@@ -142,7 +80,6 @@ class ServiceSettings:
         self.config_parser.optionxform = lambda option_: option_  # preserve case for letters
         self.service_path = service_path
         self.settings_path = os.path.join(service_path, SERVICE_SETTINGS_FILE_NAME)
-        self.pv_config_path = os.path.join(service_path, )
 
         if not os.path.exists(self.settings_path):
             setup_settings_file(path=self.settings_path, template=SERVICE_SETTINGS_TEMPLATE, parser=self.config_parser)
@@ -151,7 +88,6 @@ class ServiceSettings:
 
         # Instantiate inner classes
         self.HeliumDB = _HeliumDB(self.config_parser, self.update)
-        self.Info = _Info(self.config_parser)
         self.CA = _CA(self.config_parser, self.update)
         self.Logging = _Logging(self.service_path)
         self.PVConfig = _PVConfig(self.service_path, self.config_parser)
@@ -161,18 +97,14 @@ class ServiceSettings:
             self.config_parser.write(settings_file)
 
     def connect_to_db(self):
-        connected = None
+        db_models.initialize_database(name=self.HeliumDB.name, host=self.HeliumDB.host,
+                                      user=self.HeliumDB.user, password=self.HeliumDB.password)
         try:
-            DBUtils.make_connection(host=self.HeliumDB.get_host(),
-                                    database=self.HeliumDB.get_name(),
-                                    user=self.HeliumDB.get_user(),
-                                    password=self.HeliumDB.get_pass())
-            connected = True
+            db_connect()
         except DBConnectionError:
-            logger.warning('Could not establish DB connection.')
-            connected = False
+            log_exception(*sys.exc_info())
         finally:
-            return connected
+            return db_connected()
 
 
 # region Service Settings Subclasses
@@ -191,12 +123,7 @@ class _PVConfig:
             self.setup_file()
 
     def get_path(self):
-        config_file = self.get_config_file_name()
-        return os.path.join(self.service_path, config_file)
-
-    @staticmethod
-    def get_config_file_name():
-        return PV_CONFIG_FILE_NAME
+        return os.path.join(self.service_path, PV_CONFIG_FILE_NAME)
 
     def setup_file(self):
         """ Creates the user PV-Records config file if it doesn't exist. """
@@ -219,10 +146,10 @@ class _PVConfig:
         config_file = self.get_path()
         with open(config_file) as f:
             data = json.load(f)
-            data = data[Settings.Service.PVConfig.ROOT]
+            data = data[self.ROOT]
 
             if not data:
-                logger.info('PV configuration file is empty or does not exist.')
+                manager_logger.warning('PV configuration file is empty or does not exist.')
             return data
 
     def get_entry_with_id(self, obj_id: int):
@@ -247,12 +174,7 @@ class _PVConfig:
         Returns:
             (list): List of object IDs.
         """
-        object_ids = []
-        entries = self.get_entries()
-        for entry in entries:
-            object_ids.append(entry[self.OBJ])
-
-        return object_ids
+        return [entry[self.OBJ] for entry in self.get_entries()]
 
     def add_entry(self, new_entry: dict, overwrite: bool = False):
         """
@@ -262,7 +184,6 @@ class _PVConfig:
             new_entry (dict): The record config.
             overwrite (bool, optional): If True, overwrites the entry that matches the object ID, Defaults to False.
         """
-        file_path = self.get_path()
         data = self.get_entries()
         if overwrite:
             overwritten = False
@@ -272,17 +193,17 @@ class _PVConfig:
                     overwritten = True
                     break
             if not overwritten:
-                logger.info(f'WARNING: Entry with object ID {new_entry[self.OBJ]} was not overwritten.')
+                manager_logger.error(f'Entry with object ID {new_entry[self.OBJ]} was not overwritten.')
+                return
         else:
             data.append(new_entry)
-        data = {self.ROOT: data}
 
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-        logger.info(f'Added new PV configuration entry: {new_entry}')
+        data = {self.ROOT: data}
+        self._json_dump(data)
+        manager_logger.info(f'Added new PV configuration entry: {new_entry}' if not overwrite
+                            else f'Updated PV configuration entry: {new_entry}')
 
     def delete_entry(self, object_id: int):
-        file_path = self.get_path()
         data = self.get_entries()
         deleted = False
         for index, entry in enumerate(data):
@@ -292,99 +213,93 @@ class _PVConfig:
                 break
 
         if not deleted:
-            logger.info(f'WARNING: Entry with object ID {object_id} should have been deleted but was not.')
+            manager_logger.warning(f'Entry with object ID {object_id} should have been deleted but was not.')
 
         data = {self.ROOT: data}
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
+        self._json_dump(data)
 
         if deleted:
-            logger.info(f'Deleted PV configuration entry for object ID: {object_id}.')
+            manager_logger.info(f'Deleted PV configuration entry for object ID: {object_id}.')
+
+    def _json_dump(self, data):
+        with open(self.get_path(), 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
 
 
 class _Logging:
     def __init__(self, service_path):
         self.service_path = service_path
         logs_dir = os.path.join(service_path, 'logs')
-        self._debug_log_path = os.path.join(logs_dir, 'debug', 'debug.log')
+        self._log_path = os.path.join(logs_dir, 'service', 'service.log')
 
-    def get_debug_log_path(self):
-        return self._debug_log_path
+    @property
+    def log_path(self):
+        return self._log_path
 
 
 class _HeliumDB:
     def __init__(self, config_parser, update):
         self.config_parser = config_parser
         self.update = update
+        self.user_option = 'DB_HE_USER'
+        self.pass_option = 'DB_HE_PASS'
 
-    def get_name(self):
+    @property
+    def name(self):
         return self.config_parser['HeRecoveryDB']['Name']
 
-    def get_host(self):
+    @property
+    def host(self):
         return self.config_parser['HeRecoveryDB']['Host']
 
-    @staticmethod
-    def get_user():
-        service_name = Settings.Service.Info.get_name()
-        if not service_name:
-            return
-        try:
-            return win32serviceutil.GetServiceCustomOption(serviceName=service_name, option='DB_HE_USER')
-        except Exception as e:
-            logger.error(e)
+    @property
+    def user(self):
+        return self._get_credentials(self.user_option)
+
+    @property
+    def password(self):
+        return self._get_credentials(self.pass_option)
 
     @staticmethod
-    def get_pass():
-        service_name = Settings.Service.Info.get_name()
-        if not service_name:
+    def _get_credentials(service_option):
+        if not SERVICE_NAME:
             return
         try:
-            return win32serviceutil.GetServiceCustomOption(serviceName=service_name, option='DB_HE_PASS')
+            return win32serviceutil.GetServiceCustomOption(serviceName=SERVICE_NAME, option=service_option)
         except Exception as e:
-            logger.error(e)
+            manager_logger.error(e)
 
-    def set_name(self, new_name: str):
+    @name.setter
+    def name(self, new_name: str):
         self.config_parser['HeRecoveryDB']['Name'] = new_name
         self.update()
 
-    def set_host(self, new_host: str):
+    @host.setter
+    def host(self, new_host: str):
         self.config_parser['HeRecoveryDB']['Host'] = new_host
         self.update()
 
+    @user.setter
+    def user(self, new_user):
+        self._set_credentials(self.user_option, new_user, 'DB Connection user could not be set as Service Name '
+                                                          'was not found.')
+
+    @password.setter
+    def password(self, new_pass):
+        self._set_credentials(self.pass_option, new_pass, 'DB Connection password could not be set as Service Name '
+                                                          'was not found.')
+
     @staticmethod
-    def set_user(new_user):
-        service_name = Settings.Service.Info.get_name()
-        if not service_name:
-            logger.info('WARNING: DB Connection user could not be set as Service Name was not found.')
+    def _set_credentials(service_option, new_value, err_msg: str):
+        if not SERVICE_NAME:
+            manager_logger.error(err_msg)
             return
         try:
             win32serviceutil.SetServiceCustomOption(
-                serviceName=service_name, option='DB_HE_USER', value=new_user
+                serviceName=SERVICE_NAME, option=service_option, value=new_value
             )
         except Exception as e:
-            logger.error(e)
-
-    @staticmethod
-    def set_pass(new_pass):
-        service_name = Settings.Service.Info.get_name()
-        if not service_name:
-            logger.info('WARNING: DB Connection password could not be set as Service Name was not found.')
-            return
-        try:
-            win32serviceutil.SetServiceCustomOption(
-                serviceName=service_name, option='DB_HE_PASS', value=new_pass
-            )
-        except Exception as e:
-            logger.error(e)
-
-
-class _Info:
-    def __init__(self, config_parser):
-        self.config_parser = config_parser
-        self.service_name = SERVICE_NAME
-
-    def get_name(self):
-        return self.service_name
+            manager_logger.error(e)
 
 
 class _CA:
@@ -392,56 +307,71 @@ class _CA:
         self.config_parser = config_parser
         self.update = update
         # Setup the channel access address list in order to connect to PVs
-        os.environ['EPICS_CA_ADDR_LIST'] = self.get_addr_list()
+        os.environ['EPICS_CA_ADDR_LIST'] = self.addr_list
 
-    def get_addr_list(self, as_list: bool = False):
-        addr_list = self.config_parser['ChannelAccess']['EPICS_CA_ADDR_LIST']
-        if as_list:
-            addr_list = addr_list.split(' ')
-        return addr_list
+    @property
+    def addr_list(self):
+        return self.config_parser['ChannelAccess']['EPICS_CA_ADDR_LIST']
 
-    def set_addr_list(self, new_list):
+    @addr_list.setter
+    def addr_list(self, new_list):
         if isinstance(new_list, list):
             new_list = ' '.join(new_list)
         self.config_parser['ChannelAccess']['EPICS_CA_ADDR_LIST'] = new_list
         self.update()
 
-    def get_conn_timeout(self):
+    @property
+    def timeout(self):
         return self.config_parser['ChannelAccess']['ConnectionTimeout']
 
-    def set_conn_timeout(self, new_timeout: int):
+    @timeout.setter
+    def timeout(self, new_timeout: int):
         self.config_parser['ChannelAccess']['ConnectionTimeout'] = f'{new_timeout}'
         self.update()
 
-    def get_pv_stale_after(self):
+    @property
+    def stale(self):
         return self.config_parser['ChannelAccess']['PvStaleAfter']
 
-    def set_pv_stale_after(self, new_threshold: int):
+    @stale.setter
+    def stale(self, new_threshold: int):
         self.config_parser['ChannelAccess']['PvStaleAfter'] = f'{new_threshold}'
         self.update()
 
-    def get_pv_prefix(self):
-        return self.config_parser['ChannelAccess']['PV_PREFIX']
+    @property
+    def prefix(self):
+        return self.config_parser['ChannelAccess']['PV_PREFIX'] \
+            if self.config_parser['ChannelAccess']['PV_PREFIX'] else ''
 
-    def set_pv_prefix(self, new_prefix: str):
+    @prefix.setter
+    def prefix(self, new_prefix: str):
         self.config_parser['ChannelAccess']['PV_PREFIX'] = new_prefix
         self.update()
 
-    def get_pv_domain(self):
-        return self.config_parser['ChannelAccess']['PV_DOMAIN']
+    @property
+    def domain(self):
+        return self.config_parser['ChannelAccess']['PV_DOMAIN'] \
+            if self.config_parser['ChannelAccess']['PV_DOMAIN'] else ''
 
-    def set_pv_domain(self, new_domain: str):
+    @domain.setter
+    def domain(self, new_domain: str):
         self.config_parser['ChannelAccess']['PV_DOMAIN'] = new_domain
         self.update()
 
-    def get_add_stale_pvs(self):
+    @property
+    def add_stale(self):
         return self.config_parser['ChannelAccess'].getboolean('AddStalePvs')
 
-    def set_add_stale_pvs(self, checked: bool):
+    @add_stale.setter
+    def add_stale(self, checked: bool):
         self.config_parser['ChannelAccess']['AddStalePvs'] = f'{checked}'
         self.update()
 
+    def get_full_pv_name(self, name):
+        return get_full_pv_name_(name, prefix=self.prefix, domain=self.domain)
 
+    def get_short_pv_name(self, name):
+        return get_short_pv_name_(name, prefix=self.prefix, domain=self.domain)
 # endregion
 
 

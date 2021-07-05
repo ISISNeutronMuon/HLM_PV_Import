@@ -1,13 +1,13 @@
 import os
 import sys
-
-# If changed, update the service settings.py as well
-SERVICE_NAME = 'HLMPVImport'
-PV_CONFIG_FILE_NAME = 'pv_config.json'
+# noinspection PyUnresolvedReferences
+from shared.const import *
 
 # About
-VER = '1.0.0'
-B_DATE = '18 December 2020'
+VER = '1.1.0'
+B_DATE = '20 May 2021'
+ISIS_URL = "https://www.isis.stfc.ac.uk/Pages/home.aspx"
+
 
 if getattr(sys, 'frozen', False):
     # BASE_PATH = os.path.dirname(sys.executable)
@@ -37,7 +37,9 @@ config_entry_ui = os.path.join(GUI_DIR_PATH, 'layouts', 'ConfigEntry.ui')
 MANAGER_SETTINGS_DIR = os.path.join(os.getenv('LOCALAPPDATA'), 'HLM Service Manager', '')
 MANAGER_SETTINGS_FILE = os.path.join(MANAGER_SETTINGS_DIR, 'settings.ini')
 MANAGER_LOGS_DIR = os.path.join(MANAGER_SETTINGS_DIR, 'logs')
-MANAGER_LOGS_FILE = os.path.join(MANAGER_LOGS_DIR, 'HLM_Manager_Log.log')
+MANAGER_LOGS_FILE = os.path.join(MANAGER_LOGS_DIR, 'HLM_Manager.log')
+MANAGER_ERR_LOGS_DIR = os.path.join(MANAGER_LOGS_DIR, 'error')
+MANAGER_ERR_LOGS_FILE = os.path.join(MANAGER_ERR_LOGS_DIR, 'HLM_Manager_Error.log')
 SERVICE_SETTINGS_FILE_NAME = 'settings.ini'
 
 

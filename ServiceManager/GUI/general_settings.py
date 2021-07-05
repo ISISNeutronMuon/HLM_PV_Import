@@ -1,8 +1,9 @@
 from PyQt5.QtGui import QCloseEvent, QShowEvent
-from PyQt5.QtWidgets import QDialog, QMessageBox, QSpinBox, QDialogButtonBox, QLabel, QCheckBox
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 from PyQt5 import uic
 from ServiceManager.constants import general_settings_ui
 from ServiceManager.settings import Settings
+from ServiceManager.utilities import apply_unsaved_changes_dialog
 
 
 class UIGeneralSettings(QDialog):
@@ -12,16 +13,7 @@ class UIGeneralSettings(QDialog):
 
         self._settings_changed = False
 
-        # region Get widgets
-        self.default_meas_update_interval_sb = self.findChild(QSpinBox, 'measUpdateIntervalSpinBox')
-        self.check_pv_on_new_entry_cb = self.findChild(QCheckBox, 'autoCheckPVConnection')
-        self.auto_load_existing_config_cb = self.findChild(QCheckBox, 'autoLoadExistingConfig')
-
-        self.message_lbl = self.findChild(QLabel, 'message_lbl')
-
-        self.button_box = self.findChild(QDialogButtonBox, 'buttonBox')
         self.apply_btn = self.button_box.button(QDialogButtonBox.Apply)
-        # endregion
 
         # region Connect signals to slots
         self.default_meas_update_interval_sb.valueChanged.connect(lambda _: self.settings_changed(True))
@@ -34,14 +26,14 @@ class UIGeneralSettings(QDialog):
         # endregion
 
     def apply_new_settings(self):
-        Settings.Manager.set_default_meas_update_interval(self.default_meas_update_interval_sb.value())
-        Settings.Manager.set_new_entry_auto_pv_check(self.check_pv_on_new_entry_cb.isChecked())
-        Settings.Manager.set_auto_load_existing_config(self.auto_load_existing_config_cb.isChecked())
+        Settings.Manager.default_update_interval = self.default_meas_update_interval_sb.value()
+        Settings.Manager.auto_pv_check = self.check_pv_on_new_entry_cb.isChecked()
+        Settings.Manager.auto_load_existing_config = self.auto_load_existing_config_cb.isChecked()
 
     def update_fields(self):
-        self.default_meas_update_interval_sb.setValue(Settings.Manager.get_default_meas_update_interval())
-        self.check_pv_on_new_entry_cb.setChecked(Settings.Manager.get_new_entry_auto_pv_check())
-        self.auto_load_existing_config_cb.setChecked(Settings.Manager.get_auto_load_existing_config())
+        self.default_meas_update_interval_sb.setValue(Settings.Manager.default_update_interval)
+        self.check_pv_on_new_entry_cb.setChecked(Settings.Manager.auto_pv_check)
+        self.auto_load_existing_config_cb.setChecked(Settings.Manager.auto_load_existing_config)
         self.message_lbl.clear()
         self.settings_changed(False)
 
@@ -59,15 +51,7 @@ class UIGeneralSettings(QDialog):
         self.message_lbl.setText('Settings updated.')
 
     def closeEvent(self, event: QCloseEvent):
-        if self._settings_changed:
-            quit_msg = "Any changes will be lost. Cancel anyway?"
-            reply = QMessageBox.question(self, 'HLM PV Import',
-                                         quit_msg, QMessageBox.Yes, QMessageBox.No)
-
-            if reply == QMessageBox.Yes:
-                event.accept()
-            else:
-                event.ignore()
+        apply_unsaved_changes_dialog(event, self.apply_new_settings, self._settings_changed)
 
     def showEvent(self, event: QShowEvent):
         self.update_fields()

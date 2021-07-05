@@ -26,7 +26,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
-    <widget class="QLabel" name="objectTitleLabel">
+    <widget class="QLabel" name="main_lbl">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -54,7 +54,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="ObjectFrame">
+    <widget class="QFrame" name="obj_frame">
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
@@ -65,7 +65,7 @@
       <item>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
-         <widget class="QLabel" name="objectNameLabel">
+         <widget class="QLabel" name="obj_name_label">
           <property name="font">
            <font>
             <pointsize>9</pointsize>
@@ -98,7 +98,7 @@
         <item row="0" column="3">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QLabel" name="logIntervalLabel">
+           <widget class="QLabel" name="log_interval_lbl_1">
             <property name="font">
              <font>
               <pointsize>9</pointsize>
@@ -126,7 +126,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QSpinBox" name="logIntervalSpinBox">
+           <widget class="QSpinBox" name="log_interval_sb">
             <property name="font">
              <font>
               <pointsize>9</pointsize>
@@ -153,7 +153,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="logIntervalLabel_2">
+           <widget class="QLabel" name="log_interval_lbl_2">
             <property name="font">
              <font>
               <pointsize>9</pointsize>
@@ -182,7 +182,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QFrame" name="objectTypeFrame">
+         <widget class="QFrame" name="obj_type_frame">
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
           </property>
@@ -203,7 +203,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QComboBox" name="objectTypeCB">
+            <widget class="QComboBox" name="obj_type_cb">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -233,7 +233,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QFrame" name="objectNameFrame">
+         <widget class="QFrame" name="obj_name_frame">
           <property name="styleSheet">
            <string notr="true"/>
           </property>
@@ -257,7 +257,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QComboBox" name="objectNameCB">
+            <widget class="QComboBox" name="obj_name_cb">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -281,6 +281,9 @@
              <property name="editable">
               <bool>true</bool>
              </property>
+             <property name="insertPolicy">
+              <enum>QComboBox::NoInsert</enum>
+             </property>
             </widget>
            </item>
           </layout>
@@ -289,7 +292,7 @@
         <item row="1" column="3">
          <layout class="QHBoxLayout" name="horizontalLayout_10">
           <item>
-           <widget class="QLabel" name="objectCommentLabel">
+           <widget class="QLabel" name="obj_comment_lbl">
             <property name="maximumSize">
              <size>
               <width>75</width>
@@ -310,7 +313,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="objectCommentLineEdit">
+           <widget class="QLineEdit" name="obj_comment">
             <property name="maximumSize">
              <size>
               <width>16777215</width>
@@ -359,7 +362,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QPushButton" name="objectDetailsButton">
+         <widget class="QPushButton" name="obj_details_btn">
           <property name="font">
            <font>
             <pointsize>9</pointsize>
@@ -370,6 +373,9 @@
           </property>
           <property name="text">
            <string>Placeholder</string>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -389,7 +395,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QFrame" name="detailsFrame">
+       <widget class="QFrame" name="obj_details_frame">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -423,7 +429,7 @@
            <item>
             <layout class="QGridLayout" name="gridLayout">
              <item row="2" column="1" colspan="4">
-              <widget class="QLineEdit" name="objectFunctionLineEdit">
+              <widget class="QLineEdit" name="obj_detail_func">
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
@@ -456,7 +462,7 @@
               </widget>
              </item>
              <item row="2" column="0">
-              <widget class="QLabel" name="objectFunctionLabel">
+              <widget class="QLabel" name="obj_detail_func_lbl">
                <property name="maximumSize">
                 <size>
                  <width>75</width>
@@ -493,7 +499,7 @@
               </spacer>
              </item>
              <item row="0" column="0">
-              <widget class="QLabel" name="objectNameDetailsLbl">
+              <widget class="QLabel" name="obj_detail_name_lbl">
                <property name="maximumSize">
                 <size>
                  <width>75</width>
@@ -514,7 +520,7 @@
               </widget>
              </item>
              <item row="0" column="3">
-              <widget class="QLabel" name="objectIdLabel">
+              <widget class="QLabel" name="object_detail_id_lbl">
                <property name="maximumSize">
                 <size>
                  <width>75</width>
@@ -530,7 +536,7 @@
               </widget>
              </item>
              <item row="0" column="4">
-              <widget class="QLineEdit" name="objectIdLineEdit">
+              <widget class="QLineEdit" name="obj_detail_id">
                <property name="maximumSize">
                 <size>
                  <width>50</width>
@@ -560,7 +566,7 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QLineEdit" name="objectNameDetailsLineEdit">
+              <widget class="QLineEdit" name="obj_detail_name">
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
@@ -593,7 +599,7 @@
               </widget>
              </item>
              <item row="1" column="1" colspan="4">
-              <widget class="QLineEdit" name="objectClassLineEdit">
+              <widget class="QLineEdit" name="obj_detail_class">
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
@@ -626,7 +632,7 @@
               </widget>
              </item>
              <item row="1" column="0">
-              <widget class="QLabel" name="objectClassLabel">
+              <widget class="QLabel" name="obj_detail_class_lbl">
                <property name="maximumSize">
                 <size>
                  <width>75</width>
@@ -667,7 +673,7 @@
            <item>
             <layout class="QGridLayout" name="gridLayout_2">
              <item row="2" column="1">
-              <widget class="QLineEdit" name="SLDIDLineEdit">
+              <widget class="QLineEdit" name="obj_detail_sld_id">
                <property name="font">
                 <font>
                  <pointsize>8</pointsize>
@@ -694,7 +700,7 @@
               </widget>
              </item>
              <item row="2" column="0">
-              <widget class="QLabel" name="SLDIDLabel">
+              <widget class="QLabel" name="obj_detail_sld_id_lbl">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -706,7 +712,7 @@
               </widget>
              </item>
              <item row="0" column="0" colspan="2">
-              <widget class="QLabel" name="softwareLevelDeviceLabel">
+              <widget class="QLabel" name="obj_detail_sld_top_lbl">
                <property name="enabled">
                 <bool>true</bool>
                </property>
@@ -730,7 +736,7 @@
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QLineEdit" name="SLDNameLineEdit">
+              <widget class="QLineEdit" name="obj_detail_sld_name">
                <property name="font">
                 <font>
                  <pointsize>8</pointsize>
@@ -757,7 +763,7 @@
               </widget>
              </item>
              <item row="1" column="0">
-              <widget class="QLabel" name="SLDNameLabel">
+              <widget class="QLabel" name="obj_detail_sld_name_lbl">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -779,7 +785,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="MeasurementsFrame">
+    <widget class="QFrame" name="mea_frame">
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
@@ -832,7 +838,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QFrame" name="existingConfigFrame">
+           <widget class="QFrame" name="existing_config_frame">
             <property name="frameShape">
              <enum>QFrame::NoFrame</enum>
             </property>
@@ -853,7 +859,7 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QLabel" name="existingConfigLabel">
+              <widget class="QLabel" name="existing_config_lbl">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -873,7 +879,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="loadExistingConfigButton">
+              <widget class="QPushButton" name="existing_config_load_btn">
                <property name="toolTip">
                 <string>Load the measurement PV names from the existing configuration of the object.</string>
                </property>
@@ -896,7 +902,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QProgressBar" name="checkMeasProgressBar">
+           <widget class="QProgressBar" name="check_pvs_progress_bar">
             <property name="maximumSize">
              <size>
               <width>150</width>
@@ -932,7 +938,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="checkPvsButton">
+           <widget class="QPushButton" name="check_pvs_btn">
             <property name="minimumSize">
              <size>
               <width>175</width>
@@ -968,7 +974,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QFrame" name="measurementsPVNamesFrame">
+         <widget class="QFrame" name="mea_pvs_frame">
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
           </property>
@@ -991,7 +997,7 @@
            <item row="0" column="0">
             <layout class="QGridLayout" name="MeasurementsGridLayout">
              <item row="0" column="5">
-              <widget class="QLabel" name="meaStatus_1">
+              <widget class="QLabel" name="mea_status_lbl_1">
                <property name="minimumSize">
                 <size>
                  <width>40</width>
@@ -1014,7 +1020,7 @@
               </widget>
              </item>
              <item row="0" column="0">
-              <widget class="QLabel" name="measurement1Label">
+              <widget class="QLabel" name="mea_pv_name_1_lbl">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -1042,7 +1048,7 @@
               </spacer>
              </item>
              <item row="0" column="3">
-              <widget class="QLabel" name="mea1TypeLabel">
+              <widget class="QLabel" name="mea_type_lbl_1">
                <property name="minimumSize">
                 <size>
                  <width>175</width>
@@ -1074,7 +1080,7 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QLineEdit" name="measurement1LineEdit">
+              <widget class="QLineEdit" name="mea_pv_name_1">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -1092,7 +1098,7 @@
               </widget>
              </item>
              <item row="1" column="0">
-              <widget class="QLabel" name="measurement2Label">
+              <widget class="QLabel" name="mea_pv_name_2_lbl">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -1120,7 +1126,7 @@
               </spacer>
              </item>
              <item row="1" column="5">
-              <widget class="QLabel" name="meaStatus_2">
+              <widget class="QLabel" name="mea_status_lbl_2">
                <property name="minimumSize">
                 <size>
                  <width>40</width>
@@ -1156,7 +1162,7 @@
               </spacer>
              </item>
              <item row="1" column="1">
-              <widget class="QLineEdit" name="measurement2LineEdit">
+              <widget class="QLineEdit" name="mea_pv_name_2">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -1171,7 +1177,7 @@
               </widget>
              </item>
              <item row="2" column="0">
-              <widget class="QLabel" name="measurement3Label">
+              <widget class="QLabel" name="mea_pv_name_3_lbl">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -1183,7 +1189,7 @@
               </widget>
              </item>
              <item row="1" column="3">
-              <widget class="QLabel" name="mea2TypeLabel">
+              <widget class="QLabel" name="mea_type_lbl_2">
                <property name="minimumSize">
                 <size>
                  <width>175</width>
@@ -1226,7 +1232,7 @@
               </spacer>
              </item>
              <item row="2" column="1">
-              <widget class="QLineEdit" name="measurement3LineEdit">
+              <widget class="QLineEdit" name="mea_pv_name_3">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -1257,7 +1263,7 @@
               </spacer>
              </item>
              <item row="3" column="1">
-              <widget class="QLineEdit" name="measurement4LineEdit">
+              <widget class="QLineEdit" name="mea_pv_name_4">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -1272,7 +1278,7 @@
               </widget>
              </item>
              <item row="2" column="3">
-              <widget class="QLabel" name="mea3TypeLabel">
+              <widget class="QLabel" name="mea_type_lbl_3">
                <property name="minimumSize">
                 <size>
                  <width>175</width>
@@ -1315,7 +1321,7 @@
               </spacer>
              </item>
              <item row="2" column="5">
-              <widget class="QLabel" name="meaStatus_3">
+              <widget class="QLabel" name="mea_status_lbl_3">
                <property name="minimumSize">
                 <size>
                  <width>40</width>
@@ -1351,7 +1357,7 @@
               </spacer>
              </item>
              <item row="3" column="0">
-              <widget class="QLabel" name="measurement4Label">
+              <widget class="QLabel" name="mea_pv_name_4_lbl">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -1363,7 +1369,7 @@
               </widget>
              </item>
              <item row="3" column="3">
-              <widget class="QLabel" name="mea4TypeLabel">
+              <widget class="QLabel" name="mea_type_lbl_4">
                <property name="minimumSize">
                 <size>
                  <width>175</width>
@@ -1390,7 +1396,7 @@
               </widget>
              </item>
              <item row="3" column="5">
-              <widget class="QLabel" name="meaStatus_4">
+              <widget class="QLabel" name="mea_status_lbl_4">
                <property name="minimumSize">
                 <size>
                  <width>40</width>
@@ -1410,7 +1416,7 @@
               </widget>
              </item>
              <item row="4" column="0">
-              <widget class="QLabel" name="measurement5Label">
+              <widget class="QLabel" name="mea_pv_name_5_lbl">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -1422,7 +1428,7 @@
               </widget>
              </item>
              <item row="4" column="1">
-              <widget class="QLineEdit" name="measurement5LineEdit">
+              <widget class="QLineEdit" name="mea_pv_name_5">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
@@ -1469,7 +1475,7 @@
               </spacer>
              </item>
              <item row="4" column="5">
-              <widget class="QLabel" name="meaStatus_5">
+              <widget class="QLabel" name="mea_status_lbl_5">
                <property name="minimumSize">
                 <size>
                  <width>40</width>
@@ -1505,7 +1511,7 @@
               </spacer>
              </item>
              <item row="4" column="3">
-              <widget class="QLabel" name="mea5TypeLabel">
+              <widget class="QLabel" name="mea_type_lbl_5">
                <property name="minimumSize">
                 <size>
                  <width>175</width>
@@ -1613,7 +1619,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="dialog_btn_ok">
+      <widget class="QPushButton" name="ok_btn">
        <property name="font">
         <font>
          <pointsize>9</pointsize>
@@ -1634,7 +1640,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="dialog_btn_cancel">
+      <widget class="QPushButton" name="cancel_btn">
        <property name="font">
         <font>
          <pointsize>9</pointsize>
@@ -1655,7 +1661,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="dialog_btn_delete">
+      <widget class="QPushButton" name="delete_btn">
        <property name="font">
         <font>
          <pointsize>9</pointsize>
@@ -1690,21 +1696,21 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>objectNameCB</tabstop>
-  <tabstop>logIntervalSpinBox</tabstop>
-  <tabstop>objectTypeCB</tabstop>
-  <tabstop>objectCommentLineEdit</tabstop>
-  <tabstop>measurement1LineEdit</tabstop>
-  <tabstop>measurement2LineEdit</tabstop>
-  <tabstop>measurement3LineEdit</tabstop>
-  <tabstop>measurement4LineEdit</tabstop>
-  <tabstop>measurement5LineEdit</tabstop>
-  <tabstop>objectDetailsButton</tabstop>
-  <tabstop>loadExistingConfigButton</tabstop>
-  <tabstop>checkPvsButton</tabstop>
-  <tabstop>dialog_btn_ok</tabstop>
-  <tabstop>dialog_btn_cancel</tabstop>
-  <tabstop>dialog_btn_delete</tabstop>
+  <tabstop>obj_name_cb</tabstop>
+  <tabstop>log_interval_sb</tabstop>
+  <tabstop>obj_type_cb</tabstop>
+  <tabstop>obj_comment</tabstop>
+  <tabstop>mea_pv_name_1</tabstop>
+  <tabstop>mea_pv_name_2</tabstop>
+  <tabstop>mea_pv_name_3</tabstop>
+  <tabstop>mea_pv_name_4</tabstop>
+  <tabstop>mea_pv_name_5</tabstop>
+  <tabstop>obj_details_btn</tabstop>
+  <tabstop>existing_config_load_btn</tabstop>
+  <tabstop>check_pvs_btn</tabstop>
+  <tabstop>ok_btn</tabstop>
+  <tabstop>cancel_btn</tabstop>
+  <tabstop>delete_btn</tabstop>
  </tabstops>
  <resources/>
  <connections/>

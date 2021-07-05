@@ -2,6 +2,7 @@ import sys
 import os
 import configparser
 import win32serviceutil
+from shared.const import *
 
 if getattr(sys, 'frozen', False):
     # If the application is run as a bundle, the PyInstaller bootloader
@@ -20,6 +21,8 @@ else:
     BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 
 
+PVConfig.PATH = os.path.join(BASE_PATH, PVConfig.FILE)
+
 config = configparser.ConfigParser()
 config.read(os.path.join(BASE_PATH, 'settings.ini'))
 
@@ -29,14 +32,16 @@ class CA:
     CONN_TIMEOUT = config['ChannelAccess'].getfloat('ConnectionTimeout')
     STALE_AFTER = config['ChannelAccess'].getfloat('PvStaleAfter')
     ADD_STALE_PVS = config['ChannelAccess'].getboolean('AddStalePvs')
-    PV_PREFIX = config['ChannelAccess']['PV_PREFIX']
-    PV_DOMAIN = config['ChannelAccess']['PV_DOMAIN']
+    PV_PREFIX = config['ChannelAccess']['PV_PREFIX'] if config['ChannelAccess']['PV_PREFIX'] else ''
+    PV_DOMAIN = config['ChannelAccess']['PV_DOMAIN'] if config['ChannelAccess']['PV_DOMAIN'] else ''
 
 
-class LoggersConst:
-    LOGS_DIR = 'logs'
-    ERR_LOG_DIR = os.path.join(BASE_PATH, LOGS_DIR, 'err', '')
-    DB_LOG_DIR = os.path.join(BASE_PATH, LOGS_DIR, 'db', '')
+class LoggingFiles:
+    LOGS_DIR = os.path.join(BASE_PATH, 'logs')
+    ERR_LOG = os.path.join(LOGS_DIR, 'error', 'error.log')
+    DB_LOG = os.path.join(LOGS_DIR, 'db', 'db.log')
+    PVS_LOG = os.path.join(LOGS_DIR, 'pvs', 'pvs.log')
+    SRV_LOG = os.path.join(LOGS_DIR, 'service', 'service.log')
 
 
 class Service:
@@ -52,38 +57,7 @@ class HEDB:
     USER = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_USER')
     PASS = win32serviceutil.GetServiceCustomOption(Service.NAME, 'DB_HE_PASS')
 
-    RECONNECT_ATTEMPTS_MAX = 1000
-    RECONNECT_WAIT = 5  # base wait time between attempts in seconds
-
-    @staticmethod
-    def reconnect_wait_increase(current_wait):  # increasing wait time between attempts for each failed attempt
-        """
-        Args:
-            current_wait (int): Current wait time between attempts, in seconds.
-        """
-        return current_wait*2 if current_wait*2 < 14400 else 14400  # 14400 = maximum wait time between attempts, in sec
-
-
-# Helium DB Tables
-class Tables:
-    MEASUREMENT = 'gam_measurement'
-    OBJECT = 'gam_object'
-    OBJECT_TYPE = 'gam_objecttype'
-    OBJECT_CLASS = 'gam_objectclass'
-    OBJECT_RELATION = 'gam_objectrelation'
-    FUNCTION = 'gam_function'
-
 
 # PV Import Configuration
 class PvImportConfig:
     LOOP_TIMER = config['PVImport'].getfloat('LoopTimer')
-
-
-# User Configuration
-class PVConfigConst:
-    FILE = 'pv_config.json'
-    PATH = os.path.join(BASE_PATH, FILE)
-    ROOT = 'records'
-    OBJ = 'object_id'
-    MEAS = 'measurements'
-    LOG_PERIOD = 'logging_period'

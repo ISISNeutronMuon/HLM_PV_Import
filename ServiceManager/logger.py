@@ -1,59 +1,69 @@
-"""
-For logging the service manager, write stdout output to a file.
-"""
 import sys
-import logging
-import logging.handlers
 import os
-from ServiceManager.constants import MANAGER_LOGS_FILE, MANAGER_LOGS_DIR
+import logging.config
+from ServiceManager.constants import MANAGER_LOGS_FILE, MANAGER_ERR_LOGS_FILE
+
+# Setup log file
+for logfile in [MANAGER_LOGS_FILE, MANAGER_ERR_LOGS_FILE]:
+    if not os.path.exists(logfile):
+        if not os.path.exists(os.path.dirname(logfile)):
+            os.makedirs(os.path.dirname(logfile))
+        open(logfile, 'a').close()
 
 
-class StreamToLogger:
-    """
-    Fake file-like stream object that redirects writes to a logger instance.
-    """
+LOGGING_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} {process:d}:{thread:d} {levelname} {module} \t {message}',
+            'style': '{',
+        }
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'verbose'
+        },
+        'manager_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': MANAGER_LOGS_FILE,
+            'maxBytes': 10*1024**2,
+            'backupCount': 15,
+            'formatter': 'verbose',
+            'delay': True
+        },
+        'manager_err_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': MANAGER_ERR_LOGS_FILE,
+            'maxBytes': 10 * 1024 ** 2,
+            'backupCount': 15,
+            'formatter': 'verbose',
+            'delay': True
+        }
+    },
+    'loggers': {
+        'manager_log': {
+            'handlers': ['console', 'manager_file'],
+            'level': 'INFO'
+        },
+        'exc_manager_log': {
+            'handlers': ['manager_err_file'],
+            'level': 'ERROR'
+        }
+    }
+}
+logging.config.dictConfig(LOGGING_CONFIG)
 
-    def __init__(self, logger_):
-        self.logger = logger_
-        self.log_level = logger_.getEffectiveLevel()
-
-    def write(self, buf):
-        for line in buf.rstrip().splitlines():
-            self.logger.log(self.log_level, line.rstrip())
-
-    def flush(self):
-        pass
-
-
-def get_logger():
-    formatter = logging.Formatter('%(asctime)s %(process)d:%(thread)d %(name)s %(levelname)-8s %(message)s')
-
-    if not os.path.exists(MANAGER_LOGS_FILE):
-        if not os.path.exists(MANAGER_LOGS_DIR):  # If settings directory does not exist either, create it too
-            os.makedirs(MANAGER_LOGS_DIR)
-        open(MANAGER_LOGS_FILE, 'a').close()
-
-    logger_ = logging.getLogger()
-    logger_.setLevel(logging.INFO)
-
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.NOTSET)
-    handler.setFormatter(formatter)
-    logger_.addHandler(handler)
-
-    handler = logging.handlers.RotatingFileHandler(MANAGER_LOGS_FILE, maxBytes=10*1024**2, backupCount=10)
-    handler.setLevel(logging.NOTSET)
-    handler.setFormatter(formatter)
-    logger_.addHandler(handler)
-
-    return logger_
+# Create logger
+manager_logger = logging.getLogger('manager_log')
+exc_manager_logger = logging.getLogger('exc_manager_log')
 
 
 def log_exception(type_, value, traceback):
-    """ Log unhandled exceptions """
-    logging.error("Unhandled exception occurred", exc_info=(type_, value, traceback))
-
-
-logger = get_logger()
-
-sys.stdout = StreamToLogger(logger)
+    """ Log exception traceback """
+    exc_manager_logger.error("Exception occurred", exc_info=(type_, value, traceback))

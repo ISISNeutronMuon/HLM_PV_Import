@@ -1,6 +1,13 @@
+import configparser
 import ctypes
-from PyQt5.QtGui import QPalette, QColor
-from ServiceManager.logger import logger
+import os
+
+from PyQt5.QtCore import QObject, QSize
+from PyQt5.QtGui import QPalette, QColor, QCloseEvent, QIcon
+from PyQt5.QtWidgets import QMessageBox, QPushButton
+
+from ServiceManager.constants import ASSETS_PATH
+from ServiceManager.logger import manager_logger
 from caproto.sync.client import read
 
 
@@ -14,18 +21,14 @@ def test_pv_connection(name: str, timeout: int = 1):
 
     Returns:
         (boolean): True if connected, False otherwise.
-
-    Raises:
-        CaprotoTimeoutError: If establishing the connection to the PV timed out.
     """
 
     try:
         read(pv_name=name, timeout=timeout)
+        return True
     except Exception as e:
-        logger.info(e)
+        manager_logger.error(e)
         return False
-
-    return True
 
 
 def is_admin():
@@ -33,7 +36,7 @@ def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
     except Exception as e:
-        logger.warning(e)
+        manager_logger.error(e)
         return False
 
 
@@ -65,22 +68,52 @@ def set_colored_text(label, text, color):
     label.setText(text)
 
 
-def single_tuples_to_strings(tuple_list):
+def set_red_border(frame: QObject, highlight: bool = True):
+    frame.setStyleSheet(f"QObject#{frame.objectName()} {{{'border: 1px solid red;' if highlight else ''}}}")
+
+
+def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):
     """
-    Given a list of tuples, convert all single-element tuples into a string of the first element. Tuples in the list
-    with multiple elements will not be affected.
+    Creates the settings file and its directory, if it doesn't exist, and writes the given config template with
+    blank values to it.
 
     Args:
-        tuple_list (list): the list of tuples to convert
-    Returns:
-        (list) the list of strings made from the first element of the tuples
-
+        path (str): The full path to the file.
+        template (dict): The template containing sections (keys, str) and their options (values, list of str).
+        parser (ConfigParser): The ConfigParser object.
     """
+    # Create file and directory if not exists and write config template to it with blank values
+    settings_dir = os.path.dirname(path)
+    if not os.path.exists(settings_dir):  # If settings directory does not exist either, create it too
+        os.makedirs(settings_dir)
 
-    string_list = []
-    for elem in tuple_list:
-        if len(elem) == 1:
-            string_list.append(elem[0])
+    for section, options in template.items():
+        parser.add_section(section)
+        for option_key, option_val in options.items():
+            parser[f'{section}'][f'{option_key}'] = option_val
+    with open(path, 'w') as settings_file:
+        parser.write(settings_file)
+
+
+def apply_unsaved_changes_dialog(event: QCloseEvent, apply_settings_func, settings_changed):
+    if settings_changed:
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText("Any changes will be lost.\nApply settings?")
+        msg.setWindowTitle('Unsaved changes')
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+        reply = msg.exec_()
+
+        if reply == QMessageBox.Cancel:
+            event.ignore()
         else:
-            string_list.append(elem)
-    return string_list
+            if reply == QMessageBox.Yes:
+                apply_settings_func()
+            event.accept()
+
+
+def setup_button(button: QPushButton, icon_name: str = None):
+    if icon_name:
+        button.setIcon(QIcon(os.path.join(ASSETS_PATH, icon_name)))
+    button.setIconSize(QSize(15, 15))
+    button.setStyleSheet("QPushButton { text-align: left; }")

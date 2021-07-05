@@ -25,7 +25,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QLabel" name="addressListLabel">
+      <widget class="QLabel" name="addr_list_lbl">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
@@ -52,7 +52,7 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QListWidget" name="addressList">
+        <widget class="QListWidget" name="addr_list">
          <property name="whatsThis">
           <string>List of addresses for the EPICS_CA_ADDR_LIST environment variable.</string>
          </property>
@@ -64,7 +64,7 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <widget class="QPushButton" name="newAddress">
+          <widget class="QPushButton" name="addr_new_btn">
            <property name="toolTip">
             <string>Add a new address.</string>
            </property>
@@ -77,7 +77,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="editAddress">
+          <widget class="QPushButton" name="addr_edit_btn">
            <property name="toolTip">
             <string>Edit the currently selected address.</string>
            </property>
@@ -90,7 +90,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="deleteAddress">
+          <widget class="QPushButton" name="addr_del_btn">
            <property name="toolTip">
             <string>Delete the currently selected address.</string>
            </property>
@@ -153,28 +153,28 @@
        <item>
         <layout class="QFormLayout" name="formLayout">
          <item row="0" column="0">
-          <widget class="QLabel" name="pVPrefixLabel">
+          <widget class="QLabel" name="pv_prefix_lbl">
            <property name="text">
             <string>Name Prefix</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QLineEdit" name="pVPrefixLineEdit">
+          <widget class="QLineEdit" name="pv_prefix_ln">
            <property name="whatsThis">
             <string>The PV PREFIX</string>
            </property>
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QLabel" name="pVDomainLabel">
+          <widget class="QLabel" name="pv_domain_lbl">
            <property name="text">
             <string>Name Domain</string>
            </property>
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLineEdit" name="pVDomainLineEdit">
+          <widget class="QLineEdit" name="pv_domain_ln">
            <property name="whatsThis">
             <string>The PV DOMAIN</string>
            </property>
@@ -201,14 +201,14 @@
        <item>
         <layout class="QFormLayout" name="formLayout_2">
          <item row="0" column="0">
-          <widget class="QLabel" name="pVDataStaleLabel">
+          <widget class="QLabel" name="pv_stale_lbl">
            <property name="text">
             <string>Data Stale After</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QLineEdit" name="pVDataStaleLineEdit">
+          <widget class="QLineEdit" name="pv_stale_ln">
            <property name="maximumSize">
             <size>
              <width>16777215</width>
@@ -221,14 +221,14 @@
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QLabel" name="pVConnTimeoutLabel">
+          <widget class="QLabel" name="pv_timeout_lbl">
            <property name="text">
             <string>Conn. Timeout</string>
            </property>
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLineEdit" name="pVConnTimeoutLineEdit">
+          <widget class="QLineEdit" name="pv_timeout_ln">
            <property name="maximumSize">
             <size>
              <width>16777215</width>
@@ -261,7 +261,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QCheckBox" name="addStalePvCB">
+      <widget class="QCheckBox" name="add_stale_pvs">
        <property name="toolTip">
         <string>Add the PV to measurements even if its data is considered stale (time since last update is longer than Data Stale After value).</string>
        </property>
@@ -312,7 +312,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QDialogButtonBox" name="button_box">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
        <horstretch>0</horstretch>

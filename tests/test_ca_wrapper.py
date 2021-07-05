@@ -10,16 +10,6 @@ from caproto.threading import client
 class TestWrapper(unittest.TestCase):
 
     @parameterized.expand([
-        ([b'val'], 'val'),
-        (['val'], 'val')
-    ])
-    @patch('HLM_PV_Import.ca_wrapper.read')
-    def test_WHEN_get_pv_value_THEN_return_string(self, return_val, exp_val, mock_read):
-        mock_read.return_value.data = return_val
-        result = ca_wrapper.get_pv_value('')
-        self.assertEqual(exp_val, result)
-
-    @parameterized.expand([
         ({'1': True, '2': True, '3': False, '4': False, '5': True}, ['1', '2', '5']),
         ({'1': True, '2': True, '3': True, '4': True, '5': True}, ['1', '2', '3', '4', '5']),
         ({'1': False, '2': False, '3': False, '4': False, '5': False}, []),
@@ -76,77 +66,6 @@ class TestPvMonitors(unittest.TestCase):
         # Assert
         mock_sub.assert_called()
 
-    @patch.object(client, 'PV')
-    def test_WHEN_start_monitors_THEN_add_default_callback_and_store_token(self, mock_pv):
-        # Arrange
-        mock_sub = mock_pv.subscribe
-        mock_add_callback = mock_sub.return_value.add_callback
-        self.mock_ctx.get_pvs.return_value = [mock_pv]
-
-        # Act
-        self.pvm.start_monitors()
-
-        # Assert
-        default_callback = self.pvm._callback_f
-        mock_add_callback.assert_called_with(default_callback)
-
-        token_callback = self.pvm.subscriptions[mock_pv.name]['token']
-        self.assertEqual(mock_add_callback.return_value, token_callback)
-
-    @patch.object(client, 'PV')
-    def test_GIVEN_pv_name_WHEN_clear_callbacks_THEN_clear_pv_subscription(self, mock_pv):
-        # Arrange
-        self.mock_ctx.get_pvs.return_value = [mock_pv]
-        self.pvm.start_monitors()
-
-        # Act
-        self.pvm.clear_callbacks(mock_pv.name)
-
-        # Assert
-        sub = self.pvm.subscriptions[mock_pv.name]['sub']
-        sub.clear.assert_called()
-
-    @patch.object(client, 'PV')
-    def test_GIVEN_pv_name_WHEN_remove_pv_THEN_clear_callback_and_remove_from_data(self, mock_pv):
-        with patch.object(self.pvm, 'clear_callbacks') as mock_clear_cbs:
-            # Arrange
-            self.mock_ctx.get_pvs.return_value = [mock_pv]
-            self.pvm.start_monitors()
-            self.pvm._pv_data = {mock_pv.name: 1}
-
-            # Act
-            self.pvm.remove_pv(mock_pv.name)
-
-            # Assert
-            mock_clear_cbs.assert_called_with(mock_pv.name)
-            self.assertNotIn(mock_pv.name, self.pvm._pv_data)
-
-    @patch.object(client, 'PV')
-    def test_GIVEN_only_pv_name_WHEN_add_callback_THEN_default_callback_added(self, mock_pv):
-        # Arrange
-        sub = mock_pv.subscribe.return_value
-        self.pvm.subscriptions[mock_pv.name] = {'sub': sub}
-
-        # Act
-        self.pvm.add_callback(mock_pv.name, callback_f=None)
-
-        # Assert
-        sub.add_callback.assert_called_with(self.pvm._callback_f)
-
-    @patch.object(client, 'PV')
-    def test_GIVEN_pv_name_and_callback_f_WHEN_add_callback_THEN_given_callback_added(self, mock_pv):
-        # Arrange
-        sub = mock_pv.subscribe.return_value
-        self.pvm.subscriptions[mock_pv.name] = {'sub': sub}
-
-        def cb_f(): pass
-
-        # Act
-        self.pvm.add_callback(mock_pv.name, callback_f=cb_f)
-
-        # Assert
-        sub.add_callback.assert_called_with(cb_f)
-
     @parameterized.expand([
         (1, 2, True),
         (1, 3, True),
@@ -154,10 +73,10 @@ class TestPvMonitors(unittest.TestCase):
         (1, 1, False)
     ])
     def test_GIVEN_pv_name_WHEN_check_if_data_is_stale_THEN_correct_check(self, last_update, current_time, expected):
-        with patch('time.time') as mock_time, patch('HLM_PV_Import.logger.log_error'):
+        with patch('time.time') as mock_time, patch('HLM_PV_Import.ca_wrapper.pv_logger'):
 
             # Arrange
-            ca_wrapper.TIME_AFTER_STALE = 1  # set 1 second old as stale data
+            ca_wrapper.STALE_AGE = 1  # set 1 second old as stale data
             self.pvm._pv_last_update['pv_name'] = last_update
             mock_time.return_value = current_time
 
