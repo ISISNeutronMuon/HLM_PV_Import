@@ -1192,7 +1192,7 @@
                <bool>false</bool>
               </property>
               <property name="placeholderText">
-               <string>Service debug file empty or not found.</string>
+               <string>Service log file empty or not found.</string>
               </property>
              </widget>
             </item>
@@ -1282,7 +1282,7 @@
   </action>
   <action name="actionOpen_debug_log">
    <property name="text">
-    <string>Open debug log</string>
+    <string>Open service log</string>
    </property>
   </action>
   <action name="about_action">

@@ -21,9 +21,9 @@ class ServiceLogUpdaterThread(QThread):
     enable_or_disable_buttons = pyqtSignal(bool)
 
     def update_log(self):
-        debug_log_path = Settings.Service.Logging.log_path
+        service_log_path = Settings.Service.Logging.log_path
         try:
-            last_modified = os.path.getmtime(debug_log_path)
+            last_modified = os.path.getmtime(service_log_path)
         except FileNotFoundError as e:
             manager_logger.error(e)
             self.enable_or_disable_buttons.emit(False)
@@ -33,7 +33,7 @@ class ServiceLogUpdaterThread(QThread):
             return
         # if log file was modified since last log widget update, update widget text
         if last_modified > self.last_widget_update:
-            with open(debug_log_path) as file:
+            with open(service_log_path) as file:
                 text = ''.join(deque(file, self.displayed_lines_no))
                 self.log_fetched.emit(text)
                 self.last_widget_update = time.time()
