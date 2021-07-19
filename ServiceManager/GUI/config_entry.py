@@ -56,6 +56,8 @@ class UIConfigEntryDialog(QDialog):
         self.object_name_filter.focusOut.connect(self.load_object_data)  # connect filter custom signal to slot
         self.obj_name_cb.installEventFilter(self.object_name_filter)  # install filter to widget
 
+        self.obj_display_group_cb.currentTextChanged.connect(self.message_lbl.clear)
+
         self.obj_type_cb.currentTextChanged.connect(self.message_lbl.clear)
         self.obj_type_cb.currentTextChanged.connect(lambda: set_red_border(self.obj_type_frame, False))
         self.obj_type_cb.currentTextChanged.connect(self.update_measurement_types)
@@ -119,6 +121,13 @@ class UIConfigEntryDialog(QDialog):
         except TypeError:
             pass
 
+        self.obj_display_group_cb.clear()
+        self.obj_display_group_cb.addItem(None)
+        try:
+            self.obj_display_group_cb.addItems(get_all_display_names())
+        except TypeError:
+            pass
+
     def update_fields(self):
         self.add_items_to_cb()
         self.log_interval_sb.setValue(Settings.Manager.default_update_interval)
@@ -168,7 +177,7 @@ class UIConfigEntryDialog(QDialog):
         if not object_id:
             type_name = self.obj_type_cb.currentText()
             type_id = get_type_id(type_name=type_name)
-
+            display_group_id = get_display_group_id(display_group=self.obj_display_group_cb.currentText())
             msg_box = QMessageBox.question(self, 'Create new object',
                                            f'Create new object "{object_name}" with type "{type_name}" '
                                            f'and save the PV configuration?',
@@ -177,7 +186,9 @@ class UIConfigEntryDialog(QDialog):
                 return
 
             try:
-                object_id = add_object(object_name, type_id, self.obj_comment.text())
+                object_id = add_object(object_name, type_id, display_group_id, self.obj_comment.text())
+                create_sld_if_required(object_id=object_id, object_name=object_name,
+                                       type_name=type_name, class_id=get_class_id(type_id))
             except DBObjectNameAlreadyExists:
                 self.set_message_colored_text(f'Object "{object_name}" already exists in the database.', 'red')
                 set_red_border(self.obj_name_frame)
@@ -186,9 +197,6 @@ class UIConfigEntryDialog(QDialog):
                 manager_logger.error(f'Exception occurred when adding new object to DB, aborting PV Config entry '
                                      f'creation: {e}')
                 return
-
-            create_sld_if_required(object_id=object_id, object_name=object_name,
-                                   type_name=type_name, class_id=get_class_id(type_id))
 
         # Check if object already has a PV configuration (worth checking even for objects not in the DB)
         existing_ids = Settings.Service.PVConfig.get_entry_object_ids()
@@ -259,11 +267,10 @@ class UIConfigEntryDialog(QDialog):
             return False
 
         input_valid = True
+        object_name_max_length = 50
         self.message_lbl.clear()
-        # if no object name
-        if not self.obj_name_cb.lineEdit().text():
-            input_valid = _set_invalid('Object name is required.', self.obj_name_frame)
-        # if no object type
+
+        # check object type
         type_name = self.obj_type_cb.currentText()
         if not type_name:
             input_valid = _set_invalid('Object type is required.', self.obj_type_frame)
@@ -271,8 +278,21 @@ class UIConfigEntryDialog(QDialog):
             type_id = get_type_id(type_name=type_name)
             if not type_id:
                 input_valid = _set_invalid(f'Type "{type_name}" was not found.', self.obj_type_frame)
+            else:
+                class_id = get_class_id(type_id=type_id)
+                if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT, DBClassIDs.GAS_COUNTER]:
+                    # if object will have an SLD, lower max name length to make space for the SLD object name formatting
+                    object_name_max_length -= len(generate_sld_name(object_name="", object_id=get_max_object_id() + 1))
 
-        # if no mea pv names
+        # check object name
+        if not self.obj_name_cb.lineEdit().text():
+            input_valid = _set_invalid('Object name is required.', self.obj_name_frame)
+        else:
+            if len(self.obj_name_cb.lineEdit().text()) > object_name_max_length:
+                input_valid = _set_invalid('Object name is too long. Max length for this object is: {}'
+                                           .format(object_name_max_length), self.obj_name_frame)
+
+        # check measurement pv names
         if not any(mea[0].text() for mea in self.mea_widgets):
             input_valid = _set_invalid('At least one measurement is required.', self.mea_pvs_frame)
 
@@ -317,6 +337,7 @@ class UIConfigEntryDialog(QDialog):
         """
         if self.type_and_comment_updated:
             self.obj_type_cb.setCurrentIndex(0)
+            self.obj_display_group_cb.setCurrentIndex(0)
             self.obj_comment.clear()
             self.type_and_comment_updated = False
 
@@ -344,6 +365,7 @@ class UIConfigEntryDialog(QDialog):
         self.message_lbl.clear()
 
         obj_id = get_object_id(current_object_name) if current_object_name else False
+        self.obj_display_group_cb.setEnabled(not obj_id)
         self.obj_type_cb.setEnabled(not obj_id)
         self.obj_comment.setEnabled(not obj_id)
         if not obj_id:
@@ -363,9 +385,11 @@ class UIConfigEntryDialog(QDialog):
         obj_record = get_object(obj_id)
         obj_class_name = get_object_class(object_id=obj_id)
         type_name = get_object_type(object_id=obj_id)
+        display_name = get_object_display_group(obj_id)
 
         self.obj_comment.setText(obj_record.ob_comment if obj_record else None)
         self.obj_type_cb.setCurrentText(type_name)
+        self.obj_display_group_cb.setCurrentText(display_name)
         self.type_and_comment_updated = True
 
         self.obj_detail_name.setText(get_object_name(obj_id))

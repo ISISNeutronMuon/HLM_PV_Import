@@ -1,6 +1,7 @@
 from peewee import DoesNotExist
 from datetime import datetime
 
+from ServiceManager.utilities import generate_sld_name
 from shared.const import DBTypeIDs, DBClassIDs
 from shared.utils import get_sld_id, need_connection
 from shared.db_models import *
@@ -44,6 +45,21 @@ def get_object_id(object_name):
 
 
 @need_connection
+def get_max_object_id():
+    """
+    Get the ID highest ID.
+
+    Returns:
+        (int): The highest object ID in the database or zero if there isn't any present.
+    """
+    query = GamObject.select(GamObject.ob_id).order_by(GamObject.ob_id)
+    if not query:
+        return 0
+    else:
+        return query[-1].ob_id
+
+
+@need_connection
 def get_object_name(object_id):
     """
     Gets the name of the object with the given ID.
@@ -83,6 +99,18 @@ def get_all_type_names():
 
 
 @need_connection
+def get_all_display_names():
+    """
+    Get a list of all display group names.
+
+    Returns:
+        (list): The display group names.
+    """
+    query = GamDisplaygroup.select(GamDisplaygroup.dg_name)
+    return [x.dg_name for x in query if x]
+
+
+@need_connection
 def get_type_id(type_name: str):
     """
     Get the ID of the object type with the given name.
@@ -95,6 +123,21 @@ def get_type_id(type_name: str):
     """
     obj_type = GamObjecttype.get_or_none(GamObjecttype.ot_name == type_name)
     return obj_type.ot_id if obj_type else None
+
+
+@need_connection
+def get_display_group_id(display_group: str):
+    """
+    Get the ID of the object type with the given name.
+
+    Args:
+        display_group (str): The display group name.
+
+    Returns:
+        type_id (int/None): The object type ID, None if not found.
+    """
+    group = GamDisplaygroup.get_or_none(GamDisplaygroup.dg_name == display_group)
+    return group.dg_id if group else None
 
 
 @need_connection
@@ -193,21 +236,41 @@ def get_object_sld(object_id: int):
 
 
 @need_connection
+def get_object_display_group(object_id: int):
+    """
+    Get the name of the object's display group if it has one.
+
+    Args:
+        object_id (int): The object ID.
+
+    Returns:
+        (str/None): The object's display group, None if not found.
+    """
+    obj = GamObject.get_or_none(GamObject.ob_id == object_id)
+    try:
+        display_id = obj.ob_displaygroup
+        return display_id.dg_name
+    except (DoesNotExist, AttributeError):
+        return
+
+
+@need_connection
 def create_sld_if_required(object_id: int, object_name: str, type_name: str, class_id: int):
     if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT, DBClassIDs.GAS_COUNTER]:
-        sld_id = add_object(name=f'SLD "{object_name}" (ID: {object_id})', type_id=DBTypeIDs.SLD,
+        sld_id = add_object(name=generate_sld_name(object_name, object_id), type_id=DBTypeIDs.SLD,
                             comment=f'Software Level Device for {type_name} "{object_name}" (ID: {object_id})')
         add_relation(or_object_id=object_id, or_object_id_assigned=sld_id)
 
 
 @need_connection
-def add_object(name: str, type_id: int, comment: str = None):
+def add_object(name: str, type_id: int, display_group_id: int = None, comment: str = None):
     """
     Create a new object with the given name, type and comment.
 
     Args:
         name (str): The name of the object.
         type_id (int): The type ID of the object.
+        display_group_id (int): The ID of the display group this object is part of.
         comment (str): Object comment.
 
     Returns:
@@ -220,7 +283,8 @@ def add_object(name: str, type_id: int, comment: str = None):
         raise DBObjectNameAlreadyExists(f'Could not create object - '
                                         f'Object with name "{name}" already exists in the database.')
 
-    record_id = GamObject.insert(ob_name=name, ob_objecttype=type_id, ob_comment=comment).execute()
+    record_id = GamObject.insert(ob_name=name, ob_objecttype=type_id, ob_displaygroup=display_group_id,
+                                 ob_comment=comment).execute()
 
     logger.info(f'Created object no. {record_id} ("{name}") of type {type_id}.')
 

@@ -428,11 +428,11 @@
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <item>
             <layout class="QGridLayout" name="gridLayout">
-             <item row="2" column="1" colspan="4">
-              <widget class="QLineEdit" name="obj_detail_func">
+             <item row="0" column="4">
+              <widget class="QLineEdit" name="obj_detail_id">
                <property name="maximumSize">
                 <size>
-                 <width>16777215</width>
+                 <width>50</width>
                  <height>16777215</height>
                 </size>
                </property>
@@ -444,11 +444,8 @@
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
                </property>
-               <property name="toolTip">
-                <string>The function of the object.</string>
-               </property>
                <property name="whatsThis">
-                <string>The object's function, describing the overall purpose of the device.</string>
+                <string>The database record ID of the object.</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
@@ -481,22 +478,6 @@
                 <set>Qt::AlignCenter</set>
                </property>
               </widget>
-             </item>
-             <item row="0" column="2">
-              <spacer name="horizontalSpacer_15">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>5</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
              </item>
              <item row="0" column="0">
               <widget class="QLabel" name="obj_detail_name_lbl">
@@ -535,11 +516,27 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="4">
-              <widget class="QLineEdit" name="obj_detail_id">
+             <item row="0" column="2">
+              <spacer name="horizontalSpacer_15">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Fixed</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>5</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="2" column="1" colspan="4">
+              <widget class="QLineEdit" name="obj_detail_func">
                <property name="maximumSize">
                 <size>
-                 <width>50</width>
+                 <width>16777215</width>
                  <height>16777215</height>
                 </size>
                </property>
@@ -551,8 +548,11 @@
                <property name="focusPolicy">
                 <enum>Qt::NoFocus</enum>
                </property>
+               <property name="toolTip">
+                <string>The function of the object.</string>
+               </property>
                <property name="whatsThis">
-                <string>The database record ID of the object.</string>
+                <string>The object's function, describing the overall purpose of the device.</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
@@ -649,6 +649,16 @@
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1" colspan="4">
+              <widget class="QComboBox" name="obj_display_group_cb"/>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Display Group</string>
                </property>
               </widget>
              </item>

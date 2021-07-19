@@ -4,8 +4,8 @@ import sys
 from shared.const import *
 
 # About
-VER = '1.1.0'
-B_DATE = '20 May 2021'
+VER = '1.1.4'
+B_DATE = '6 Jul 2021'
 ISIS_URL = "https://www.isis.stfc.ac.uk/Pages/home.aspx"
 
 

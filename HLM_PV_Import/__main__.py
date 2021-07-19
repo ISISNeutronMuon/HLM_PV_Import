@@ -46,13 +46,13 @@ def main():
     # Initialize and set-up the PV import in charge of preparing the PV data, handling logging periods & tasks,
     # running content checks for the user config, and looping through each record every few seconds to check for
     # records scheduled to be updated with a new measurement.
-    pv_import = PvImport(pv_monitors, config, external_pvs_configs)
+    this.pv_import = PvImport(pv_monitors, config, external_pvs_configs)
 
     # Start the monitors and continuously store the PV data received on every update
     pv_monitors.start_monitors()
 
     # Start the PV Import main loop
-    pv_import.start()
+    this.pv_import.start()
 
 
 if __name__ == '__main__':
