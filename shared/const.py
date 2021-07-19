@@ -21,3 +21,4 @@ class DBClassIDs:
 
 class DBTypeIDs:
     SLD = 18
+    MERCURY_CRYOSTAT = 28

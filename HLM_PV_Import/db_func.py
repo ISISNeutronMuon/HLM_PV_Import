@@ -111,3 +111,24 @@ def add_measurement(object_id, mea_values: dict):
     logger.info(f'Added measurement {record_id} for {obj.ob_name} ({object_id}) with values: {dict(mea_values)}')
     # noinspection PyProtectedMember
     db_logger.info(f"Added record no. {record_id} to {GamMeasurement._meta.table_name}")
+
+
+def get_obj_id_and_create_if_not_exist(obj_name: str, type_id: int, comment: str):
+    """
+    Get the ID of the object with the given name. Create one if it doesn't exist.
+
+    Args:
+        obj_name (str): The object name.
+        type_id (int): The object's type ID.
+        comment (str): Object comment.
+
+    Returns:
+        (int): The object ID.
+    """
+    obj_id = GamObject.select(GamObject.ob_id).where(GamObject.ob_name == obj_name).first()
+    if obj_id is None:
+        added_obj_id = GamObject.insert(ob_name=obj_name, ob_objecttype=type_id, ob_comment=comment).execute()
+        db_logger.info(f'Created object no. {added_obj_id} ("{obj_name}") of type {type_id}.')
+        return added_obj_id
+    else:
+        return obj_id
