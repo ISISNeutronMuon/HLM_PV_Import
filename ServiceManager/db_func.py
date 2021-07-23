@@ -1,9 +1,9 @@
 from peewee import DoesNotExist
 from datetime import datetime
 
-from ServiceManager.utilities import generate_sld_name
+from ServiceManager.utilities import generate_module_name
 from shared.const import DBTypeIDs, DBClassIDs
-from shared.utils import get_sld_id, need_connection
+from shared.utils import need_connection
 from shared.db_models import *
 from ServiceManager.logger import manager_logger as logger
 
@@ -220,22 +220,6 @@ def get_measurement_types(object_class_id: int):
 
 
 @need_connection
-def get_object_sld(object_id: int):
-    """
-    Get the name of the object's SLD (Software Level Device) if it has one.
-
-    Args:
-        object_id (int): The object ID.
-
-    Returns:
-        (str/None): The object's SLD name, None if not found.
-    """
-    sld_id = get_sld_id(object_id)
-    sld = GamObject.get_or_none(GamObject.ob_id == sld_id)
-    return sld.ob_name if sld else None
-
-
-@need_connection
 def get_object_display_group(object_id: int):
     """
     Get the name of the object's display group if it has one.
@@ -255,11 +239,16 @@ def get_object_display_group(object_id: int):
 
 
 @need_connection
-def create_sld_if_required(object_id: int, object_name: str, type_name: str, class_id: int):
-    if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT, DBClassIDs.GAS_COUNTER]:
-        sld_id = add_object(name=generate_sld_name(object_name, object_id), type_id=DBTypeIDs.SLD,
-                            comment=f'Software Level Device for {type_name} "{object_name}" (ID: {object_id})')
-        add_relation(or_object_id=object_id, or_object_id_assigned=sld_id)
+def create_module_if_required(object_id: int, object_name: str, type_name: str, class_id: int):
+    module_id = None
+    if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT]:
+        module_id = add_object(name=generate_module_name(object_name, object_id, class_id), type_id=DBTypeIDs.SLD,
+                               comment=f'Software Level Device for {type_name} "{object_name}" (ID: {object_id})')
+    elif class_id == DBClassIDs.GAS_COUNTER:
+        module_id = add_object(name=generate_module_name(object_name, object_id, class_id), type_id=DBTypeIDs.GCM,
+                               comment=f'Gas Counter Module for {type_name} "{object_name}" (ID: {object_id})')
+    if module_id is not None:
+        add_relation(or_object_id=object_id, or_object_id_assigned=module_id)
 
 
 @need_connection

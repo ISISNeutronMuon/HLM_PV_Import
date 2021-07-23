@@ -1,7 +1,7 @@
 from peewee import DoesNotExist
 from functools import wraps
 from shared.db_models import *
-from shared.const import DBTypeIDs
+from shared.const import DBTypeIDs, DBClassIDs
 
 
 def _end_with_colon(string):
@@ -40,24 +40,40 @@ def need_connection(func):
 
 
 @need_connection
-def get_sld_id(object_id: int):
+def get_object_module(object_id: int, object_class: int = None):
+    if object_class is None:
+        obj = GamObject.get_or_none(GamObject.ob_id == object_id)
+        if obj is None:
+            return None
+        object_class = obj.ob_objecttype.ot_objectclass.oc_name
+    if object_class in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT]:
+        return _get_module_object(object_id, DBTypeIDs.SLD)
+    elif object_class == DBClassIDs.GAS_COUNTER:
+        return _get_module_object(object_id, DBTypeIDs.GCM)
+    else:
+        return None
+
+
+@need_connection
+def _get_module_object(object_id: int, module_type: int):
     """
-    Get the ID of the object's SLD (Software Level Device) if it has one.
+    Get the module with the given type of the object with the given ID.
 
     Args:
-        object_id (int): The object ID.
+        object_id (int): The object ID whose relations to check.
+        module_type (int): The type of the module to find in relations.
 
     Returns:
-        (int): The SLD object ID.
+        (GamObject): The module object.
     """
     try:
-        sld_relation = (GamObjectrelation
+        gcm_relation = (GamObjectrelation
                         .select(GamObjectrelation.or_object_id_assigned)
                         .join(GamObject, on=GamObjectrelation.or_object_id_assigned == GamObject.ob_id)
                         .where(GamObjectrelation.or_object == object_id, GamObjectrelation.or_date_removal.is_null(),
-                               GamObject.ob_objecttype == DBTypeIDs.SLD)
+                               GamObject.ob_objecttype == module_type)
                         .order_by(GamObjectrelation.or_id.desc())
                         .get())
-        return sld_relation.or_object_id_assigned.ob_id
+        return gcm_relation.or_object_id_assigned
     except DoesNotExist:
         return None

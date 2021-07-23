@@ -17,8 +17,10 @@ class DBClassIDs:
     CRYOSTAT = 4
     GAS_COUNTER = 7
     HE_LVL_MODULE = 17
+    GAS_COUNTER_MODULE = 16
 
 
 class DBTypeIDs:
-    SLD = 18
+    SLD = 18  # Software Level Device
+    GCM = 16  # Gas Counter Module
     MERCURY_CRYOSTAT = 28
