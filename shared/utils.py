@@ -41,6 +41,16 @@ def need_connection(func):
 
 @need_connection
 def get_object_module(object_id: int, object_class: int = None):
+    """
+    Get the module of the object with the given ID.
+
+    Args:
+        object_id (int): The object ID whose relations to check for the module.
+        object_class (int, optional): The object's class ID, if None it will be queried.
+
+    Returns:
+        (GamObject): The module object.
+    """
     if object_class is None:
         obj = GamObject.get_or_none(GamObject.ob_id == object_id)
         if obj is None:
@@ -56,16 +66,6 @@ def get_object_module(object_id: int, object_class: int = None):
 
 @need_connection
 def _get_module_object(object_id: int, module_type: int):
-    """
-    Get the module with the given type of the object with the given ID.
-
-    Args:
-        object_id (int): The object ID whose relations to check.
-        module_type (int): The type of the module to find in relations.
-
-    Returns:
-        (GamObject): The module object.
-    """
     try:
         gcm_relation = (GamObjectrelation
                         .select(GamObjectrelation.or_object_id_assigned)
