@@ -2,6 +2,7 @@ from multiprocessing import freeze_support
 import sys
 import traceback
 
+from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QApplication, QErrorMessage
 
@@ -15,6 +16,8 @@ from ServiceManager.settings import Settings
 class App:
     def __init__(self):
         self.app = QApplication([])
+        self.app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)  # enable highdpi scaling
+        self.app.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)  # use highdpi icons
         self.app.setWindowIcon(QIcon(icon_path))
 
         self.service_settings_window = None
