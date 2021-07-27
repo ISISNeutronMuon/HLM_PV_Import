@@ -3,7 +3,9 @@ import time
 from datetime import datetime
 from functools import wraps
 
-from shared.const import DBTypeIDs
+from peewee import DoesNotExist
+
+from shared.const import DBTypeIDs, DBClassIDs
 from shared.db_models import *
 from shared.utils import get_object_module
 from HLM_PV_Import.logger import logger, db_logger, log_exception
@@ -83,12 +85,15 @@ def add_measurement(object_id, mea_values: dict):
         mea_values (dict): A dict of the measurement values, max 5, in measurement_number(str)/pv_value pairs.
     """
     obj = GamObject.get(GamObject.ob_id == object_id)
+    obj_class_id = obj.ob_objecttype.ot_objectclass.oc_id
 
-    object_module = get_object_module(object_id=obj.ob_id, object_class=obj.ob_objecttype.ot_objectclass.oc_id)
+    object_module = get_object_module(object_id=obj.ob_id, object_class=obj_class_id)
     if object_module is not None:
         object_id = object_module.ob_id
     mea_comment = _generate_mea_comment(obj, object_module)
     mea_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    mea_values = _calculate_mea_values(object_id, obj_class_id, mea_values)
 
     record_id = GamMeasurement.insert(
         mea_object=object_id,
@@ -133,6 +138,44 @@ def _generate_mea_comment(obj: GamObject, object_module: GamObject):
         mea_comment = f'"{obj.ob_name}" ({type_name} - {class_name}) via HLM PV IMPORT'
 
     return mea_comment
+
+
+@check_connection
+def _calculate_mea_values(mea_obj_id: int, object_class_id: int, mea_values: dict):
+    """
+    Do any measurement values calculations (e.g. Revolutions to Liquid Litres for Gas Counters).
+
+    Args:
+        mea_obj_id (int): The measurement object ID. If the object has a module, this is the module object ID.
+        object_class_id (int): The object class ID.
+        mea_values (dict): Measurement values.
+
+    Returns:
+        (dict): Updated measurement values.
+    """
+    if object_class_id == DBClassIDs.GAS_COUNTER:
+        last_mea = _get_last_measurement(mea_obj_id)
+        if last_mea is not None:
+            mea_values['5'] = round((mea_values['1'] - float(last_mea.mea_value1)) * 1.321, 2)
+
+    return mea_values
+
+
+def _get_last_measurement(object_id: int):
+    """
+    Get the last measurement of object with given ID.
+
+    Args:
+        object_id (int): Object ID whose last measurement to look for.
+
+    Returns:
+        (GamMeasurement): The last measurement of the object, or None if it doesn't exist.
+    """
+    last_mea = (GamMeasurement.select()
+                .where(GamMeasurement.mea_object == object_id)
+                .order_by(GamMeasurement.mea_id.desc())
+                .get())
+    return last_mea if last_mea else None
 
 
 def get_obj_id_and_create_if_not_exist(obj_name: str, type_id: int, comment: str):
