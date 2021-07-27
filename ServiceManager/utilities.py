@@ -10,6 +10,8 @@ from ServiceManager.constants import ASSETS_PATH
 from ServiceManager.logger import manager_logger
 from caproto.sync.client import read
 
+from shared.const import DBClassIDs
+
 
 def test_pv_connection(name: str, timeout: int = 1):
     """
@@ -119,5 +121,9 @@ def setup_button(button: QPushButton, icon_name: str = None):
     button.setStyleSheet("QPushButton { text-align: left; }")
 
 
-def generate_sld_name(object_name: str, object_id: int):
-    return f'SLD "{object_name}" (ID: {object_id})'
+def generate_module_name(object_name: str, object_id: int, object_class: int):
+    if object_class in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT]:
+        return f'SLD "{object_name}" (ID: {object_id})'
+    elif object_class == DBClassIDs.GAS_COUNTER:
+        return f'GCM "{object_name}" (ID: {object_id})'
+

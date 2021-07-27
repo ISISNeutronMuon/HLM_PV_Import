@@ -3,8 +3,9 @@ import time
 from datetime import datetime
 from functools import wraps
 
+from shared.const import DBTypeIDs
 from shared.db_models import *
-from shared.utils import get_sld_id
+from shared.utils import get_object_module
 from HLM_PV_Import.logger import logger, db_logger, log_exception
 
 RECONNECT_ATTEMPTS_MAX = 1000
@@ -73,25 +74,20 @@ def get_object(object_id):
 @check_connection
 def add_measurement(object_id, mea_values: dict):
     """
-    Adds a measurement to the database. If the object currently has a Software Level Device, the measurement object will
-    be the SLD. Otherwise, the measurement will be added to the object itself.
+    Adds a measurement to the database.
+    The measurement will be added to the module if the object has one.
+    Otherwise, the measurement will be added to the object itself.
 
     Args:
         object_id (int): Record/Object id of the object the measurement is for.
         mea_values (dict): A dict of the measurement values, max 5, in measurement_number(str)/pv_value pairs.
     """
     obj = GamObject.get(GamObject.ob_id == object_id)
-    type_name = obj.ob_objecttype.ot_name
-    class_name = obj.ob_objecttype.ot_objectclass.oc_name
 
-    # Check if object has a Software Level Device
-    sld_id = get_sld_id(object_id=obj.ob_id)
-    if sld_id is not None:
-        mea_comment = f'SLD for {object_id} "{obj.ob_name}" ({type_name} - {class_name}) via HLM PV IMPORT'
-        object_id = sld_id  # Add measurements to the SLD instead of directly to the object
-    else:
-        mea_comment = f'"{obj.ob_name}" ({type_name} - {class_name}) via HLM PV IMPORT'
-
+    object_module = get_object_module(object_id=obj.ob_id, object_class=obj.ob_objecttype.ot_objectclass.oc_id)
+    if object_module is not None:
+        object_id = object_module.ob_id
+    mea_comment = _generate_mea_comment(obj, object_module)
     mea_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     record_id = GamMeasurement.insert(
@@ -111,6 +107,32 @@ def add_measurement(object_id, mea_values: dict):
     logger.info(f'Added measurement {record_id} for {obj.ob_name} ({object_id}) with values: {dict(mea_values)}')
     # noinspection PyProtectedMember
     db_logger.info(f"Added record no. {record_id} to {GamMeasurement._meta.table_name}")
+
+
+def _generate_mea_comment(obj: GamObject, object_module: GamObject):
+    """
+    Check whether the object has a module, then generate the measurement comment and update the object ID to add
+    the measurement to.
+
+    Args:
+        obj (GamObject): The object.
+        object_module (GamObject): The object module, if there is one.
+
+    Returns:
+        (str, int): The measurement comment and object ID.
+    """
+    type_name = obj.ob_objecttype.ot_name
+    class_name = obj.ob_objecttype.ot_objectclass.oc_name
+
+    # If object has a module, mention this in the mea. comment
+    if object_module is not None:
+        module_type = object_module.ob_objecttype.ot_id
+        module_name = "SLD" if module_type == DBTypeIDs.SLD else "GCM" if module_type == DBTypeIDs.GCM else "Module"
+        mea_comment = f'{module_name} for {obj.ob_id} "{obj.ob_name}" ({type_name} - {class_name}) via HLM PV IMPORT'
+    else:
+        mea_comment = f'"{obj.ob_name}" ({type_name} - {class_name}) via HLM PV IMPORT'
+
+    return mea_comment
 
 
 def get_obj_id_and_create_if_not_exist(obj_name: str, type_id: int, comment: str):

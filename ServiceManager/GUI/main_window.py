@@ -20,8 +20,9 @@ from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
 from ServiceManager.GUI.config_entry import UIConfigEntryDialog
 from ServiceManager.utilities import is_admin, set_colored_text, setup_button
 from ServiceManager.GUI.main_window_threads import ServiceLogUpdaterThread, ServiceStatusCheckThread
-from ServiceManager.db_func import db_connected, get_object_name, get_object_type, get_sld_id
+from ServiceManager.db_func import db_connected, get_object_name, get_object_type
 from shared.const import SERVICE_NAME
+from shared.utils import get_object_module
 
 EXPAND_CONFIG_TABLE_BTN = {False: ['  Expand', 'expand.svg'], True: ['  Shrink', 'shrink.svg']}
 
@@ -371,12 +372,13 @@ class UIMainWindow(QMainWindow):
 
         for entry in pv_config_data:
             object_id = entry[Settings.Service.PVConfig.OBJ]
+
             # store the entry data in a list, prepare to add to table as row
             entry_data = [
                 object_id,
                 get_object_name(object_id),
                 get_object_type(object_id),
-                get_sld_id(object_id),
+                get_object_module(object_id),
                 entry[Settings.Service.PVConfig.LOG_PERIOD],
                 *[entry[Settings.Service.PVConfig.MEAS].get(x) for x in ['1', '2', '3', '4', '5']]
             ]

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>850</width>
-    <height>628</height>
+    <height>639</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -683,7 +683,7 @@
            <item>
             <layout class="QGridLayout" name="gridLayout_2">
              <item row="2" column="1">
-              <widget class="QLineEdit" name="obj_detail_sld_id">
+              <widget class="QLineEdit" name="obj_detail_module_id">
                <property name="font">
                 <font>
                  <pointsize>8</pointsize>
@@ -696,10 +696,10 @@
                 <enum>Qt::NoFocus</enum>
                </property>
                <property name="toolTip">
-                <string>The record ID of the Software Level Device.</string>
+                <string>The object ID of this object's module.</string>
                </property>
                <property name="whatsThis">
-                <string>The ID of the SLD. Measurements will be added to it instead of the object's ID. The object knows its measurements through the relation between itself and the SLD.</string>
+                <string>The ID of the module. Measurements will be added to the module instead of the object. The object has its measurements through the relation between itself and the module.</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
@@ -710,19 +710,19 @@
               </widget>
              </item>
              <item row="2" column="0">
-              <widget class="QLabel" name="obj_detail_sld_id_lbl">
+              <widget class="QLabel" name="obj_detail_module_id_lbl">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
                 </font>
                </property>
                <property name="text">
-                <string>SLD ID</string>
+                <string>Module ID</string>
                </property>
               </widget>
              </item>
              <item row="0" column="0" colspan="2">
-              <widget class="QLabel" name="obj_detail_sld_top_lbl">
+              <widget class="QLabel" name="obj_detail_module_top_lbl">
                <property name="enabled">
                 <bool>true</bool>
                </property>
@@ -738,7 +738,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>Software Level Device</string>
+                <string>Object Modules</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -746,7 +746,7 @@
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QLineEdit" name="obj_detail_sld_name">
+              <widget class="QLineEdit" name="obj_detail_module_name">
                <property name="font">
                 <font>
                  <pointsize>8</pointsize>
@@ -759,10 +759,10 @@
                 <enum>Qt::NoFocus</enum>
                </property>
                <property name="toolTip">
-                <string>The name of the Software Level Device attached to this object, if exists.</string>
+                <string>The name of the module attached to this object, if there is one.</string>
                </property>
                <property name="whatsThis">
-                <string>The name of the Software Level Device linked to this object. A SLD &quot;stands&quot; between the object itself and its measurements, acting as a &quot;middle-man&quot;. Cryostats, vessels and gas counters require a SLD.</string>
+                <string>The name of the module linked to this object. A module &quot;stands&quot; between the object itself and its measurements, acting as a &quot;middle-man&quot;.</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">background-color: #F0F0F0;</string>
@@ -773,14 +773,14 @@
               </widget>
              </item>
              <item row="1" column="0">
-              <widget class="QLabel" name="obj_detail_sld_name_lbl">
+              <widget class="QLabel" name="obj_detail_module_name_lbl">
                <property name="font">
                 <font>
                  <pointsize>9</pointsize>
                 </font>
                </property>
                <property name="text">
-                <string>SLD Name</string>
+                <string>Module Name</string>
                </property>
               </widget>
              </item>

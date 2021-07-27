@@ -6,6 +6,7 @@ from ServiceManager.settings import Settings
 from ServiceManager.utilities import set_red_border
 from ServiceManager.db_func import *
 from ServiceManager.GUI.config_entry_utils import *
+from shared.utils import get_object_module
 
 
 class UIConfigEntryDialog(QDialog):
@@ -187,8 +188,8 @@ class UIConfigEntryDialog(QDialog):
 
             try:
                 object_id = add_object(object_name, type_id, display_group_id, self.obj_comment.text())
-                create_sld_if_required(object_id=object_id, object_name=object_name,
-                                       type_name=type_name, class_id=get_class_id(type_id))
+                create_module_if_required(object_id=object_id, object_name=object_name,
+                                          type_name=type_name, class_id=get_class_id(type_id))
             except DBObjectNameAlreadyExists:
                 self.set_message_colored_text(f'Object "{object_name}" already exists in the database.', 'red')
                 set_red_border(self.obj_name_frame)
@@ -249,6 +250,7 @@ class UIConfigEntryDialog(QDialog):
             self.update_fields()
             self.set_message_colored_text('New configuration has been added.', 'green')
 
+        # noinspection PyUnresolvedReferences
         self.config_updated.emit()
         self.clear_pvs_connection_status()
 
@@ -280,9 +282,9 @@ class UIConfigEntryDialog(QDialog):
                 input_valid = _set_invalid(f'Type "{type_name}" was not found.', self.obj_type_frame)
             else:
                 class_id = get_class_id(type_id=type_id)
-                if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT, DBClassIDs.GAS_COUNTER]:
-                    # if object will have an SLD, lower max name length to make space for the SLD object name formatting
-                    object_name_max_length -= len(generate_sld_name(object_name="", object_id=get_max_object_id() + 1))
+                # if object will have a module lower max name length to make space for the module object name formatting
+                object_name_max_length -= len(generate_module_name(object_name="", object_id=get_max_object_id() + 1,
+                                                                   object_class=class_id))
 
         # check object name
         if not self.obj_name_cb.lineEdit().text():
@@ -320,6 +322,7 @@ class UIConfigEntryDialog(QDialog):
 
         if resp == QMessageBox.Ok:
             Settings.Service.PVConfig.delete_entry(object_id)
+            # noinspection PyUnresolvedReferences
             self.config_updated.emit()
             self.delete_btn.setEnabled(False)
 
@@ -382,23 +385,24 @@ class UIConfigEntryDialog(QDialog):
 
     def update_details(self, obj_id: int, current_object: str):
         """ Fetches the object record data and updates the details widgets with it. """
-        obj_record = get_object(obj_id)
-        obj_class_name = get_object_class(object_id=obj_id)
-        type_name = get_object_type(object_id=obj_id)
-        display_name = get_object_display_group(obj_id)
+        obj = get_object(obj_id)
+        if obj is None:
+            self.clear_details()
+            return
 
-        self.obj_comment.setText(obj_record.ob_comment if obj_record else None)
-        self.obj_type_cb.setCurrentText(type_name)
-        self.obj_display_group_cb.setCurrentText(display_name)
+        self.obj_comment.setText(obj.ob_comment)
+        self.obj_type_cb.setCurrentText(obj.ob_objecttype.ot_name)
+        self.obj_display_group_cb.setCurrentText(obj.ob_displaygroup.dg_name if obj.ob_displaygroup else None)
         self.type_and_comment_updated = True
 
-        self.obj_detail_name.setText(get_object_name(obj_id))
-        self.obj_detail_id.setText(f'{obj_id}')
-        self.obj_detail_class.setText(obj_class_name)
-        self.obj_detail_func.setText(get_object_function(object_id=obj_id))
+        self.obj_detail_name.setText(obj.ob_name)
+        self.obj_detail_id.setText(f'{obj.ob_id if obj else ""}')
+        self.obj_detail_class.setText(obj.ob_objecttype.ot_objectclass.oc_name)
+        self.obj_detail_func.setText(obj.ob_objecttype.ot_objectclass.oc_function.of_name)
 
-        self.obj_detail_sld_name.setText(get_object_sld(obj_id))
-        self.obj_detail_sld_id.setText(f'{get_sld_id(obj_id)}')
+        object_module = get_object_module(obj_id, obj.ob_objecttype.ot_objectclass.oc_id)
+        self.obj_detail_module_name.setText(object_module.ob_name if object_module else None)
+        self.obj_detail_module_id.setText(f'{object_module.ob_id if object_module else ""}')
 
         self.last_details_update_obj = current_object
 
@@ -464,15 +468,19 @@ class UIConfigEntryDialog(QDialog):
 
         class_id = get_class_id(type_id=type_id)
 
-        sld = False
-        # If class is Vessel, Cryostat or Gas Counter, display types for HLModule (class of Soft. Level Device)
-        if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT, DBClassIDs.GAS_COUNTER]:
-            sld = True
+        type_prefix = ""
+        # If class is Vessel or Cryostat, display types for Software Level Device (SLD)
+        if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT]:
+            type_prefix = "SLD: "
             class_id = DBClassIDs.HE_LVL_MODULE
+        # If class is Gas Counter, display types for Gas Counter Module (GCM)
+        elif class_id == DBClassIDs.GAS_COUNTER:
+            type_prefix = "GCM: "
+            class_id = DBClassIDs.GAS_COUNTER_MODULE
 
         mea_types = get_measurement_types(object_class_id=class_id)
         for mea_number, mea in enumerate(self.mea_widgets):
-            mea[1].setText(f'SLD: {mea_types[mea_number]}' if sld else mea_types[mea_number])
+            mea[1].setText(f'{type_prefix}{mea_types[mea_number]}')
 
     def toggle_widgets_based_on_pv_check_running(self, pvs_check_running: bool):
         self.check_pvs_btn.setText('Checking connections ...' if pvs_check_running
