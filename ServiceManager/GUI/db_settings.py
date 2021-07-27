@@ -50,7 +50,8 @@ class UIDBSettings(QDialog):
                              (self.password.text() != self.reg_pass, self.password_label, True)]
 
         for setting_changed, label, admin_req in settings_to_check:
-            any_setting_changed |= setting_changed and not(admin_req ^ is_admin())
+            if not(admin_req is True and is_admin() is False):
+                any_setting_changed |= setting_changed
             if not admin_req or is_admin():
                 make_bold(label, setting_changed)
 
