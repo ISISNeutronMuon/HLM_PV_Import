@@ -283,8 +283,10 @@ class UIConfigEntryDialog(QDialog):
             else:
                 class_id = get_class_id(type_id=type_id)
                 # if object will have a module lower max name length to make space for the module object name formatting
-                object_name_max_length -= len(generate_module_name(object_name="", object_id=get_max_object_id() + 1,
-                                                                   object_class=class_id))
+                module_name = generate_module_name(object_name="", object_id=get_max_object_id() + 1,
+                                                   object_class=class_id)
+                if module_name is not None:
+                    object_name_max_length -= len(module_name)
 
         # check object name
         if not self.obj_name_cb.lineEdit().text():
