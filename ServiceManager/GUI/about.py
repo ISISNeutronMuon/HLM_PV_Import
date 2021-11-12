@@ -9,6 +9,7 @@ class UIAbout(QDialog):
     def __init__(self):
         super(UIAbout, self).__init__()
         uic.loadUi(uifile=about_ui, baseinstance=self)
+        self.setModal(True)
 
         # Remove the "?" QWhatsThis button from the About dialog
         # noinspection PyTypeChecker

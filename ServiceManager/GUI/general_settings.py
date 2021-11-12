@@ -10,6 +10,7 @@ class UIGeneralSettings(QDialog):
     def __init__(self):
         super(UIGeneralSettings, self).__init__()
         uic.loadUi(uifile=general_settings_ui, baseinstance=self)
+        self.setModal(True)
 
         self._settings_changed = False
 

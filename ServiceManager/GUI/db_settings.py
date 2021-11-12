@@ -14,6 +14,7 @@ class UIDBSettings(QDialog):
     def __init__(self):
         super(UIDBSettings, self).__init__()
         uic.loadUi(uifile=db_settings_ui, baseinstance=self)
+        self.setModal(True)
 
         # Initialize attributes for storing current settings
         self.settings_host = None   # Store the DB host from settings.ini
