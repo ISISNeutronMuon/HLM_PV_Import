@@ -48,6 +48,30 @@ To test the manager or the service in an IDE (as it's easier to make changes), r
 Note that for running the service script directly from the IDE, the PV config and settings.ini will need to be added to the project root.
 Depending on the user, the manager's settings and logs may differ (as they are saved in `<user>\AppData\Local\HLM Service Manager`).
 
+### To check test coverege 
+To check the test coverge you first need to install coverge `pip install coverage` and then ensure that you can run from command line. This poses an issue with the service mains imports, this can be resolved by editing the virtual environments `activate.ps1` to contain the following in the deactivate function.
+```
+# The prior PYTHONPATH:
+    if (Test-Path -Path Env:_OLD_PYTHON_PATH){
+        Copy-Item -Path Env:_OLD_PYTHON_PATH -Destination env:PYTHONPATH
+        Remove-Item -Path Env:_OLD_PYTHON_PATH
+    }elseif(Test-Path -Path Env:NOPYTHONPATH){
+        Remove-Item -Path Env:PYTHONPATH
+        Remove-Item -Path Env:NOPYTHONPATH
+    }
+```
+And the following to the end of the file.
+```
+# Add the venv to the PYTHONPATH
+if (Test-Path env:PYTHONPATH) {
+    copy-item env:PYTHONPATH env:_OLD_PYTHON_PATH
+}else {
+    $env:NOPYTHONPATH = "NOPATH"
+}
+$env:PYTHONPATH = "$(Resolve-Path "$env:VIRTUAL_ENV\..");$env:PYTHONPATH"
+```
+Once this is the case it should be possible to run `python .\HLM_PV_Import\__main__.py` if this is working correctly coverege should now work properly on the tests.
+
 ### Manual tests:
 [hlm_manual_system_tests_v1.0.0.xlsx](https://github.com/ISISComputingGroup/IBEX/files/5766350/hlm_manual_system_tests_v1.0.0.xlsx) (feel free to add to this as you run your own tests)
 
