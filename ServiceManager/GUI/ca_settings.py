@@ -13,7 +13,8 @@ class UICASettings(QDialog):
     def __init__(self):
         super(UICASettings, self).__init__()
         uic.loadUi(uifile=ca_settings_ui, baseinstance=self)
-
+        self.setModal(True)
+        
         self._settings_changed = False
 
         # region Get widgets

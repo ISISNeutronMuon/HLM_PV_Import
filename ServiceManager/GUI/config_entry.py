@@ -15,6 +15,7 @@ class UIConfigEntryDialog(QDialog):
     def __init__(self):
         super(UIConfigEntryDialog, self).__init__()
         uic.loadUi(uifile=config_entry_ui, baseinstance=self)  # Load the UI file and its widgets
+        self.setModal(True)
 
         # region Attributes
         self.last_details_update_obj = None  # Name of object whose details were last updated and displayed
