@@ -1,6 +1,6 @@
 import unittest
 import mock
-import sys
+
 from parameterized import parameterized
 from shared.utils import *
 
