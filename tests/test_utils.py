@@ -1,8 +1,10 @@
 import unittest
 import mock
-
+from tests import mock_database
 from parameterized import parameterized
 from shared.utils import *
+from shared.utils import _get_module_object
+
 
 NAME = 'pv_name:4_test'
 PREFIX = 'prefix:'
@@ -10,6 +12,7 @@ DOMAIN = 'domain:'
 VESSEL = 2
 CRYO = 4
 GASCOUNTER = 7
+
 
 class TestUtilities(unittest.TestCase):
 
@@ -151,3 +154,36 @@ class TestUtilities(unittest.TestCase):
         self.assertEqual(get_object_module(mock_id), 1)
         mock_object.assert_called()
         mock_get_module.assert_called_with(mock_id, 16)
+
+    @mock.patch("shared.utils.database", new=mock_database.database)
+    @mock.patch("shared.utils.GamObject", new=mock_database.GamObject)
+    @mock.patch("shared.utils.GamObjectrelation", new=mock_database.GamObjectrelation)
+    def test_GIVEN_mock_database_AND_value_not_present_WHEN_get_module_object_THEN_return_none(self):
+        with mock_database.Database():
+            mock_database.database.is_connection_usable()
+            GamObject.create(ob_name="test", ob_objecttype=1)
+            self.assertIsNone(_get_module_object(1, 0))
+
+    @mock.patch("shared.utils.database", new=mock_database.database)
+    @mock.patch("shared.utils.GamObject", new=mock_database.GamObject)
+    @mock.patch("shared.utils.GamObjectrelation", new=mock_database.GamObjectrelation)
+    def test_GIVEN_mock_database_AND_value_present_WHEN_get_module_object_THEN_return_value(self):
+        with mock_database.Database():
+            mock_database.database.is_connection_usable()
+            GamObject.create(ob_name="test", ob_objecttype=1)
+            module = GamObject.create(ob_name="test", ob_objecttype=0)
+
+            GamObjectrelation.create(or_object=1, or_object_id_assigned=2, or_date_assignment="")
+            self.assertEqual(_get_module_object(1, 0), module)
+
+    @mock.patch("shared.utils.database", new=mock_database.database)
+    @mock.patch("shared.utils.GamObject", new=mock_database.GamObject)
+    @mock.patch("shared.utils.GamObjectrelation", new=mock_database.GamObjectrelation)
+    def test_GIVEN_mock_database_AND_value_present_WHEN_get_module_object_AND_has_removal_date_THEN_return_none(self):
+        with mock_database.Database():
+            mock_database.database.is_connection_usable()
+            GamObject.create(ob_name="test", ob_objecttype=1)
+            GamObject.create(ob_name="test", ob_objecttype=0)
+
+            GamObjectrelation.create(or_object=1, or_object_id_assigned=2, or_date_assignment="", or_date_removal="NOTNULL")
+            self.assertIsNone(_get_module_object(1, 0))
