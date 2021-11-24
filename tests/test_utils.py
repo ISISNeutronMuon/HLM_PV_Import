@@ -160,7 +160,6 @@ class TestUtilities(unittest.TestCase):
     @mock.patch("shared.utils.GamObjectrelation", new=mock_database.GamObjectrelation)
     def test_GIVEN_mock_database_AND_value_not_present_WHEN_get_module_object_THEN_return_none(self):
         with mock_database.Database():
-            mock_database.database.is_connection_usable()
             GamObject.create(ob_name="test", ob_objecttype=1)
             self.assertIsNone(_get_module_object(1, 0))
 
@@ -169,7 +168,6 @@ class TestUtilities(unittest.TestCase):
     @mock.patch("shared.utils.GamObjectrelation", new=mock_database.GamObjectrelation)
     def test_GIVEN_mock_database_AND_value_present_WHEN_get_module_object_THEN_return_value(self):
         with mock_database.Database():
-            mock_database.database.is_connection_usable()
             GamObject.create(ob_name="test", ob_objecttype=1)
             module = GamObject.create(ob_name="test", ob_objecttype=0)
 
@@ -181,7 +179,6 @@ class TestUtilities(unittest.TestCase):
     @mock.patch("shared.utils.GamObjectrelation", new=mock_database.GamObjectrelation)
     def test_GIVEN_mock_database_AND_value_present_WHEN_get_module_object_AND_has_removal_date_THEN_return_none(self):
         with mock_database.Database():
-            mock_database.database.is_connection_usable()
             GamObject.create(ob_name="test", ob_objecttype=1)
             GamObject.create(ob_name="test", ob_objecttype=0)
 
