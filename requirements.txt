@@ -29,3 +29,4 @@ pywin32-ctypes==0.2.0
 requests==2.25.1
 six==1.16.0
 urllib3==1.26.4
+coverage
