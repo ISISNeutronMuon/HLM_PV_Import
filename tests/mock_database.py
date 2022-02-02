@@ -29,4 +29,5 @@ class Database(ContextManager):
         database.close()
 
 
-
+def is_connection_usable():
+    return database.is_connection_usable()
