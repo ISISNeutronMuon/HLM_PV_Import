@@ -67,13 +67,13 @@ def get_object_module(object_id: int, object_class: int = None):
 @need_connection
 def _get_module_object(object_id: int, module_type: int):
     try:
-        gcm_relation = (GamObjectrelation
-                        .select(GamObjectrelation.or_object_id_assigned)
-                        .join(GamObject, on=GamObjectrelation.or_object_id_assigned == GamObject.ob_id)
-                        .where(GamObjectrelation.or_object == object_id, GamObjectrelation.or_date_removal.is_null(),
-                               GamObject.ob_objecttype == module_type)
-                        .order_by(GamObjectrelation.or_id.desc())
-                        .get())
-        return gcm_relation.or_object_id_assigned
+        gcm_relation = GamObjectrelation.select(GamObjectrelation.or_object_id_assigned)
+        relation_and_object = gcm_relation.join(GamObject, on=GamObjectrelation.or_object_id_assigned == GamObject.ob_id)
+        filtered_relation = relation_and_object.where(GamObjectrelation.or_object == object_id,
+                                                      GamObjectrelation.or_date_removal.is_null(),
+                                                      GamObject.ob_objecttype == module_type)
+        ordered_relation = filtered_relation.order_by(GamObjectrelation.or_id.desc())
+        module_object = ordered_relation.get()
+        return module_object.or_object_id_assigned
     except DoesNotExist:
         return None

@@ -241,11 +241,12 @@ def get_object_display_group(object_id: int):
 @need_connection
 def create_module_if_required(object_id: int, object_name: str, type_name: str, class_id: int):
     module_id = None
+    module_name = generate_module_name(object_name, object_id, class_id)
     if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT]:
-        module_id = add_object(name=generate_module_name(object_name, object_id, class_id), type_id=DBTypeIDs.SLD,
+        module_id = add_object(name=module_name, type_id=DBTypeIDs.SLD,
                                comment=f'Software Level Device for {type_name} "{object_name}" (ID: {object_id})')
     elif class_id == DBClassIDs.GAS_COUNTER:
-        module_id = add_object(name=generate_module_name(object_name, object_id, class_id), type_id=DBTypeIDs.GCM,
+        module_id = add_object(name=module_name, type_id=DBTypeIDs.GCM,
                                comment=f'Gas Counter Module for {type_name} "{object_name}" (ID: {object_id})')
     if module_id is not None:
         add_relation(or_object_id=object_id, or_object_id_assigned=module_id)
