@@ -64,9 +64,9 @@ pipeline {
             unstableTotalAll: 1,
         )
 
-
+      }
+    }
   }
-
   post {
     always {
       junit "test_results/*.xml"
