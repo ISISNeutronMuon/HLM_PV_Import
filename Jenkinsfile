@@ -52,6 +52,19 @@ pipeline {
         """
       }
     }
+
+    stage("Run Pylint") {
+      steps {
+        bat """
+            %HLM_PYTHON% -m pylint ServiceManager HLM_PV_Import --output-format=parseable --reports=no module > pylint.log
+            echo pylint exited with %errorlevel%
+         """
+        recordIssues(
+            tool: pyLint(pattern: '**/pylint.log'),
+            unstableTotalAll: 1,
+        )
+
+
   }
 
   post {
