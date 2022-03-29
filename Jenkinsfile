@@ -56,7 +56,7 @@ pipeline {
     stage("Run Pylint") {
       steps {
         bat """
-            %HLM_PYTHON% -m pylint ServiceManager HLM_PV_Import --output-format=parseable --reports=no module > pylint.log
+            python -m pylint ServiceManager HLM_PV_Import --output-format=parseable --reports=no module > pylint.log
             echo pylint exited with %errorlevel%
          """
         recordIssues(
