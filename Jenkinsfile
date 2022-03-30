@@ -81,6 +81,7 @@ pipeline {
   post {
     always {
       junit "test_results/*.xml"
+      cobertura coberturaReportFile: 'test_results/coverage.xml'
     }
   }
 }
