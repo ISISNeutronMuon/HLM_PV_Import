@@ -58,14 +58,11 @@ pipeline {
         bat """
             %HLM_PYTHON% -m venv myvenv
             call "myvenv\\Scripts\\activate.bat"
-            python -m pylint ServiceManager HLM_PV_Import --output-format=parseable --reports=no module > pylint.log
+            python -m pylint ServiceManager HLM_PV_Import --output-format=parseable --reports=no module --exit-zero > pylint.log
             echo pylint exited with %errorlevel%
          """
-        recordIssues(
-            tool: pyLint(pattern: '**/pylint.log'),
-            unstableTotalAll: 1,
-        )
-
+        echo "linting Success, Generating Report"
+        recordIssues enabledForFailure: true, aggregatingResults: true, tool: pyLint(pattern: 'pylint.log')
       }
     }
   }
