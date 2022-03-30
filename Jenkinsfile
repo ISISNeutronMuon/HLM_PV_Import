@@ -57,9 +57,7 @@ pipeline {
         echo "Branch: ${env.BRANCH_NAME}"
         checkout scm
         bat """
-            %HLM_PYTHON% -m venv myvenv
             call "myvenv\\Scripts\\activate.bat"
-            pip install coverage
             coverage run -m xmlrunner discover tests -o test_results
             coverage xml -o test_results/coverage.xml
         """
@@ -70,7 +68,6 @@ pipeline {
     stage("Run Pylint") {
       steps {
         bat """
-            %HLM_PYTHON% -m venv myvenv
             call "myvenv\\Scripts\\activate.bat"
             python -m pylint ServiceManager HLM_PV_Import --output-format=parseable --reports=no module --exit-zero > pylint.log
             echo pylint exited with %errorlevel%
