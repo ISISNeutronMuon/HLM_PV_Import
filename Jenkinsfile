@@ -48,10 +48,22 @@ pipeline {
             python -m pip install -r requirements.txt
             python -m pip install unittest-xml-reporting
             python setup_jenkins_settings_file.py
+        """
+      }
+    }
+
+    stage("Run Tests") {
+      steps {
+        echo "Branch: ${env.BRANCH_NAME}"
+        checkout scm
+        bat """
+            %HLM_PYTHON% -m venv myvenv
+            call "myvenv\\Scripts\\activate.bat"
             python -m xmlrunner discover tests -o test_results
         """
       }
     }
+    
 
     stage("Run Pylint") {
       steps {
