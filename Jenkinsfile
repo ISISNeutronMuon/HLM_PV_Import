@@ -48,7 +48,6 @@ pipeline {
             call "%VENV_PATH%\\Scripts\\activate.bat"
             python -m pip install -r requirements.txt
             python -m pip install unittest-xml-reporting
-            python setup_jenkins_settings_file.py
         """
       }
     }
@@ -59,6 +58,7 @@ pipeline {
         checkout scm
         bat """
             call "%VENV_PATH%\\Scripts\\activate.bat"
+            python setup_jenkins_settings_file.py
             coverage run -m xmlrunner discover tests -o test_results
             coverage xml -o test_results/coverage.xml
         """
