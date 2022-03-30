@@ -56,6 +56,8 @@ pipeline {
     stage("Run Pylint") {
       steps {
         bat """
+            %HLM_PYTHON% -m venv myvenv
+            call "myvenv\\Scripts\\activate.bat"
             python -m pylint ServiceManager HLM_PV_Import --output-format=parseable --reports=no module > pylint.log
             echo pylint exited with %errorlevel%
          """
