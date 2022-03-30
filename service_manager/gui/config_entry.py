@@ -1,11 +1,11 @@
 from PyQt5.QtWidgets import QDialog, QApplication, QLineEdit
 from PyQt5 import uic
 
-from ServiceManager.constants import config_entry_ui
-from ServiceManager.settings import Settings
-from ServiceManager.utilities import set_red_border
-from ServiceManager.db_func import *
-from ServiceManager.GUI.config_entry_utils import *
+from service_manager.constants import config_entry_ui
+from service_manager.settings import Settings
+from service_manager.utilities import set_red_border
+from service_manager.db_func import *
+from service_manager.gui.config_entry_utils import *
 from shared.utils import get_object_module
 
 

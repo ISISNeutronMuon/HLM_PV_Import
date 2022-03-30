@@ -3,11 +3,11 @@ import sys
 import json
 import configparser
 import win32serviceutil
-from ServiceManager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEMPLATE, SERVICE_SETTINGS_FILE_NAME, \
+from service_manager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEMPLATE, SERVICE_SETTINGS_FILE_NAME, \
     SERVICE_SETTINGS_TEMPLATE, SERVICE_NAME, PV_CONFIG_FILE_NAME
-from ServiceManager.logger import manager_logger, log_exception
-from ServiceManager.utilities import setup_settings_file
-from ServiceManager.db_func import db_connect, db_connected, DBConnectionError
+from service_manager.logger import manager_logger, log_exception
+from service_manager.utilities import setup_settings_file
+from service_manager.db_func import db_connect, db_connected, DBConnectionError
 from shared import db_models
 from shared.utils import get_full_pv_name as get_full_pv_name_, get_short_pv_name as get_short_pv_name_
 

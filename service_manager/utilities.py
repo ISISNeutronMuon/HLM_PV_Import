@@ -6,8 +6,8 @@ from PyQt5.QtCore import QObject, QSize
 from PyQt5.QtGui import QPalette, QColor, QCloseEvent, QIcon
 from PyQt5.QtWidgets import QMessageBox, QPushButton
 
-from ServiceManager.constants import ASSETS_PATH
-from ServiceManager.logger import manager_logger
+from service_manager.constants import ASSETS_PATH
+from service_manager.logger import manager_logger
 from caproto.sync.client import read
 
 from shared.const import DBClassIDs

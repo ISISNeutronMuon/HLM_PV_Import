@@ -1,11 +1,11 @@
 from peewee import DoesNotExist
 from datetime import datetime
 
-from ServiceManager.utilities import generate_module_name
+from service_manager.utilities import generate_module_name
 from shared.const import DBTypeIDs, DBClassIDs
 from shared.utils import need_connection
 from shared.db_models import *
-from ServiceManager.logger import manager_logger as logger
+from service_manager.logger import manager_logger as logger
 
 
 def db_connect():

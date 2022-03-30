@@ -18,7 +18,7 @@ else:
     BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 # region Assets & Layouts
-GUI_DIR_PATH = os.path.join(BASE_PATH, 'GUI')
+GUI_DIR_PATH = os.path.join(BASE_PATH, 'gui')
 ASSETS_PATH = os.path.join(GUI_DIR_PATH, 'assets')
 icon_path = os.path.join(ASSETS_PATH, 'icon.svg')
 about_logo_path = os.path.join(ASSETS_PATH, 'isis-logo.png')

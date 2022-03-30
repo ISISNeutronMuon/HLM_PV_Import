@@ -6,11 +6,11 @@ from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QApplication, QErrorMessage
 
-from ServiceManager.GUI.main_window import UIMainWindow
-from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
-from ServiceManager.constants import icon_path
-from ServiceManager.logger import manager_logger
-from ServiceManager.settings import Settings
+from service_manager.gui.main_window import UIMainWindow
+from service_manager.gui.service_path_dlg import UIServicePathDialog
+from service_manager.constants import icon_path
+from service_manager.logger import manager_logger
+from service_manager.settings import Settings
 
 
 class App:

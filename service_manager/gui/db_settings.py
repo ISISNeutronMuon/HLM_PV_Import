@@ -3,9 +3,9 @@ from PyQt5.QtGui import QColor, QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 from PyQt5 import uic
 
-from ServiceManager.constants import db_settings_ui
-from ServiceManager.utilities import is_admin, make_bold, set_colored_text, apply_unsaved_changes_dialog
-from ServiceManager.settings import Settings
+from service_manager.constants import db_settings_ui
+from service_manager.utilities import is_admin, make_bold, set_colored_text, apply_unsaved_changes_dialog
+from service_manager.settings import Settings
 
 
 class UIDBSettings(QDialog):

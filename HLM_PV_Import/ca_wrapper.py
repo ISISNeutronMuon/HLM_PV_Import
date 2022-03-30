@@ -8,9 +8,9 @@ from caproto.threading.client import Context
 from caproto.sync.client import read
 from caproto import CaprotoError
 
-from HLM_PV_Import.logger import pv_logger, logger
-from HLM_PV_Import.settings import CA
-from HLM_PV_Import.utils import dehex_and_decompress, ints_to_string
+from hlm_pv_import.logger import pv_logger, logger
+from hlm_pv_import.settings import CA
+from hlm_pv_import.utils import dehex_and_decompress, ints_to_string
 
 # Default timeout for reading a PV
 TIMEOUT = CA.CONN_TIMEOUT

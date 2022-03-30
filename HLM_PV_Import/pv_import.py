@@ -1,9 +1,9 @@
-from HLM_PV_Import.ca_wrapper import PvMonitors
-from HLM_PV_Import.user_config import UserConfig
-from HLM_PV_Import.settings import PvImportConfig
-from HLM_PV_Import.logger import logger, pv_logger
-from HLM_PV_Import.settings import CA
-from HLM_PV_Import.db_func import add_measurement, get_obj_id_and_create_if_not_exist
+from hlm_pv_import.ca_wrapper import PvMonitors
+from hlm_pv_import.user_config import UserConfig
+from hlm_pv_import.settings import PvImportConfig
+from hlm_pv_import.logger import logger, pv_logger
+from hlm_pv_import.settings import CA
+from hlm_pv_import.db_func import add_measurement, get_obj_id_and_create_if_not_exist
 from collections import defaultdict
 import time
 

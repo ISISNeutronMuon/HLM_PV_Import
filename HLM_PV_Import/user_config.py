@@ -1,8 +1,8 @@
 from iteration_utilities import duplicates, unique_everseen
-from HLM_PV_Import.logger import logger
-from HLM_PV_Import.settings import PVConfig, CA
-from HLM_PV_Import.ca_wrapper import get_connected_pvs
-from HLM_PV_Import.db_func import get_object
+from hlm_pv_import.logger import logger
+from hlm_pv_import.settings import PVConfig, CA
+from hlm_pv_import.ca_wrapper import get_connected_pvs
+from hlm_pv_import.db_func import get_object
 import json
 
 from shared.utils import get_full_pv_name

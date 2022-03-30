@@ -8,7 +8,7 @@ from peewee import DoesNotExist
 from shared.const import DBTypeIDs, DBClassIDs
 from shared.db_models import *
 from shared.utils import get_object_module
-from HLM_PV_Import.logger import logger, db_logger, log_exception
+from hlm_pv_import.logger import logger, db_logger, log_exception
 
 RECONNECT_ATTEMPTS_MAX = 1000
 RECONNECT_WAIT = 5  # base wait time between attempts in seconds

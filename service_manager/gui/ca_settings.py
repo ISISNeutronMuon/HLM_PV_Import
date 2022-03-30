@@ -4,9 +4,9 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QListWidgetItem, QAbstrac
     QWidget, QStyleOptionViewItem
 from PyQt5 import uic
 
-from ServiceManager.constants import ca_settings_ui
-from ServiceManager.settings import Settings
-from ServiceManager.utilities import apply_unsaved_changes_dialog
+from service_manager.constants import ca_settings_ui
+from service_manager.settings import Settings
+from service_manager.utilities import apply_unsaved_changes_dialog
 
 
 class UICASettings(QDialog):

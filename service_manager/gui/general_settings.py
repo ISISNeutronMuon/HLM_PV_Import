@@ -1,9 +1,9 @@
 from PyQt5.QtGui import QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 from PyQt5 import uic
-from ServiceManager.constants import general_settings_ui
-from ServiceManager.settings import Settings
-from ServiceManager.utilities import apply_unsaved_changes_dialog
+from service_manager.constants import general_settings_ui
+from service_manager.settings import Settings
+from service_manager.utilities import apply_unsaved_changes_dialog
 
 
 class UIGeneralSettings(QDialog):

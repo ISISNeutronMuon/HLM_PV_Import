@@ -3,9 +3,9 @@ import time
 import psutil
 from collections import deque, defaultdict
 from PyQt5.QtCore import QTimer, QThread, QEventLoop, pyqtSignal
-from ServiceManager.logger import manager_logger
-from ServiceManager.settings import Settings
-from ServiceManager.utilities import is_admin
+from service_manager.logger import manager_logger
+from service_manager.settings import Settings
+from service_manager.utilities import is_admin
 from shared.const import SERVICE_NAME
 
 SERVICE_NOT_FOUND = 'service-not-found'

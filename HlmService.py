@@ -5,9 +5,9 @@ import win32event
 import win32service
 import win32serviceutil
 
-import HLM_PV_Import.__main__ as main_
-from HLM_PV_Import.settings import Service
-from HLM_PV_Import.logger import log_exception, logger
+import hlm_pv_import.__main__ as main_
+from hlm_pv_import.settings import Service
+from hlm_pv_import.logger import log_exception, logger
 
 
 class PVImportService(win32serviceutil.ServiceFramework):

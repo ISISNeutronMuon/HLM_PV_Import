@@ -2,9 +2,9 @@ from PyQt5.QtCore import QObject, QEvent, QThread, pyqtSignal, Qt, QSize
 from PyQt5.QtGui import QFont, QMovie, QShowEvent, QCloseEvent
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QMessageBox
 
-from ServiceManager.constants import loading_animation
-from ServiceManager.logger import manager_logger
-from ServiceManager.utilities import test_pv_connection
+from service_manager.constants import loading_animation
+from service_manager.logger import manager_logger
+from service_manager.utilities import test_pv_connection
 
 
 class ObjectNameCBFilter(QObject):

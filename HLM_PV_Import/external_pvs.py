@@ -1,6 +1,6 @@
 """ PVs that are not part of the Helium Recovery PLC """
-from HLM_PV_Import.ca_wrapper import get_instrument_list
-from HLM_PV_Import.settings import DBTypeIDs
+from hlm_pv_import.ca_wrapper import get_instrument_list
+from hlm_pv_import.settings import DBTypeIDs
 
 
 class MercuryPVs:

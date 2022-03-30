@@ -8,19 +8,19 @@ from PyQt5.QtGui import QCloseEvent, QShowEvent, QColor, QIcon
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QTableWidgetItem, QApplication, QListWidget, QSizePolicy
 from PyQt5 import uic
 
-from ServiceManager.logger import manager_logger
-from ServiceManager.settings import Settings
-from ServiceManager.constants import main_window_ui, ASSETS_PATH, MANAGER_SETTINGS_DIR, MANAGER_SETTINGS_FILE, \
+from service_manager.logger import manager_logger
+from service_manager.settings import Settings
+from service_manager.constants import main_window_ui, ASSETS_PATH, MANAGER_SETTINGS_DIR, MANAGER_SETTINGS_FILE, \
     MANAGER_LOGS_FILE
-from ServiceManager.GUI.about import UIAbout
-from ServiceManager.GUI.db_settings import UIDBSettings
-from ServiceManager.GUI.general_settings import UIGeneralSettings
-from ServiceManager.GUI.ca_settings import UICASettings
-from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
-from ServiceManager.GUI.config_entry import UIConfigEntryDialog
-from ServiceManager.utilities import is_admin, set_colored_text, setup_button
-from ServiceManager.GUI.main_window_threads import ServiceLogUpdaterThread, ServiceStatusCheckThread
-from ServiceManager.db_func import db_connected, get_object_name, get_object_type
+from service_manager.gui.about import UIAbout
+from service_manager.gui.db_settings import UIDBSettings
+from service_manager.gui.general_settings import UIGeneralSettings
+from service_manager.gui.ca_settings import UICASettings
+from service_manager.gui.service_path_dlg import UIServicePathDialog
+from service_manager.gui.config_entry import UIConfigEntryDialog
+from service_manager.utilities import is_admin, set_colored_text, setup_button
+from service_manager.gui.main_window_threads import ServiceLogUpdaterThread, ServiceStatusCheckThread
+from service_manager.db_func import db_connected, get_object_name, get_object_type
 from shared.const import SERVICE_NAME
 from shared.utils import get_object_module
 
