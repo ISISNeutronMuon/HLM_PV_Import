@@ -244,10 +244,12 @@ def create_module_if_required(object_id: int, object_name: str, type_name: str, 
     module_name = generate_module_name(object_name, object_id, class_id)
     if class_id in [DBClassIDs.VESSEL, DBClassIDs.CRYOSTAT]:
         module_id = add_object(name=module_name, type_id=DBTypeIDs.SLD,
-                               comment=f'Software Level Device for {type_name} "{object_name}" (ID: {object_id})')
+                               comment=f'Software Level Device for {type_name} "{object_name}"'
+                                       f' (ID: {object_id})')
     elif class_id == DBClassIDs.GAS_COUNTER:
         module_id = add_object(name=module_name, type_id=DBTypeIDs.GCM,
-                               comment=f'Gas Counter Module for {type_name} "{object_name}" (ID: {object_id})')
+                               comment=f'Gas Counter Module for {type_name} "{object_name}"'
+                                       f' (ID: {object_id})')
     if module_id is not None:
         add_relation(or_object_id=object_id, or_object_id_assigned=module_id)
 
@@ -270,11 +272,11 @@ def add_object(name: str, type_id: int, display_group_id: int = None, comment: s
         DBObjectNameAlreadyExists: If an object with the given name already exists in the database.
     """
     if get_object_id(object_name=name) is not None:
-        raise DBObjectNameAlreadyExists(f'Could not create object - '
-                                        f'Object with name "{name}" already exists in the database.')
+        raise DBObjectNameAlreadyExists(
+            f'Could not create object - Object with name "{name}" already exists in the database.')
 
-    record_id = GamObject.insert(ob_name=name, ob_objecttype=type_id, ob_displaygroup=display_group_id,
-                                 ob_comment=comment).execute()
+    record_id = GamObject.insert(ob_name=name, ob_objecttype=type_id,
+                                 ob_displaygroup=display_group_id, ob_comment=comment).execute()
 
     logger.info(f'Created object no. {record_id} ("{name}") of type {type_id}.')
 

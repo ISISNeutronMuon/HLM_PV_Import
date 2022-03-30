@@ -17,9 +17,11 @@ class UIGeneralSettings(QDialog):
         self.apply_btn = self.button_box.button(QDialogButtonBox.Apply)
 
         # region Connect signals to slots
-        self.default_meas_update_interval_sb.valueChanged.connect(lambda _: self.settings_changed(True))
+        self.default_meas_update_interval_sb.valueChanged.connect(
+            lambda _: self.settings_changed(True))
         self.check_pv_on_new_entry_cb.stateChanged.connect(lambda _: self.settings_changed(True))
-        self.auto_load_existing_config_cb.stateChanged.connect(lambda _: self.settings_changed(True))
+        self.auto_load_existing_config_cb.stateChanged.connect(
+            lambda _: self.settings_changed(True))
 
         self.button_box.rejected.connect(self.on_rejected)
         self.button_box.accepted.connect(self.on_accepted)

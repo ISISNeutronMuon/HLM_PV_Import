@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt, pyqtSignal, QModelIndex
 from PyQt5.QtGui import QCloseEvent, QShowEvent
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QListWidgetItem, QAbstractItemView, QStyledItemDelegate, \
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QListWidgetItem, QAbstractItemView, \
+    QStyledItemDelegate, \
     QWidget, QStyleOptionViewItem
 from PyQt5 import uic
 
@@ -14,7 +15,7 @@ class UICASettings(QDialog):
         super(UICASettings, self).__init__()
         uic.loadUi(uifile=ca_settings_ui, baseinstance=self)
         self.setModal(True)
-        
+
         self._settings_changed = False
 
         # region Get widgets
@@ -26,8 +27,10 @@ class UICASettings(QDialog):
         self.addr_edit_btn.clicked.connect(self.edit_address)
         self.addr_del_btn.clicked.connect(self.delete_address)
 
-        self.text_settings = [self.pv_timeout_ln, self.pv_stale_ln, self.pv_prefix_ln, self.pv_domain_ln]
-        [line_edit.textChanged.connect(lambda _: self.settings_changed(True)) for line_edit in self.text_settings]
+        self.text_settings = [self.pv_timeout_ln, self.pv_stale_ln, self.pv_prefix_ln,
+                              self.pv_domain_ln]
+        [line_edit.textChanged.connect(lambda _: self.settings_changed(True)) for line_edit in
+         self.text_settings]
         self.add_stale_pvs.stateChanged.connect(lambda _: self.settings_changed(True))
 
         self.button_box.rejected.connect(self.close)
@@ -109,8 +112,8 @@ class UICASettings(QDialog):
         selected_item = self.addr_list.currentItem()
         item_row = self.addr_list.row(selected_item)
         self.addr_list.takeItem(item_row)
-        # Items removed from a list widget will not be managed by Qt, and will need to be deleted manually.
-        # https://doc.qt.io/qt-5/qlistwidget.html#takeItem
+        # Items removed from a list widget will not be managed by Qt, and will need to be deleted
+        # manually. https://doc.qt.io/qt-5/qlistwidget.html#takeItem
         del selected_item
         self.settings_changed()
 

@@ -26,9 +26,9 @@ class App:
         # Look for the service path in manager settings
         service_settings_path = Settings.Manager.service_path
 
-        # If service path is found, initialize service settings and open main window
-        # Otherwise, open Service Path dialog and ask for the service directory path.
-        # Once a path has been provided and service settings initialized from the dialog, close it and open main window.
+        # If service path is found, initialize service settings and open main window Otherwise,
+        # open Service Path dialog and ask for the service directory path. Once a path has been
+        # provided and service settings initialized from the dialog, close it and open main window.
         if service_settings_path:
             Settings.init_service_settings(service_settings_path)
             self.show_main_window()

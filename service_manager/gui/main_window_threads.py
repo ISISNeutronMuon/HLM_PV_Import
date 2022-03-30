@@ -9,12 +9,11 @@ from service_manager.utilities import is_admin
 from shared.const import SERVICE_NAME
 
 SERVICE_NOT_FOUND = 'service-not-found'
-SERVICE_LOG_UPDATE_INTERVAL = 1000      # msec
-SERVICE_STATUS_CHECK_INTERVAL = 5000    # msec
+SERVICE_LOG_UPDATE_INTERVAL = 1000  # msec
+SERVICE_STATUS_CHECK_INTERVAL = 5000  # msec
 
 
 class ServiceLogUpdaterThread(QThread):
-
     # Custom signals
     log_fetched = pyqtSignal(str)
     file_not_found = pyqtSignal()
@@ -65,7 +64,6 @@ class ServiceLogUpdaterThread(QThread):
 
 
 class ServiceStatusCheckThread(QThread):
-
     # Custom signals
     update_status_title = pyqtSignal(str)
     update_status_style = pyqtSignal(str)
@@ -79,7 +77,8 @@ class ServiceStatusCheckThread(QThread):
         except psutil.NoSuchProcess as e:
             manager_logger.warning(e)
             self.update_status_title.emit(f"Service {SERVICE_NAME} not found")
-            self.update_status_style.emit(f"background-color: {self.status_color[None]}; padding: 20px;")
+            self.update_status_style.emit(
+                f"background-color: {self.status_color[None]}; padding: 20px;")
             self.update_service_details.emit(defaultdict(lambda: None))
             self.stop()
             if is_admin():
@@ -90,7 +89,8 @@ class ServiceStatusCheckThread(QThread):
         status = service_info['status']
 
         self.update_status_title.emit(f"{service_info['display_name']} is {status.upper()}")
-        self.update_status_style.emit(f"background-color: {self.status_color[status]}; padding: 20px;")
+        self.update_status_style.emit(
+            f"background-color: {self.status_color[status]}; padding: 20px;")
 
         self.update_service_details.emit(service_info)
 
@@ -101,13 +101,13 @@ class ServiceStatusCheckThread(QThread):
         QThread.__init__(self, *args, **kwargs)
         self.timer = QTimer()
         self.timer.moveToThread(self)
-        self.finished.connect(self.timer.stop)              # When thread is finished, stop timer
+        self.finished.connect(self.timer.stop)  # When thread is finished, stop timer
         self.timer.timeout.connect(self.update_status)
 
         # region Styles
-        self.status_color = defaultdict(lambda: '#ffff00')      # electric yellow
-        self.status_color[psutil.STATUS_RUNNING] = '#90ee90'    # medium light shade of green
-        self.status_color[psutil.STATUS_STOPPED] = '#add8e6'    # light shade of cyan
+        self.status_color = defaultdict(lambda: '#ffff00')  # electric yellow
+        self.status_color[psutil.STATUS_RUNNING] = '#90ee90'  # medium light shade of green
+        self.status_color[psutil.STATUS_STOPPED] = '#add8e6'  # light shade of cyan
         # endregion
 
     def run(self):

@@ -3,13 +3,15 @@ import sys
 import json
 import configparser
 import win32serviceutil
-from service_manager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEMPLATE, SERVICE_SETTINGS_FILE_NAME, \
+from service_manager.constants import MANAGER_SETTINGS_FILE, MANAGER_SETTINGS_TEMPLATE, \
+    SERVICE_SETTINGS_FILE_NAME, \
     SERVICE_SETTINGS_TEMPLATE, SERVICE_NAME, PV_CONFIG_FILE_NAME
 from service_manager.logger import manager_logger, log_exception
 from service_manager.utilities import setup_settings_file
 from service_manager.db_func import db_connect, db_connected, DBConnectionError
 from shared import db_models
-from shared.utils import get_full_pv_name as get_full_pv_name_, get_short_pv_name as get_short_pv_name_
+from shared.utils import get_full_pv_name as get_full_pv_name_, \
+    get_short_pv_name as get_short_pv_name_
 
 
 class _Settings:
@@ -29,7 +31,8 @@ class ManagerSettings:
         self.settings_path = settings_path
 
         if not os.path.exists(settings_path):
-            setup_settings_file(path=settings_path, template=MANAGER_SETTINGS_TEMPLATE, parser=self.config_parser)
+            setup_settings_file(path=settings_path, template=MANAGER_SETTINGS_TEMPLATE,
+                                parser=self.config_parser)
 
         self.config_parser.read(self.settings_path)
 
@@ -82,7 +85,8 @@ class ServiceSettings:
         self.settings_path = os.path.join(service_path, SERVICE_SETTINGS_FILE_NAME)
 
         if not os.path.exists(self.settings_path):
-            setup_settings_file(path=self.settings_path, template=SERVICE_SETTINGS_TEMPLATE, parser=self.config_parser)
+            setup_settings_file(path=self.settings_path, template=SERVICE_SETTINGS_TEMPLATE,
+                                parser=self.config_parser)
 
         self.config_parser.read(self.settings_path)
 
@@ -129,7 +133,8 @@ class _PVConfig:
         """ Creates the user PV-Records config file if it doesn't exist. """
         path = self.get_path()
         settings_dir = os.path.dirname(path)
-        if not os.path.exists(settings_dir):  # If settings directory does not exist either, create it too
+        if not os.path.exists(
+                settings_dir):  # If settings directory does not exist either, create it too
             os.makedirs(settings_dir)
 
         data = {self.ROOT: []}
@@ -182,7 +187,8 @@ class _PVConfig:
 
         Args:
             new_entry (dict): The record config.
-            overwrite (bool, optional): If True, overwrites the entry that matches the object ID, Defaults to False.
+            overwrite (bool, optional): If True, overwrites the entry that matches the object ID,
+            Defaults to False.
         """
         data = self.get_entries()
         if overwrite:
@@ -193,7 +199,8 @@ class _PVConfig:
                     overwritten = True
                     break
             if not overwritten:
-                manager_logger.error(f'Entry with object ID {new_entry[self.OBJ]} was not overwritten.')
+                manager_logger.error(
+                    f'Entry with object ID {new_entry[self.OBJ]} was not overwritten.')
                 return
         else:
             data.append(new_entry)
@@ -213,7 +220,8 @@ class _PVConfig:
                 break
 
         if not deleted:
-            manager_logger.warning(f'Entry with object ID {object_id} should have been deleted but was not.')
+            manager_logger.warning(
+                f'Entry with object ID {object_id} should have been deleted but was not.')
 
         data = {self.ROOT: data}
         self._json_dump(data)
@@ -265,7 +273,8 @@ class _HeliumDB:
         if not SERVICE_NAME:
             return
         try:
-            return win32serviceutil.GetServiceCustomOption(serviceName=SERVICE_NAME, option=service_option)
+            return win32serviceutil.GetServiceCustomOption(serviceName=SERVICE_NAME,
+                                                           option=service_option)
         except Exception as e:
             manager_logger.error(e)
 
@@ -281,13 +290,15 @@ class _HeliumDB:
 
     @user.setter
     def user(self, new_user):
-        self._set_credentials(self.user_option, new_user, 'DB Connection user could not be set as Service Name '
-                                                          'was not found.')
+        self._set_credentials(self.user_option, new_user,
+                              'DB Connection user could not be set as Service Name '
+                              'was not found.')
 
     @password.setter
     def password(self, new_pass):
-        self._set_credentials(self.pass_option, new_pass, 'DB Connection password could not be set as Service Name '
-                                                          'was not found.')
+        self._set_credentials(self.pass_option, new_pass,
+                              'DB Connection password could not be set as Service Name '
+                              'was not found.')
 
     @staticmethod
     def _set_credentials(service_option, new_value, err_msg: str):
@@ -372,6 +383,8 @@ class _CA:
 
     def get_short_pv_name(self, name):
         return get_short_pv_name_(name, prefix=self.prefix, domain=self.domain)
+
+
 # endregion
 
 

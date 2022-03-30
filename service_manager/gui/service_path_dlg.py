@@ -65,7 +65,8 @@ class UIServicePathDialog(QDialog):
             Settings.Manager.service_path = path
             manager_logger.info('Service directory path changed.')
             service_settings_path = Settings.Manager.service_path
-            Settings.init_service_settings(service_settings_path)  # Init/Update Service settings with path
+            # Init/Update Service settings with path
+            Settings.init_service_settings(service_settings_path)
             self.service_updated.emit()
 
     def browse_file_dialog(self):
