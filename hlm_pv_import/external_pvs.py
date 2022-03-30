@@ -1,6 +1,6 @@
 """ PVs that are not part of the Helium Recovery PLC """
-from HLM_PV_Import.ca_wrapper import get_instrument_list
-from HLM_PV_Import.settings import DBTypeIDs
+from hlm_pv_import.ca_wrapper import get_instrument_list
+from hlm_pv_import.settings import DBTypeIDs
 
 
 class MercuryPVs:
@@ -8,15 +8,18 @@ class MercuryPVs:
         self.full_inst_list = get_instrument_list()
 
         self.instruments = [x['name'] for x in self.full_inst_list]
-        self.ignored_instruments = ['DEMO', 'DETMON', 'RIKENFE', 'MUONFE', 'ENGINX', 'INES', 'NIMROD', 'SANDALS',
-                                    'IMAT', 'ALF', 'CRISP', 'INTER', 'LOQ', 'SURF', 'TOSCA', 'VESUVIO']
+        self.ignored_instruments = ['DEMO', 'DETMON', 'RIKENFE', 'MUONFE', 'ENGINX', 'INES',
+                                    'NIMROD', 'SANDALS', 'IMAT', 'ALF', 'CRISP', 'INTER', 'LOQ',
+                                    'SURF', 'TOSCA', 'VESUVIO']
         # Add _SETUP instruments to ignored
-        self.ignored_instruments.extend([x['name'] for x in self.full_inst_list if '_SETUP' in x['name']])
+        self.ignored_instruments.extend(
+            [x['name'] for x in self.full_inst_list if '_SETUP' in x['name']])
         self.IOCs = ['MERCURY_01', 'MERCURY_02']
         self.PVs = ['LEVEL:1:HELIUM']  # max 5
 
         self.inst_to_check = list(set(self.instruments) ^ set(self.ignored_instruments))
-        self.prefixes = {x['name']: x['pvPrefix'] for x in self.full_inst_list if x['name'] in self.inst_to_check}
+        self.prefixes = {x['name']: x['pvPrefix'] for x in self.full_inst_list if
+                         x['name'] in self.inst_to_check}
 
         self.pv_config = self._get_config()
 
@@ -32,4 +35,5 @@ class MercuryPVs:
         return pv_config
 
     def get_full_pv_list(self):
-        return [f'{prefix}{ioc}:{pv}' for prefix in self.prefixes.values() for ioc in self.IOCs for pv in self.PVs]
+        return [f'{prefix}{ioc}:{pv}' for prefix in self.prefixes.values() for ioc in self.IOCs for
+                pv in self.PVs]

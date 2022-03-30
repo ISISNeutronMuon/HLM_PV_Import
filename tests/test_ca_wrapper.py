@@ -1,8 +1,8 @@
 import unittest
 
 from mock import patch
-from HLM_PV_Import import ca_wrapper
-from HLM_PV_Import.ca_wrapper import PvMonitors
+from hlm_pv_import import ca_wrapper
+from hlm_pv_import.ca_wrapper import PvMonitors
 from parameterized import parameterized
 from caproto.threading import client
 
@@ -15,7 +15,7 @@ class TestWrapper(unittest.TestCase):
         ({'1': False, '2': False, '3': False, '4': False, '5': False}, []),
         ({'1': True}, ['1']), ({'1': False}, [])
     ])
-    @patch('HLM_PV_Import.ca_wrapper.Context')
+    @patch('hlm_pv_import.ca_wrapper.Context')
     def test_WHEN_get_connected_pvs_THEN_return_correct_list(self, pvs_param, expected, mock_ctx):
         # Arrange
         class TestPV:
@@ -38,7 +38,7 @@ class TestWrapper(unittest.TestCase):
 class TestPvMonitors(unittest.TestCase):
 
     def setUp(self):
-        patcher = patch('HLM_PV_Import.ca_wrapper.Context')
+        patcher = patch('hlm_pv_import.ca_wrapper.Context')
         self.mock_ctx = patcher.start().return_value
         self.addCleanup(patcher.stop)
         self.pvm = PvMonitors([])
@@ -73,7 +73,7 @@ class TestPvMonitors(unittest.TestCase):
         (1, 1, False)
     ])
     def test_GIVEN_pv_name_WHEN_check_if_data_is_stale_THEN_correct_check(self, last_update, current_time, expected):
-        with patch('time.time') as mock_time, patch('HLM_PV_Import.ca_wrapper.pv_logger'):
+        with patch('time.time') as mock_time, patch('hlm_pv_import.ca_wrapper.pv_logger'):
 
             # Arrange
             ca_wrapper.STALE_AGE = 1  # set 1 second old as stale data

@@ -5,22 +5,24 @@ import psutil
 import win32serviceutil
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCloseEvent, QShowEvent, QColor, QIcon
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QTableWidgetItem, QApplication, QListWidget, QSizePolicy
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QTableWidgetItem, QApplication, QListWidget, \
+    QSizePolicy
 from PyQt5 import uic
 
-from ServiceManager.logger import manager_logger
-from ServiceManager.settings import Settings
-from ServiceManager.constants import main_window_ui, ASSETS_PATH, MANAGER_SETTINGS_DIR, MANAGER_SETTINGS_FILE, \
-    MANAGER_LOGS_FILE
-from ServiceManager.GUI.about import UIAbout
-from ServiceManager.GUI.db_settings import UIDBSettings
-from ServiceManager.GUI.general_settings import UIGeneralSettings
-from ServiceManager.GUI.ca_settings import UICASettings
-from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
-from ServiceManager.GUI.config_entry import UIConfigEntryDialog
-from ServiceManager.utilities import is_admin, set_colored_text, setup_button
-from ServiceManager.GUI.main_window_threads import ServiceLogUpdaterThread, ServiceStatusCheckThread
-from ServiceManager.db_func import db_connected, get_object_name, get_object_type
+from service_manager.logger import manager_logger
+from service_manager.settings import Settings
+from service_manager.constants import main_window_ui, ASSETS_PATH, MANAGER_SETTINGS_DIR, \
+    MANAGER_SETTINGS_FILE, MANAGER_LOGS_FILE
+from service_manager.gui.about import UIAbout
+from service_manager.gui.db_settings import UIDBSettings
+from service_manager.gui.general_settings import UIGeneralSettings
+from service_manager.gui.ca_settings import UICASettings
+from service_manager.gui.service_path_dlg import UIServicePathDialog
+from service_manager.gui.config_entry import UIConfigEntryDialog
+from service_manager.utilities import is_admin, set_colored_text, setup_button
+from service_manager.gui.main_window_threads import ServiceLogUpdaterThread, \
+    ServiceStatusCheckThread
+from service_manager.db_func import db_connected, get_object_name, get_object_type
 from shared.const import SERVICE_NAME
 from shared.utils import get_object_module
 
@@ -42,12 +44,12 @@ class UIMainWindow(QMainWindow):
             self.setWindowTitle(self.windowTitle() + ' (Administrator)')
 
         # region External windows
-        self.about_w = UIAbout()                            # "About" dialogue window
-        self.db_settings_w = UIDBSettings()                 # "DB Settings" dialogue window
-        self.general_settings_w = UIGeneralSettings()       # "General Settings" dialogue window
-        self.ca_settings_w = UICASettings()                 # "Channel Access" dialogue window
-        self.service_dir_path_w = UIServicePathDialog()     # "Service Directory" dialogue window
-        self.config_entry_w = UIConfigEntryDialog()         # Add/Edit Configuration Entry dialogue window
+        self.about_w = UIAbout()  # "About" dialogue window
+        self.db_settings_w = UIDBSettings()  # "DB Settings" dialogue window
+        self.general_settings_w = UIGeneralSettings()  # "General Settings" dialogue window
+        self.ca_settings_w = UICASettings()  # "Channel Access" dialogue window
+        self.service_dir_path_w = UIServicePathDialog()  # "Service Directory" dialogue window
+        self.config_entry_w = UIConfigEntryDialog()  # Add/Edit Configuration Entry dialogue window
         # endregion
 
         # region External windows setup
@@ -58,21 +60,26 @@ class UIMainWindow(QMainWindow):
         # endregion
 
         # region Attributes
-        self.table_expanded = False     # For toggling table expansion ("Expand Table"/"Service Info")
-        self.pv_config_data = []        # Store the PV configuration data to be displayed in the config. table
+        self.table_expanded = False  # For toggling table expansion ("Expand Table"/"Service Info")
+        self.pv_config_data = []  # Store the PV configuration data to be displayed in the
+        # config. table
         self.expand_table_btn_text = EXPAND_CONFIG_TABLE_BTN
         # endregion
 
         # region Menu actions & signals
         self.about_action.triggered.connect(lambda _: self.trigger_window(self.about_w))
         self.manager_log_action.triggered.connect(lambda _: os.startfile(MANAGER_LOGS_FILE))
-        self.manager_settings_action.triggered.connect(lambda _: os.startfile(MANAGER_SETTINGS_FILE))
-        self.manager_settings_dir_action.triggered.connect(lambda _: os.startfile(MANAGER_SETTINGS_DIR))
+        self.manager_settings_action.triggered.connect(
+            lambda _: os.startfile(MANAGER_SETTINGS_FILE))
+        self.manager_settings_dir_action.triggered.connect(
+            lambda _: os.startfile(MANAGER_SETTINGS_DIR))
         self.show_service_log.triggered.connect(self.open_service_log)
         self.show_service_dir.triggered.connect(self.trigger_open_service_dir)
-        self.show_service_settings.triggered.connect(lambda _: os.startfile(Settings.Service.settings_path))
+        self.show_service_settings.triggered.connect(
+            lambda _: os.startfile(Settings.Service.settings_path))
         self.db_settings_action.triggered.connect(lambda _: self.trigger_window(self.db_settings_w))
-        self.general_settings_action.triggered.connect(lambda _: self.trigger_window(self.general_settings_w))
+        self.general_settings_action.triggered.connect(
+            lambda _: self.trigger_window(self.general_settings_w))
         self.ca_settings_action.triggered.connect(lambda _: self.trigger_window(self.ca_settings_w))
         self.service_directory_action.triggered.connect(self.trigger_service_directory)
         self.open_pv_config_action.triggered.connect(self.trigger_open_pv_config)
@@ -97,7 +104,9 @@ class UIMainWindow(QMainWindow):
         if not is_admin():
             for btn in [self.btn_service_start, self.btn_service_stop, self.btn_service_restart]:
                 btn.setEnabled(False)
-                btn.setToolTip(btn.toolTip() + '\nRun the manager as administrator to start/stop/restart the service.')
+                btn.setToolTip(
+                    btn.toolTip() + '\nRun the manager as administrator to start/stop/restart the '
+                                    'service.')
 
         # Filter/Search Frame Setup
         self.filter_frame.setVisible(False)
@@ -109,13 +118,17 @@ class UIMainWindow(QMainWindow):
         # endregion
 
         # region Signals to Slots
-        self.btn_service_start.clicked.connect(lambda _: self.call_on_service(win32serviceutil.StartService))
-        self.btn_service_stop.clicked.connect(lambda _: self.call_on_service(win32serviceutil.StopService))
-        self.btn_service_restart.clicked.connect(lambda _: self.call_on_service(win32serviceutil.RestartService))
+        self.btn_service_start.clicked.connect(
+            lambda _: self.call_on_service(win32serviceutil.StartService))
+        self.btn_service_stop.clicked.connect(
+            lambda _: self.call_on_service(win32serviceutil.StopService))
+        self.btn_service_restart.clicked.connect(
+            lambda _: self.call_on_service(win32serviceutil.RestartService))
 
         self.db_connection_refresh_btn.clicked.connect(self.refresh_db_connection)
 
-        self.config_table.itemSelectionChanged.connect(self.enable_or_disable_edit_and_delete_buttons)
+        self.config_table.itemSelectionChanged.connect(
+            self.enable_or_disable_edit_and_delete_buttons)
         self.expand_table_btn.clicked.connect(self.expand_table_btn_clicked)
         self.refresh_btn.clicked.connect(self.refresh_config)
         self.show_filter_btn.clicked.connect(self.show_filter_btn_clicked)
@@ -133,15 +146,18 @@ class UIMainWindow(QMainWindow):
         # noinspection PyTypeChecker
         self.thread_service_status = ServiceStatusCheckThread()
         self.thread_service_status.update_status_title.connect(self.service_status_title.setText)
-        self.thread_service_status.update_status_style.connect(self.service_status_title.setStyleSheet)
+        self.thread_service_status.update_status_style.connect(
+            self.service_status_title.setStyleSheet)
         self.thread_service_status.update_service_details.connect(self.update_service_details)
-        self.thread_service_status.update_service_control_btns.connect(self.update_service_control_btns)
+        self.thread_service_status.update_service_control_btns.connect(
+            self.update_service_control_btns)
         self.thread_service_status.start()
         # endregion
 
         # region Service Log Thread
         # noinspection PyTypeChecker
-        self.thread_service_log = ServiceLogUpdaterThread(self.service_log_show_lines_spinbox.value())
+        self.thread_service_log = ServiceLogUpdaterThread(
+            self.service_log_show_lines_spinbox.value())
         self.thread_service_log.log_fetched.connect(self.update_service_log)
         self.thread_service_log.file_not_found.connect(self.clear_service_log)
         self.thread_service_log.enable_or_disable_buttons.connect(self.update_service_log_btns)
@@ -157,11 +173,13 @@ class UIMainWindow(QMainWindow):
         self.service_log_file_open_btn.clicked.connect(self.open_service_log)
         self.service_log_scroll_down_btn.clicked.connect(self.log_scroll_to_bottom)
 
-        # Emit spinner valueChanged only on return key pressed, focus lost, and widget arrow keys clicked
+        # Emit spinner valueChanged only on return key pressed, focus lost, and widget arrow keys
+        # clicked
         self.service_log_show_lines_spinbox.setKeyboardTracking(False)
 
         self.service_log_font_size.currentTextChanged.connect(self.update_log_font_size)
-        self.service_log_show_lines_spinbox.valueChanged.connect(self.thread_service_log.set_displayed_lines_no)
+        self.service_log_show_lines_spinbox.valueChanged.connect(
+            self.thread_service_log.set_displayed_lines_no)
         # endregion
 
     # region Show & Close Events
@@ -170,7 +188,8 @@ class UIMainWindow(QMainWindow):
 
     def closeEvent(self, event: QCloseEvent):
         quit_msg = "Close the application?"
-        reply = QMessageBox.question(self, 'HLM PV Import', quit_msg, QMessageBox.Yes, QMessageBox.No)
+        reply = QMessageBox.question(self, 'HLM PV Import', quit_msg, QMessageBox.Yes,
+                                     QMessageBox.No)
 
         if reply == QMessageBox.Yes:
             event.accept()
@@ -184,9 +203,11 @@ class UIMainWindow(QMainWindow):
     def update_fields(self):
         self.update_config_data()
         self.update_config_table()
-        expand_table_btn_settings = self.expand_table_btn_text[self.table_expanded]  # text and icon depending on table
+        expand_table_btn_settings = self.expand_table_btn_text[
+            self.table_expanded]  # text and icon depending on table
         self.expand_table_btn.setText(expand_table_btn_settings[0])
-        self.expand_table_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, expand_table_btn_settings[1])))
+        self.expand_table_btn.setIcon(
+            QIcon(os.path.join(ASSETS_PATH, expand_table_btn_settings[1])))
         self.edit_config_btn.setEnabled(False)
         self.delete_config_btn.setEnabled(False)
 
@@ -203,8 +224,8 @@ class UIMainWindow(QMainWindow):
 
         else:
             set_colored_text(self.db_connection_status, 'not connected', QColor('red'))
-        self.db_connection_last_checked.setText(f"Connection status last updated on: "
-                                                f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S:%f')}")
+        self.db_connection_last_checked.setText(
+            f"Connection status last updated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S:%f')}")
 
     def update_service(self):
         self.thread_service_log.start()
@@ -255,7 +276,8 @@ class UIMainWindow(QMainWindow):
 
     def expand_table_btn_clicked(self):
         """
-        Toggle table expanded by hiding the service status & log frames, allowing the table to fill the remaining
+        Toggle table expanded by hiding the service status & log frames, allowing the table to
+        fill the remaining
         space.
          """
         # expanded is false -> set visible false (hide) -> expanded = true;
@@ -265,9 +287,11 @@ class UIMainWindow(QMainWindow):
         self.h_line_one.setVisible(self.table_expanded)
         self.h_line_two.setVisible(self.table_expanded)
         self.table_expanded = not self.table_expanded  # toggle bool
-        expand_table_btn_settings = self.expand_table_btn_text[self.table_expanded]  # text and icon depending on table
+        expand_table_btn_settings = self.expand_table_btn_text[
+            self.table_expanded]  # text and icon depending on table
         self.expand_table_btn.setText(expand_table_btn_settings[0])
-        self.expand_table_btn.setIcon(QIcon(os.path.join(ASSETS_PATH, expand_table_btn_settings[1])))
+        self.expand_table_btn.setIcon(
+            QIcon(os.path.join(ASSETS_PATH, expand_table_btn_settings[1])))
 
     def refresh_config(self):
         """ Re-fetch PV config data, update table contents. """
@@ -294,7 +318,8 @@ class UIMainWindow(QMainWindow):
                 show_or_hide = index not in rows
                 self.config_table.setRowHidden(index, show_or_hide)
         else:
-            column_of_interest -= 1  # So indexes match (as filters columns comboBox has an extra "All Columns" on 0)
+            column_of_interest -= 1  # So indexes match (as filters columns comboBox has an extra
+            # "All Columns" on 0)
             for rowIndex in range(self.config_table.rowCount()):
                 item = self.config_table.item(rowIndex, column_of_interest)
                 contains_search = value_of_interest in item.text()
@@ -306,7 +331,8 @@ class UIMainWindow(QMainWindow):
         self.refresh_config()
 
     def new_config_btn_clicked(self):
-        """ Open the Config Entry dialog window. If database is not connected, display error message. """
+        """ Open the Config Entry dialog window. If database is not connected, display error
+        message. """
         if not db_connected():
             QMessageBox.critical(self, 'Database connection required',
                                  'Database connection is required to edit the PV configuration.',
@@ -317,7 +343,8 @@ class UIMainWindow(QMainWindow):
         self.config_entry_w.activateWindow()
 
     def edit_config_btn_clicked(self):
-        """ On Edit, open Config Entry dialog window as normal with object selected and PV config loaded. """
+        """ On Edit, open Config Entry dialog window as normal with object selected and PV config
+        loaded. """
         if not db_connected():
             QMessageBox.critical(self, 'Database connection required',
                                  'Database connection is required to edit the PV configuration.',
@@ -365,10 +392,12 @@ class UIMainWindow(QMainWindow):
 
     def update_config_table(self):
         """ Update the config table contents with the stored entries' data. """
-        self.config_table.setSortingEnabled(False)  # otherwise table will not be properly updated if columns are sorted
+        self.config_table.setSortingEnabled(
+            False)  # otherwise table will not be properly updated if columns are sorted
         self.config_table.setRowCount(0)  # it will delete the QTableWidgetItems automatically
 
-        pv_config_data = self.pv_config_data  # Get the stored PV config data (from update_config_data)
+        pv_config_data = self.pv_config_data  # Get the stored PV config data (from
+        # update_config_data)
 
         for entry in pv_config_data:
             object_id = entry[Settings.Service.PVConfig.OBJ]
@@ -385,7 +414,8 @@ class UIMainWindow(QMainWindow):
 
             self.config_table.insertRow(self.config_table.rowCount())
 
-            # for each element of the entry data, add it to an item then add the item to the appropriate table cell
+            # for each element of the entry data, add it to an item then add the item to the
+            # appropriate table cell
             for index, elem in enumerate(entry_data):
                 item = QTableWidgetItem()
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
@@ -465,7 +495,8 @@ class UIMainWindow(QMainWindow):
 
 
 class DeleteConfigsMessageBox(QMessageBox):
-    """ Message Box on deleting configuration entries. Display a list of entries to be deleted and confirm button. """
+    """ Message Box on deleting configuration entries. Display a list of entries to be deleted
+    and confirm button. """
 
     def __init__(self, obj_list: list):
         super().__init__()
@@ -486,9 +517,12 @@ class DeleteConfigsMessageBox(QMessageBox):
         self.addButton(QMessageBox.Cancel)
         self.setDefaultButton(QMessageBox.Cancel)
 
-    # QMessageBox "resists" resizing, and the widget will always get hard-resized to the width of the
-    # main text attribute, and informativeText will always get word-wrapped to that width whether you want it to or not.
-    # To set the size manually, subclass QMessageBox and reimplement the resize event handler to override the layout.
+    # QMessageBox "resists" resizing, and the widget will always get hard-resized to the width of
+    # the
+    # main text attribute, and informativeText will always get word-wrapped to that width whether
+    # you want it to or not.
+    # To set the size manually, subclass QMessageBox and reimplement the resize event handler to
+    # override the layout.
     def resizeEvent(self, e):
         result = QMessageBox.resizeEvent(self, e)
         self.setMinimumWidth(0)

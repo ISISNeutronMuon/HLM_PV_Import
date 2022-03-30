@@ -2,13 +2,13 @@
 Helium Level Monitoring Project - HeRecovery Database PV Import
 """
 
-from HLM_PV_Import.ca_wrapper import PvMonitors
-from HLM_PV_Import.user_config import UserConfig
-from HLM_PV_Import.pv_import import PvImport
-from HLM_PV_Import.settings import CA, HEDB
-from HLM_PV_Import.logger import logger
-from HLM_PV_Import.db_func import db_connect, check_db_connection
-from HLM_PV_Import.external_pvs import MercuryPVs
+from hlm_pv_import.ca_wrapper import PvMonitors
+from hlm_pv_import.user_config import UserConfig
+from hlm_pv_import.pv_import import PvImport
+from hlm_pv_import.settings import CA, HEDB
+from hlm_pv_import.logger import logger
+from hlm_pv_import.db_func import db_connect, check_db_connection
+from hlm_pv_import.external_pvs import MercuryPVs
 from shared.db_models import initialize_database
 import os
 import sys
@@ -43,9 +43,9 @@ def main():
     # Set up monitoring and fetching of the PV data
     pv_monitors = PvMonitors(pv_list)
 
-    # Initialize and set-up the PV import in charge of preparing the PV data, handling logging periods & tasks,
-    # running content checks for the user config, and looping through each record every few seconds to check for
-    # records scheduled to be updated with a new measurement.
+    # Initialize and set-up the PV import in charge of preparing the PV data, handling logging
+    # periods & tasks, running content checks for the user config, and looping through each record
+    # every few seconds to check for records scheduled to be updated with a new measurement.
     this.pv_import = PvImport(pv_monitors, config, external_pvs_configs)
 
     # Start the monitors and continuously store the PV data received on every update

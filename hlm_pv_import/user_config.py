@@ -1,8 +1,8 @@
 from iteration_utilities import duplicates, unique_everseen
-from HLM_PV_Import.logger import logger
-from HLM_PV_Import.settings import PVConfig, CA
-from HLM_PV_Import.ca_wrapper import get_connected_pvs
-from HLM_PV_Import.db_func import get_object
+from hlm_pv_import.logger import logger
+from hlm_pv_import.settings import PVConfig, CA
+from hlm_pv_import.ca_wrapper import get_connected_pvs
+from hlm_pv_import.db_func import get_object
 import json
 
 from shared.utils import get_full_pv_name
@@ -10,14 +10,15 @@ from shared.utils import get_full_pv_name
 
 class UserConfig:
     """
-    User configuration class that stores the entries, object IDs, available PVs, and methods to work with them,
-    including config schema and content validation.
+    User configuration class that stores the entries, object IDs, available PVs, and methods to
+    work with them, including config schema and content validation.
     """
 
     def __init__(self):
         self.entries = self._get_all_entries()
         self.object_ids = [entry[PVConfig.OBJ] for entry in self.entries]
-        self.logging_periods = {entry[PVConfig.OBJ]: entry[PVConfig.LOG_PERIOD] for entry in self.entries}
+        self.logging_periods = {entry[PVConfig.OBJ]: entry[PVConfig.LOG_PERIOD] for entry in
+                                self.entries}
 
         # Run config checks
         try:
@@ -103,16 +104,19 @@ class UserConfig:
                 objects_with_no_pvs.append(obj_id)
 
         if objects_with_no_pvs:
-            raise PVConfigurationException(f'Objects {objects_with_no_pvs} have no measurement PVs.')
+            raise PVConfigurationException(
+                f'Objects {objects_with_no_pvs} have no measurement PVs.')
 
     def get_measurement_pvs(self, no_duplicates=True, full_names=False):
         """
         Gets a list of the measurement PVs, ignoring empty/null measurements.
 
         Args:
-            no_duplicates (boolean, optional): If one PV is present in multiple entries, add it to the list
+            no_duplicates (boolean, optional): If one PV is present in multiple entries,
+            add it to the list
                 only once, Defaults to True.
-            full_names (boolean, optional): Get the PV names with their prefix and domain, Defaults to False.
+            full_names (boolean, optional): Get the PV names with their prefix and domain,
+            Defaults to False.
 
         Returns:
             (list): The list of PVs
@@ -126,7 +130,8 @@ class UserConfig:
                     config_pvs.append(pv_name)
 
         if full_names:
-            config_pvs = [get_full_pv_name(pv_name, prefix=CA.PV_PREFIX, domain=CA.PV_DOMAIN) for pv_name in config_pvs]
+            config_pvs = [get_full_pv_name(pv_name, prefix=CA.PV_PREFIX, domain=CA.PV_DOMAIN) for
+                          pv_name in config_pvs]
 
         if no_duplicates:
             config_pvs = list(set(config_pvs))
@@ -139,15 +144,17 @@ class UserConfig:
 
         Args:
             object_id (str): The object ID.
-            full_names (boolean, optional): Get the PV names with their prefix and domain, Defaults to False.
+            full_names (boolean, optional): Get the PV names with their prefix and domain,
+            Defaults to False.
 
         Returns:
             (dict): The measurements PVs, in measurement number/pv name pairs.
         """
         # Get the measurements of the entry with the given object_id, None if not found
-        entry_meas = next((x[PVConfig.MEAS] for x in self.entries if x[PVConfig.OBJ] == object_id), None)
+        entry_meas = next((x[PVConfig.MEAS] for x in self.entries if x[PVConfig.OBJ] == object_id),
+                          None)
         return {key: get_full_pv_name(val, prefix=CA.PV_PREFIX, domain=CA.PV_DOMAIN)
-                if full_names else val for key, val in entry_meas.items() if val}
+        if full_names else val for key, val in entry_meas.items() if val}
 
     @staticmethod
     def _get_all_entries():
@@ -158,7 +165,8 @@ class UserConfig:
             (list): The configuration entries.
 
         Raises:
-            PVConfigurationException: If the configuration file is either empty or does not have at least one entry.
+            PVConfigurationException: If the configuration file is either empty or does not have
+            at least one entry.
         """
         config_file = PVConfig.PATH
         with open(config_file) as f:

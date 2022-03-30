@@ -1,7 +1,7 @@
 import os
 import sys
 import logging.config
-from HLM_PV_Import.settings import LoggingFiles
+from hlm_pv_import.settings import LoggingFiles
 
 
 def setup_log_file(log_path):

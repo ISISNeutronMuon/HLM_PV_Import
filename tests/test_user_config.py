@@ -1,14 +1,14 @@
 from parameterized import parameterized
 import unittest
 from mock import patch
-from HLM_PV_Import.user_config import *
-from HLM_PV_Import.settings import PVConfig
+from hlm_pv_import.user_config import *
+from hlm_pv_import.settings import PVConfig
 
 
 class TestUserConfig(unittest.TestCase):
 
     def setUp(self):
-        patch('HLM_PV_Import.user_config.logger').start()
+        patch('hlm_pv_import.user_config.logger').start()
         patcher = patch.object(UserConfig, "__init__", lambda x: None)
         patcher.start()
         self.addCleanup(patcher.stop)
@@ -56,21 +56,21 @@ class TestUserConfig(unittest.TestCase):
         with self.assertRaises(PVConfigurationException):
             self.config._check_entries_have_measurement_pvs()
 
-    @patch('HLM_PV_Import.user_config.get_object')
+    @patch('hlm_pv_import.user_config.get_object')
     def test_GIVEN_objects_exist_WHEN_check_if_objects_exist_THEN_no_exception(self, mock_obj_res):
         self.config.object_ids = ['a', 'b', 'c']
         mock_obj_res.return_value = 1
         self.config._check_objects_exist()
 
-    @patch('HLM_PV_Import.user_config.get_object')
+    @patch('hlm_pv_import.user_config.get_object')
     def test_GIVEN_objects_not_found_WHEN_check_if_objects_exist_THEN_exception_raised(self, mock_obj_res):
         self.config.object_ids = ['a', 'b', 'c']
         mock_obj_res.return_value = None
         with self.assertRaises(PVConfigurationException):
             self.config._check_objects_exist()
 
-    @patch('HLM_PV_Import.user_config.get_connected_pvs')
-    @patch('HLM_PV_Import.user_config.UserConfig.get_measurement_pvs')
+    @patch('hlm_pv_import.user_config.get_connected_pvs')
+    @patch('hlm_pv_import.user_config.UserConfig.get_measurement_pvs')
     def test_GIVEN_existing_pvs_WHEN_check_if_measurement_pvs_connect_THEN_no_exception(self, mock_meas_pvs,
                                                                                         mock_connected_pvs):
         mock_meas_pvs.return_value = ['a', 'b', 'c']
