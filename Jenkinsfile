@@ -59,6 +59,7 @@ pipeline {
         bat """
             %HLM_PYTHON% -m venv myvenv
             call "myvenv\\Scripts\\activate.bat"
+            pip install coverage
             coverage run -m xmlrunner discover tests -o test_results
             coverage xml -o test_results/coverage.xml
         """
