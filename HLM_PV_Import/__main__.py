@@ -43,9 +43,9 @@ def main():
     # Set up monitoring and fetching of the PV data
     pv_monitors = PvMonitors(pv_list)
 
-    # Initialize and set-up the PV import in charge of preparing the PV data, handling logging periods & tasks,
-    # running content checks for the user config, and looping through each record every few seconds to check for
-    # records scheduled to be updated with a new measurement.
+    # Initialize and set-up the PV import in charge of preparing the PV data, handling logging
+    # periods & tasks, running content checks for the user config, and looping through each record
+    # every few seconds to check for records scheduled to be updated with a new measurement.
     this.pv_import = PvImport(pv_monitors, config, external_pvs_configs)
 
     # Start the monitors and continuously store the PV data received on every update

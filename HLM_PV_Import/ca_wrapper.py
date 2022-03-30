@@ -15,7 +15,8 @@ from hlm_pv_import.utils import dehex_and_decompress, ints_to_string
 # Default timeout for reading a PV
 TIMEOUT = CA.CONN_TIMEOUT
 
-# time in s after which PV data is considered stale and will no longer be considered when adding a measurement
+# time in s after which PV data is considered stale and will no longer be considered when adding
+# a measurement
 STALE_AGE = CA.STALE_AFTER
 
 # PV that contains the instrument list
@@ -88,9 +89,11 @@ class PvMonitors:
         Stash the PV Name/Value results in the data dictionary, and the Name/Last Update in another.
 
         Args:
-            sub (caproto.threading.client.Subscription): The subscription, also containing the pertinent PV
+            sub (caproto.threading.client.Subscription): The subscription, also containing the
+            pertinent PV
                                                             and its name.
-            response (caproto._commands.EventAddResponse): The full response from the server, which includes data
+            response (caproto._commands.EventAddResponse): The full response from the server,
+            which includes data
                                                             and any metadata.
         """
         value = response.data[0]
@@ -114,7 +117,8 @@ class PvMonitors:
 
     def pv_data_is_stale(self, pv_name):
         """
-        Checks whether a PVs data is stale or not, by looking at the time since its last update and the set length of
+        Checks whether a PVs data is stale or not, by looking at the time since its last update
+        and the set length of
         time after which a PV is considered stale.
 
         Args:

@@ -1,3 +1,4 @@
+# pylint: disable=E1101
 import sys
 import time
 from datetime import datetime
@@ -15,8 +16,10 @@ RECONNECT_WAIT = 5  # base wait time between attempts in seconds
 RECONNECT_MAX_WAIT_TIME = 14400  # maximum wait time between attempts, in sec
 
 
-def increase_reconnect_wait_time(current_wait):  # increasing wait time in s between attempts for each failed attempt
-    return current_wait*2 if current_wait*2 < RECONNECT_MAX_WAIT_TIME else RECONNECT_MAX_WAIT_TIME
+# increasing wait time in s between attempts for each failed attempt
+def increase_reconnect_wait_time(current_wait):
+    double_current = current_wait * 2
+    return double_current if double_current < RECONNECT_MAX_WAIT_TIME else RECONNECT_MAX_WAIT_TIME
 
 
 def db_connect():
@@ -40,8 +43,8 @@ def check_db_connection(attempt: int = 1, wait_until_reconnect: int = RECONNECT_
         logger.error(conn_aborted)
         raise Exception(conn_aborted)
     else:
-        logger.error(f'Connection to the database could not be established, re-attempting to connect in '
-                     f'{wait_until_reconnect}s. (Attempt: {attempt})')
+        logger.error(f'Connection to the database could not be established,'
+                     f' re-attempting to connect in {wait_until_reconnect}s. (Attempt: {attempt})')
         time.sleep(wait_until_reconnect)
         time_until_next_reconnect = increase_reconnect_wait_time(current_wait=wait_until_reconnect)
         db_connect()
@@ -82,7 +85,8 @@ def add_measurement(object_id, mea_values: dict):
 
     Args:
         object_id (int): Record/Object id of the object the measurement is for.
-        mea_values (dict): A dict of the measurement values, max 5, in measurement_number(str)/pv_value pairs.
+        mea_values (dict): A dict of the measurement values, max 5,
+                            in measurement_number(str)/pv_value pairs.
     """
     obj = GamObject.get(GamObject.ob_id == object_id)
     obj_class_id = obj.ob_objecttype.ot_objectclass.oc_id
@@ -109,15 +113,16 @@ def add_measurement(object_id, mea_values: dict):
         mea_bookingcode=0  # 0 = measurement is not from the balance program (HZB)
     ).execute()
 
-    logger.info(f'Added measurement {record_id} for {obj.ob_name} ({object_id}) with values: {dict(mea_values)}')
+    logger.info(f'Added measurement {record_id} for '
+                f'{obj.ob_name} ({object_id}) with values: {dict(mea_values)}')
     # noinspection PyProtectedMember
     db_logger.info(f"Added record no. {record_id} to {GamMeasurement._meta.table_name}")
 
 
 def _generate_mea_comment(obj: GamObject, object_module: GamObject):
     """
-    Check whether the object has a module, then generate the measurement comment and update the object ID to add
-    the measurement to.
+    Check whether the object has a module, then generate the measurement comment
+    and update the object ID to add the measurement to.
 
     Args:
         obj (GamObject): The object.
@@ -132,8 +137,10 @@ def _generate_mea_comment(obj: GamObject, object_module: GamObject):
     # If object has a module, mention this in the mea. comment
     if object_module is not None:
         module_type = object_module.ob_objecttype.ot_id
-        module_name = "SLD" if module_type == DBTypeIDs.SLD else "GCM" if module_type == DBTypeIDs.GCM else "Module"
-        mea_comment = f'{module_name} for {obj.ob_id} "{obj.ob_name}" ({type_name} - {class_name}) via HLM PV IMPORT'
+        module_name = "SLD" if module_type == DBTypeIDs.SLD \
+            else "GCM" if module_type == DBTypeIDs.GCM else "Module"
+        mea_comment = f'{module_name} for {obj.ob_id} "{obj.ob_name}"' \
+                      f' ({type_name} - {class_name}) via HLM PV IMPORT'
     else:
         mea_comment = f'"{obj.ob_name}" ({type_name} - {class_name}) via HLM PV IMPORT'
 
@@ -146,7 +153,8 @@ def _calculate_mea_values(mea_obj_id: int, object_class_id: int, mea_values: dic
     Do any measurement values calculations (e.g. Revolutions to Liquid Litres for Gas Counters).
 
     Args:
-        mea_obj_id (int): The measurement object ID. If the object has a module, this is the module object ID.
+        mea_obj_id (int): The measurement object ID. If the object has a module, this is the module
+                            object ID.
         object_class_id (int): The object class ID.
         mea_values (dict): Measurement values.
 
@@ -192,7 +200,8 @@ def get_obj_id_and_create_if_not_exist(obj_name: str, type_id: int, comment: str
     """
     obj_id = GamObject.select(GamObject.ob_id).where(GamObject.ob_name == obj_name).first()
     if obj_id is None:
-        added_obj_id = GamObject.insert(ob_name=obj_name, ob_objecttype=type_id, ob_comment=comment).execute()
+        added_obj_id = GamObject.insert(ob_name=obj_name, ob_objecttype=type_id,
+                                        ob_comment=comment).execute()
         db_logger.info(f'Created object no. {added_obj_id} ("{obj_name}") of type {type_id}.')
         return added_obj_id
     else:
