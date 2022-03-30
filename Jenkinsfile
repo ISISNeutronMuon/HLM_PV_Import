@@ -8,6 +8,7 @@ pipeline {
   }
   environment {
     HLM_PYTHON= "C:/HLM_PV_Import/python.exe"
+    VENV_PATH= "C:/HLM_PV_Import/myvenv"
     CRYPTOGRAPHY_DONT_BUILD_RUST= 1
   }
 
@@ -43,8 +44,8 @@ pipeline {
         echo "Branch: ${env.BRANCH_NAME}"
         checkout scm
         bat """
-            %HLM_PYTHON% -m venv myvenv
-            call "myvenv\\Scripts\\activate.bat"
+            %HLM_PYTHON% -m venv %VENV_PATH%
+            call "%VENV_PATH%\\Scripts\\activate.bat"
             python -m pip install -r requirements.txt
             python -m pip install unittest-xml-reporting
             python setup_jenkins_settings_file.py
@@ -57,7 +58,7 @@ pipeline {
         echo "Branch: ${env.BRANCH_NAME}"
         checkout scm
         bat """
-            call "myvenv\\Scripts\\activate.bat"
+            call "%VENV_PATH%\\Scripts\\activate.bat"
             coverage run -m xmlrunner discover tests -o test_results
             coverage xml -o test_results/coverage.xml
         """
@@ -68,7 +69,7 @@ pipeline {
     stage("Run Pylint") {
       steps {
         bat """
-            call "myvenv\\Scripts\\activate.bat"
+            call "%VENV_PATH%\\Scripts\\activate.bat"
             python -m pylint ServiceManager HLM_PV_Import --output-format=parseable --reports=no module --exit-zero > pylint.log
             echo pylint exited with %errorlevel%
          """
