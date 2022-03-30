@@ -1,7 +1,9 @@
+"""
+Contains constants used by the service manager such as folder paths and settings file templates.
+"""
+# pylint: disable=W0212
 import os
 import sys
-# noinspection PyUnresolvedReferences
-from shared.const import *
 
 # About
 VER = '1.1.4'
@@ -13,7 +15,7 @@ if getattr(sys, 'frozen', False):
     # BASE_PATH = os.path.dirname(sys.executable)
     # noinspection PyProtectedMember
     # noinspection PyUnresolvedReferences
-    BASE_PATH = sys._MEIPASS
+    BASE_PATH = sys._MEIPASS  # used for pyinstaller
 else:
     BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
