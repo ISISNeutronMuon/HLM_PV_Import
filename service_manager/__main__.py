@@ -6,11 +6,11 @@ from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QApplication, QErrorMessage
 
-from ServiceManager.GUI.main_window import UIMainWindow
-from ServiceManager.GUI.service_path_dlg import UIServicePathDialog
-from ServiceManager.constants import icon_path
-from ServiceManager.logger import manager_logger
-from ServiceManager.settings import Settings
+from service_manager.gui.main_window import UIMainWindow
+from service_manager.gui.service_path_dlg import UIServicePathDialog
+from service_manager.constants import icon_path
+from service_manager.logger import manager_logger
+from service_manager.settings import Settings
 
 
 class App:
@@ -26,9 +26,9 @@ class App:
         # Look for the service path in manager settings
         service_settings_path = Settings.Manager.service_path
 
-        # If service path is found, initialize service settings and open main window
-        # Otherwise, open Service Path dialog and ask for the service directory path.
-        # Once a path has been provided and service settings initialized from the dialog, close it and open main window.
+        # If service path is found, initialize service settings and open main window Otherwise,
+        # open Service Path dialog and ask for the service directory path. Once a path has been
+        # provided and service settings initialized from the dialog, close it and open main window.
         if service_settings_path:
             Settings.init_service_settings(service_settings_path)
             self.show_main_window()

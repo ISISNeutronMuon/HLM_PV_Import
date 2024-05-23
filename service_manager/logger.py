@@ -1,7 +1,7 @@
 import sys
 import os
 import logging.config
-from ServiceManager.constants import MANAGER_LOGS_FILE, MANAGER_ERR_LOGS_FILE
+from service_manager.constants import MANAGER_LOGS_FILE, MANAGER_ERR_LOGS_FILE
 
 # Setup log file
 for logfile in [MANAGER_LOGS_FILE, MANAGER_ERR_LOGS_FILE]:

@@ -2,9 +2,9 @@ from PyQt5.QtCore import QObject, QEvent, QThread, pyqtSignal, Qt, QSize
 from PyQt5.QtGui import QFont, QMovie, QShowEvent, QCloseEvent
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QMessageBox
 
-from ServiceManager.constants import loading_animation
-from ServiceManager.logger import manager_logger
-from ServiceManager.utilities import test_pv_connection
+from service_manager.constants import loading_animation
+from service_manager.logger import manager_logger
+from service_manager.utilities import test_pv_connection
 
 
 class ObjectNameCBFilter(QObject):
@@ -16,7 +16,7 @@ class ObjectNameCBFilter(QObject):
         if event.type() == QEvent.FocusOut:
             # Custom actions
             self.focusOut.emit()
-        return False    # return False so that the widget will also handle the event
+        return False  # return False so that the widget will also handle the event
 
 
 class CheckPVsThread(QThread):
@@ -35,9 +35,9 @@ class CheckPVsThread(QThread):
         self._running = None
         self.results = None
 
-        # If the PV connection test is started from the Save/Add Config button (auto-check before entry add/edit).
-        # This is used when the check is started automatically by the Add Configuration/Save button, and
-        # automatic PV check is enabled in general settings.
+        # If the PV connection test is started from the Save/Add Config button (auto-check before
+        # entry add/edit). This is used when the check is started automatically by the Add
+        # Configuration/Save button, and automatic PV check is enabled in general settings.
         self._add_entry = False
 
     def __del__(self):
@@ -81,7 +81,8 @@ class CheckPVsThread(QThread):
             self.progress_bar_update.emit(index + 1)
 
         if self._running:
-            manager_logger.info(f'PV connection check finished. Connected: {connected}. Failed: {failed}')
+            manager_logger.info(
+                f'PV connection check finished. Connected: {connected}. Failed: {failed}')
 
         self.results = {'connected': connected, 'failed': failed}
 
@@ -125,14 +126,16 @@ class LoadingPopupWindow(QWidget):
 
 
 class OverwriteMessageBox(QMessageBox):
-    """ Message box displayed on Save/Add Config when the object already has an existing config entry. """
+    """ Message box displayed on Save/Add Config when the object already has an existing config
+    entry. """
 
     def __init__(self, object_name: str, object_id: int):
         super().__init__()
 
         self.setWindowTitle('Configuration already exists')
-        self.setText(f'{object_name} (ID: {object_id}) already has a PV configuration.\n'
-                     f'Overwrite existing configuration?')
+        self.setText(
+            f'{object_name} (ID: {object_id}) already has a PV configuration.\n'                  
+            f'Overwrite existing configuration?')
         self.setIcon(QMessageBox.Warning)
         self.addButton(QMessageBox.Ok)
         ok_btn = self.button(QMessageBox.Ok)
@@ -142,14 +145,16 @@ class OverwriteMessageBox(QMessageBox):
 
 
 class ConfigDeleteMessageBox(QMessageBox):
-    """ Confirmation message box to display on object config entry deletion within the Config Entry dialog window. """
+    """ Confirmation message box to display on object config entry deletion within the Config
+    Entry dialog window. """
 
     def __init__(self, object_name: str, object_id: int):
         super().__init__()
 
         self.setWindowTitle('Delete configuration')
-        self.setText(f'Deleting configuration for {object_name} (ID: {object_id}).\n'
-                     f'Are you sure?')
+        self.setText(
+            f'Deleting configuration for {object_name} (ID: {object_id}).\n'                     
+            f'Are you sure?')
         self.setIcon(QMessageBox.Warning)
         self.addButton(QMessageBox.Ok)
         ok_btn = self.button(QMessageBox.Ok)

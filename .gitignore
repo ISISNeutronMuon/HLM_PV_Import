@@ -9,7 +9,7 @@ test_results
 # PyCharm
 .idea/
 
-# HLM_PV_Import
+# hlm_pv_import
 logs/
 
 # C extensions

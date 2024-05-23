@@ -14,12 +14,12 @@ if getattr(sys, 'frozen', False):
 
     # sys._MEIPASS:
     # For a one-folder bundle, this is the path to that folder, wherever the user may have put it.
-    # For a one-file bundle, this is the path to the _MEIxxxxxx temporary folder created by the bootloader.
+    # For a one-file bundle, this is the path to the _MEIxxxxxx temporary folder created by the
+    # bootloader.
     # To get the same path as the executable, use sys.executable for one-file executables.
     BASE_PATH = os.path.dirname(sys.executable)
 else:
     BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-
 
 PVConfig.PATH = os.path.join(BASE_PATH, PVConfig.FILE)
 
@@ -28,7 +28,8 @@ config.read(os.path.join(BASE_PATH, 'settings.ini'))
 
 
 class CA:
-    EPICS_CA_ADDR_LIST = config['ChannelAccess']['EPICS_CA_ADDR_LIST']  # Epics channel access address list
+    # Epics channel access address list
+    EPICS_CA_ADDR_LIST = config['ChannelAccess']['EPICS_CA_ADDR_LIST']
     CONN_TIMEOUT = config['ChannelAccess'].getfloat('ConnectionTimeout')
     STALE_AFTER = config['ChannelAccess'].getfloat('PvStaleAfter')
     ADD_STALE_PVS = config['ChannelAccess'].getboolean('AddStalePvs')

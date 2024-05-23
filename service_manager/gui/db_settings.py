@@ -3,9 +3,10 @@ from PyQt5.QtGui import QColor, QCloseEvent, QShowEvent
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox
 from PyQt5 import uic
 
-from ServiceManager.constants import db_settings_ui
-from ServiceManager.utilities import is_admin, make_bold, set_colored_text, apply_unsaved_changes_dialog
-from ServiceManager.settings import Settings
+from service_manager.constants import db_settings_ui
+from service_manager.utilities import is_admin, make_bold, set_colored_text, \
+    apply_unsaved_changes_dialog
+from service_manager.settings import Settings
 
 
 class UIDBSettings(QDialog):
@@ -17,10 +18,10 @@ class UIDBSettings(QDialog):
         self.setModal(True)
 
         # Initialize attributes for storing current settings
-        self.settings_host = None   # Store the DB host from settings.ini
-        self.settings_db = None     # Store the DB name from settings.ini
-        self.reg_user = None        # Store the DB user from Windows Registry
-        self.reg_pass = None        # Store the DB password from Windows Registry
+        self.settings_host = None  # Store the DB host from settings.ini
+        self.settings_db = None  # Store the DB name from settings.ini
+        self.reg_user = None  # Store the DB user from Windows Registry
+        self.reg_pass = None  # Store the DB password from Windows Registry
 
         # Remove the "?" QWhatsThis button from the dialog
         # noinspection PyTypeChecker
@@ -41,8 +42,8 @@ class UIDBSettings(QDialog):
 
     def new_settings(self):
         """
-        Make the labels of LineEdits that were modified bold, and enables the Apply button, and OK submit functionality,
-        if at least one setting has been changed.
+        Make the labels of LineEdits that were modified bold, and enables the Apply button,
+        and OK submit functionality, if at least one setting has been changed.
         """
         any_setting_changed = False
         settings_to_check = [(self.host.text() != self.settings_host, self.host_label, False),
@@ -51,7 +52,7 @@ class UIDBSettings(QDialog):
                              (self.password.text() != self.reg_pass, self.password_label, True)]
 
         for setting_changed, label, admin_req in settings_to_check:
-            if not(admin_req is True and is_admin() is False):
+            if not (admin_req is True and is_admin() is False):
                 any_setting_changed |= setting_changed
             if not admin_req or is_admin():
                 make_bold(label, setting_changed)
@@ -60,7 +61,8 @@ class UIDBSettings(QDialog):
         self.apply_btn.setEnabled(any_setting_changed)
 
     def on_accepted(self):
-        if self.apply_btn.isEnabled():  # if apply button is disabled, it means there is nothing new to save
+        # if apply button is disabled, it means there is nothing new to save
+        if self.apply_btn.isEnabled():
             self.save_new_settings()
         self.close()
 
@@ -80,33 +82,40 @@ class UIDBSettings(QDialog):
                 registry_pass = Settings.Service.HeliumDB.password
 
                 if registry_user == self.user.text() and registry_pass == self.password.text():
-                    set_colored_text(label=self.message, text='Updated DB configuration.', color=QColor('green'))
+                    set_colored_text(label=self.message, text='Updated DB configuration.',
+                                     color=QColor('green'))
                 else:
-                    set_colored_text(label=self.message, text='User/Password could not be updated.\nPlease verify the '
-                                                              'service is found.', color=QColor('red'))
+                    set_colored_text(label=self.message,
+                                     text='User/Password could not be updated.\nPlease verify the '
+                                          ''                                                      
+                                          'service is found.',
+                                     color=QColor('red'))
             except Exception as e:
                 set_colored_text(label=self.message, text=f'{e}', color=QColor('red'))
 
         else:
-            set_colored_text(label=self.message, text='Updated DB configuration.', color=QColor('green'))
+            set_colored_text(label=self.message, text='Updated DB configuration.',
+                             color=QColor('green'))
 
         self.reset_styles()
 
         # Establish new DB connection and get result
         connected = Settings.Service.connect_to_db()
         if connected is True:
-            set_colored_text(label=self.message, text=f'{self.message.text()}\nConnected to DB.', color=QColor('green'))
+            set_colored_text(label=self.message, text=f'{self.message.text()}\nConnected to DB.',
+                             color=QColor('green'))
         elif connected is False:
-            set_colored_text(
-                label=self.message,
-                text=f'{self.message.text()}\nCould not establish DB connection, please check log for details.',
-                color=QColor('red')
-            )
+            set_colored_text(label=self.message,
+                             text=f'{self.message.text()}\nCould not establish DB connection, '
+                                  f'please check log for details.',
+                             color=QColor('red')
+                             )
         self.update_db_connection_status.emit()
 
     def closeEvent(self, event: QCloseEvent):
         """ Upon dialog close """
-        set_colored_text(label=self.message, text='', color=QColor('black'))  # Remove message upon window close
+        # Remove message upon window close
+        set_colored_text(label=self.message, text='', color=QColor('black'))
         apply_unsaved_changes_dialog(event, self.save_new_settings, self.apply_btn.isEnabled())
 
     def showEvent(self, event: QShowEvent):
@@ -137,14 +146,16 @@ class UIDBSettings(QDialog):
             self.user.setText(None)
             for widget in [self.user, self.password]:
                 widget.setPlaceholderText(msg)
-                widget.setToolTip('Please restart the app in Administrator Mode to edit this setting.')
+                widget.setToolTip(
+                    'Please restart the app in Administrator Mode to edit this setting.')
         else:
             self.reg_user = Settings.Service.HeliumDB.user
             self.reg_pass = Settings.Service.HeliumDB.password
             self.user.setText(self.reg_user)
             self.password.setText(self.reg_pass)
 
-        # Check if host and db name are already in the settings.ini, and if so add them to the fields
+        # Check if host and db name are already in the settings.ini, and if so add them to the
+        # fields
         self.settings_host = Settings.Service.HeliumDB.host
         self.settings_db = Settings.Service.HeliumDB.name
 

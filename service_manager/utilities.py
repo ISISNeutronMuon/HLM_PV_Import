@@ -6,8 +6,8 @@ from PyQt5.QtCore import QObject, QSize
 from PyQt5.QtGui import QPalette, QColor, QCloseEvent, QIcon
 from PyQt5.QtWidgets import QMessageBox, QPushButton
 
-from ServiceManager.constants import ASSETS_PATH
-from ServiceManager.logger import manager_logger
+from service_manager.constants import ASSETS_PATH
+from service_manager.logger import manager_logger
 from caproto.sync.client import read
 
 from shared.const import DBClassIDs
@@ -71,22 +71,25 @@ def set_colored_text(label, text, color):
 
 
 def set_red_border(frame: QObject, highlight: bool = True):
-    frame.setStyleSheet(f"QObject#{frame.objectName()} {{{'border: 1px solid red;' if highlight else ''}}}")
+    frame.setStyleSheet(
+        f"QObject#{frame.objectName()} {{{'border: 1px solid red;' if highlight else ''}}}")
 
 
 def setup_settings_file(path: str, template: dict, parser: configparser.ConfigParser):
     """
-    Creates the settings file and its directory, if it doesn't exist, and writes the given config template with
-    blank values to it.
+    Creates the settings file and its directory, if it doesn't exist, and writes the given config
+    template with blank values to it.
 
     Args:
         path (str): The full path to the file.
-        template (dict): The template containing sections (keys, str) and their options (values, list of str).
+        template (dict): The template containing sections (keys, str) and their options (values,
+        list of str).
         parser (ConfigParser): The ConfigParser object.
     """
     # Create file and directory if not exists and write config template to it with blank values
     settings_dir = os.path.dirname(path)
-    if not os.path.exists(settings_dir):  # If settings directory does not exist either, create it too
+    if not os.path.exists(
+            settings_dir):  # If settings directory does not exist either, create it too
         os.makedirs(settings_dir)
 
     for section, options in template.items():
@@ -126,4 +129,3 @@ def generate_module_name(object_name: str, object_id: int, object_class: int):
         return f'SLD "{object_name}" (ID: {object_id})'
     elif object_class == DBClassIDs.GAS_COUNTER:
         return f'GCM "{object_name}" (ID: {object_id})'
-

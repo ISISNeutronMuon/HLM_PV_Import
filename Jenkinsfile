@@ -70,7 +70,7 @@ pipeline {
       steps {
         bat """
             call "%VENV_PATH%\\Scripts\\activate.bat"
-            python -m pylint ServiceManager HLM_PV_Import --output-format=parseable --reports=no module --exit-zero > pylint.log
+            python -m pylint service_manager hlm_pv_import --output-format=parseable --reports=no module --exit-zero > pylint.log
             echo pylint exited with %errorlevel%
          """
         echo "linting Success, Generating Report"

@@ -3,8 +3,8 @@
 import configparser
 import os
 
-from ServiceManager.utilities import setup_settings_file
-from ServiceManager.constants import SERVICE_SETTINGS_TEMPLATE
+from service_manager.utilities import setup_settings_file
+from service_manager.constants import SERVICE_SETTINGS_TEMPLATE
 
 if __name__ == '__main__':
     settings_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '', 'settings.ini')

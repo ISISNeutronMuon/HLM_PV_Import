@@ -5,9 +5,9 @@ from PyQt5.QtGui import QShowEvent, QDesktopServices
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFileDialog, QMessageBox
 from PyQt5 import uic
 
-from ServiceManager.constants import SERVICE_SETTINGS_FILE_NAME, service_path_dlg_ui
-from ServiceManager.logger import manager_logger
-from ServiceManager.settings import Settings
+from service_manager.constants import SERVICE_SETTINGS_FILE_NAME, service_path_dlg_ui
+from service_manager.logger import manager_logger
+from service_manager.settings import Settings
 
 
 class UIServicePathDialog(QDialog):
@@ -65,7 +65,8 @@ class UIServicePathDialog(QDialog):
             Settings.Manager.service_path = path
             manager_logger.info('Service directory path changed.')
             service_settings_path = Settings.Manager.service_path
-            Settings.init_service_settings(service_settings_path)  # Init/Update Service settings with path
+            # Init/Update Service settings with path
+            Settings.init_service_settings(service_settings_path)
             self.service_updated.emit()
 
     def browse_file_dialog(self):
